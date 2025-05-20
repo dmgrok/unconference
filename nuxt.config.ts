@@ -1,4 +1,6 @@
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import type { NuxtPage } from 'nuxt/schema'
+import logger from './utils/logger'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -7,6 +9,34 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vuetify'],
   },
+  hooks: {
+    'pages:extend' (pages) {
+      function setMiddleware (pages: NuxtPage[]) {
+        const publicPages = ['index', 'login', 'register']
+        const adminPages = ['admin', 'settings'] // Add admin-only pages here
+        
+        for (const page of pages) {
+          if (page.name && !publicPages.includes(page.name)) {
+            logger.debug(`Setting authentication middleware for page: ${page.name}`)
+            if (!page.meta) {
+              page.meta = {}
+            }
+            page.meta.middleware = ['authenticated']
+            
+            // Add admin requirement for admin pages
+            if (adminPages.includes(page.name)) {
+              logger.debug(`Setting admin requirement for page: ${page.name}`)
+              page.meta.requiresAdmin = true
+            }
+          }
+          if (page.children) {
+            setMiddleware(page.children)
+          }
+        }
+      }
+      setMiddleware(pages)
+    }
+  },
   modules: [
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
@@ -14,13 +44,32 @@ export default defineNuxtConfig({
         config.plugins.push(vuetify({ autoImport: true }))
       })
     },
-    //...
+    'nuxt-auth-utils',
+    '@nuxt/test-utils/module'
   ],
+  runtimeConfig: {
+    oauth: {
+      github: {
+        clientId: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+        apiURL: process.env.GITHUB_API_URL ? process.env.GITHUB_API_URL : 'https://api.github.com',
+        authorizationURL: process.env.GITHUB_AUTH_URL ? process.env.GITHUB_AUTH_URL : 'https://github.com/login/oauth/authorize',
+        tokenURL: process.env.GITHUB_TOKEN_URL ? process.env.GITHUB_TOKEN_URL : 'https://github.com/login/oauth/access_token',
+      }
+    }, 
+    public: {
+      devMode: process.env.APP_ENV === 'development',
+      authUrl: process.env.GITHUB_AUTH === 'true' ?  '/auth/github' : '/login'
+    }
+  },
   vite: {
     vue: {
       template: {
         transformAssetUrls,
       },
     },
+    server: {
+      allowedHosts: ['localhost', '.ngrok.dev'] 
+    }
   },
 })

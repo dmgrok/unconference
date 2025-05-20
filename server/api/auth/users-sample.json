@@ -1,0 +1,14 @@
+[
+  {
+    "Firstname": "Darth",
+    "Lastname": "Vader",
+    "Email": "darth.vader@starwars.com",
+    "Role": "Admin"
+  },
+  {
+    "Firstname": "Storm",
+    "Lastname": "Trooper",
+    "Email": "storm.trooper@starwars.com",
+    "Role": "User"
+  }
+]
