@@ -64,6 +64,19 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_45DFC708FB59410B9EDD85E396F20E21 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_BE68576AD88F4301AF6CE20107D66A5A }}
 
+      - name: Set Web App Settings
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az webapp config appsettings set --name eurocats-unconference --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --settings \
+              NUXT_SESSION_PASSWORD="${{ secrets.NUXT_SESSION_PASSWORD }}" \
+              APP_ENV="production" \
+              AUTH_GITHUB="${{ vars.AUTH_GITHUB }}" \
+              TOPICS_FILE_PATH="${{ vars.TOPICS_FILE_PATH }}" \
+              USERS_FILE_PATH="${{ vars.USERS_FILE_PATH }}" \
+              MAX_VOTES_PER_TOPIC="${{ vars.MAX_VOTES_PER_TOPIC }}" \
+              TOP_TOPICS_COUNT="${{ vars.TOP_TOPICS_COUNT }}"
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -71,4 +84,3 @@ jobs:
           app-name: 'eurocats-unconference'
           slot-name: 'Production'
           package: .
-          
