@@ -1,11 +1,13 @@
 {
-  "name": "nuxt-app",
+  "name": "eurocats-unconference",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "nuxt build",
     "build:azure": "npx nuxi build --preset=azure",
+    "build:docker": "docker build -t eurocats-unconference .",
     "dev": "npx nuxi dev --dotenv .env",
+    "docker": "docker run --rm -it -p 3000:3000  --env-file .env --name eurocats-unconference eurocats-unconference",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
