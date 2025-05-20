@@ -17,6 +17,9 @@ jobs:
     permissions:
        id-token: write
        contents: read
+    environment:
+      name: 'production'
+      url: ${{ steps.builddeploy.outputs.swa-url }}
     steps:
       - uses: actions/checkout@v4      
 
