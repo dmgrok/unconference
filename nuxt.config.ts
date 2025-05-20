@@ -1,5 +1,5 @@
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
-import type { NuxtPage } from 'nuxt/schema'
+import type { NuxtPage } from '@nuxt/schema'
 import logger from './utils/logger'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     transpile: ['vuetify'],
   },
   hooks: {
-    'pages:extend' (pages) {
+    'pages:extend' (pages: NuxtPage[]) {
       function setMiddleware (pages: NuxtPage[]) {
         const publicPages = ['index', 'login', 'register']
         const adminPages = ['admin', 'settings'] // Add admin-only pages here
@@ -38,9 +38,9 @@ export default defineNuxtConfig({
     }
   },
   modules: [
+    // @ts-expect-error
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
-        // @ts-expect-error
         config.plugins.push(vuetify({ autoImport: true }))
       })
     },
