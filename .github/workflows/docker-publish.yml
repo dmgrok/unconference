@@ -19,8 +19,10 @@ env:
 
 jobs:
   build:
-
+    name: Build and Publish Docker image
     runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
     permissions:
       contents: read
       packages: write
@@ -91,3 +93,85 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+  deploy:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Deploy
+    needs: build
+    permissions:
+       id-token: write
+       contents: read
+    environment:
+      name: 'production'
+    steps:
+      - uses: actions/checkout@v4      
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_TENANTID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTIONID }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Web App Settings
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          app-settings-json: |
+            [
+              {
+                "name": "NODE_ENV",
+                "value": "production",
+                "slotSetting": false
+              },
+              {
+                "name": "APP_ENV",
+                "value": "production",
+                "slotSetting": false
+              },
+              {
+                "name": "NUXT_SESSION_PASSWORD",
+                "value": "${{ secrets.NUXT_SESSION_PASSWORD }}",
+                "slotSetting": false
+              },
+              {
+                "name": "AUTH_GITHUB",
+                "value": "${{ vars.AUTH_GITHUB }}",
+                "slotSetting": false
+              },
+              {
+                "name": "TOPICS_FILE_PATH",
+                "value": "${{ vars.TOPICS_FILE_PATH }}",
+                "slotSetting": false
+              },
+              {
+                "name": "USERS_FILE_PATH",
+                "value": "${{ vars.USERS_FILE_PATH }}",
+                "slotSetting": false
+              },
+              {
+                "name": "MAX_VOTES_PER_TOPIC",
+                "value": "${{ vars.MAX_VOTES_PER_TOPIC }}",
+                "slotSetting": false
+              },
+              {
+                "name": "TOP_TOPICS_COUNT",
+                "value": "${{ vars.TOP_TOPICS_COUNT }}",
+                "slotSetting": false
+              }
+            ]
+          mask-inputs: false
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.tags }}
