@@ -20,6 +20,12 @@
       adminOnly: false
     },
     {
+      icon: 'mdi-trophy',
+      title: 'Top Topics',
+      to: '/leaderboard',
+      adminOnly: false
+    },
+    {
       icon: 'mdi-cog',
       title: 'Settings',
       to: '/settings',
