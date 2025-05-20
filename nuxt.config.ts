@@ -2,6 +2,11 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 import type { NuxtPage } from '@nuxt/schema'
 import logger from './utils/logger'
 
+logger.info('Starting Unconference application...')
+logger.info('Environment:', process.env.APP_ENV)
+logger.info('TOPICS_FILE_PATH:', process.env.TOPICS_FILE_PATH)
+logger.info('USERS_FILE_PATH:', process.env.USERS_FILE_PATH)
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
