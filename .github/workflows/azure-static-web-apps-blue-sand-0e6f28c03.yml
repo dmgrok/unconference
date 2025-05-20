@@ -34,7 +34,7 @@ jobs:
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            az staticwebapp appsettings set --name ${{ secrets.AZURE_STATIC_WEBAPP_NAME }} --setting-names \
+            az staticwebapp appsettings set --name ${{ secrets.AZURE_APP_NAME }} --setting-names \
               NUXT_SESSION_PASSWORD="${{ secrets.NUXT_SESSION_PASSWORD }}" \
               APP_ENV="production" \
               AUTH_GITHUB="${{ vars.AUTH_GITHUB }}" \
