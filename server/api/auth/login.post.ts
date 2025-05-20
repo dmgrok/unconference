@@ -14,8 +14,7 @@ export default defineEventHandler(async (event) => {
   const usersFilePath = join(process.cwd(), config.usersFilePath)
 
   logger.info(`User file path: ${usersFilePath}`)
-  logger.info(`User file path from env: ${process.env.NUXT_USERS_FILE_PATH}`)
-
+  
   // Read users from JSON file
   const usersData = await fs.readFile(usersFilePath, 'utf-8')
   const users = JSON.parse(usersData)

@@ -143,12 +143,12 @@ jobs:
                 "slotSetting": false
               },
               {
-                "name": "AUTH_GITHUB",
+                "name": "NUXT_AUTH_GITHUB",
                 "value": "${{ vars.AUTH_GITHUB }}",
                 "slotSetting": false
               },
               {
-                "name": "TOPICS_FILE_PATH",
+                "name": "NUXT_TOPICS_FILE_PATH",
                 "value": "${{ vars.TOPICS_FILE_PATH }}",
                 "slotSetting": false
               },
@@ -158,12 +158,12 @@ jobs:
                 "slotSetting": false
               },
               {
-                "name": "MAX_VOTES_PER_TOPIC",
+                "name": "NUXT_MAX_VOTES_PER_TOPIC",
                 "value": "${{ vars.MAX_VOTES_PER_TOPIC }}",
                 "slotSetting": false
               },
               {
-                "name": "TOP_TOPICS_COUNT",
+                "name": "NUXT_TOP_TOPICS_COUNT",
                 "value": "${{ vars.TOP_TOPICS_COUNT }}",
                 "slotSetting": false
               }
