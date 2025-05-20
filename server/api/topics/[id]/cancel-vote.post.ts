@@ -1,12 +1,14 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import logger from '../../../../utils/logger'
+import type { DiscussionTopic } from '~/types/topic'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   const topicId = getRouterParam(event, 'id')
+  const config = useRuntimeConfig()
   
-  const topicsPath = join(process.cwd(), 'server/api/topics.json')
+  const topicsPath = join(process.cwd(), config.topicsFilePath)
   
   try {
     // Read existing topics
@@ -14,7 +16,7 @@ export default defineEventHandler(async (event) => {
     const topics = JSON.parse(topicsData)
     
     // Find topic
-    const topic = topics.find(t => t.id === topicId)
+    const topic = topics.find((t: DiscussionTopic) => t.id === topicId)
     if (!topic) {
       throw createError({
         statusCode: 404,

@@ -1,14 +1,15 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import logger from '../../../../utils/logger'
-
-const VOTE_LIMIT = 12
+import type { DiscussionTopic } from '~/types/topic'
 
 export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig()
+  const maxVotesPerTopic = config.public.maxVotesPerTopic
   const { user } = await requireUserSession(event)
   const topicId = getRouterParam(event, 'id')
   
-  const topicsPath = join(process.cwd(), 'server/api/topics.json')
+  const topicsPath = join(process.cwd(), config.topicsFilePath)
   
   try {
     // Read existing topics
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
     const topics = JSON.parse(topicsData)
     
     // Check if user has already voted
-    const hasVoted = topics.some(topic => topic.voters.includes(user.email))
+    const hasVoted = topics.some((topic: DiscussionTopic) => topic.voters.includes(user.email))
     if (hasVoted) {
       throw createError({
         statusCode: 400,
@@ -25,7 +26,7 @@ export default defineEventHandler(async (event) => {
     }
     
     // Find and update topic
-    const topic = topics.find(t => t.id === topicId)
+    const topic = topics.find((t: DiscussionTopic) => t.id === topicId)
     if (!topic) {
       throw createError({
         statusCode: 404,
@@ -34,7 +35,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check vote limit
-    if (topic.votes >= VOTE_LIMIT) {
+    if (topic.votes >= maxVotesPerTopic) {
       throw createError({
         statusCode: 400,
         message: 'This topic has reached the maximum number of votes for this round'
@@ -46,7 +47,7 @@ export default defineEventHandler(async (event) => {
     topic.voters.push(user.email)
 
     // Check if topic just reached the limit
-    if (topic.votes === VOTE_LIMIT) {
+    if (topic.votes === maxVotesPerTopic) {
       topic.selectedForRound = true
       logger.debug(`Topic "${topic.title}" has reached the vote limit and is selected for the round`)
     }

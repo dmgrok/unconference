@@ -13,8 +13,8 @@ export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   const topicId = getRouterParam(event, 'id')
   const body = await readValidatedBody(event, editSchema.parse)
-  
-  const topicsPath = join(process.cwd(), 'server/api/topics.json')
+  const config = useRuntimeConfig()
+  const topicsPath = join(process.cwd(), config.topicsFilePath)
   
   try {
     // Read existing topics

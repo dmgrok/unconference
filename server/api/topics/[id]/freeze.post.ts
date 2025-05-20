@@ -15,7 +15,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const topicId = getRouterParam(event, 'id')
-  const topicsPath = join(process.cwd(), 'server/api/topics.json')
+  const config = useRuntimeConfig()
+  const topicsPath = join(process.cwd(), config.topicsFilePath)
   
   try {
     // Read existing topics

@@ -10,10 +10,11 @@ const bodySchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const { email, password } = await readValidatedBody(event, bodySchema.parse)
+  const config = useRuntimeConfig()
+  const usersFilePath = join(process.cwd(), config.usersFilePath)
 
   // Read users from JSON file
-  const usersPath = join(process.cwd(), 'server/api/auth/users.json')
-  const usersData = await fs.readFile(usersPath, 'utf-8')
+  const usersData = await fs.readFile(usersFilePath, 'utf-8')
   const users = JSON.parse(usersData)
 
   // Find user by email

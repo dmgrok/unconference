@@ -56,10 +56,14 @@ export default defineNuxtConfig({
         authorizationURL: process.env.GITHUB_AUTH_URL ? process.env.GITHUB_AUTH_URL : 'https://github.com/login/oauth/authorize',
         tokenURL: process.env.GITHUB_TOKEN_URL ? process.env.GITHUB_TOKEN_URL : 'https://github.com/login/oauth/access_token',
       }
-    }, 
+    },
+    topicsFilePath: process.env.NUXT_TOPICS_FILE_PATH,
+    usersFilePath: process.env.NUXT_USERS_FILE_PATH,  
     public: {
       devMode: process.env.APP_ENV === 'development',
-      authUrl: process.env.GITHUB_AUTH === 'true' ?  '/auth/github' : '/login'
+      authUrl: process.env.GITHUB_AUTH === 'true' ?  '/auth/github' : '/login',
+      maxVotesPerTopic: parseInt(process.env.NUXT_MAX_VOTES_PER_TOPIC || '12'),
+      topTopicsCount: parseInt(process.env.NUXT_TOP_TOPICS_COUNT || '10')
     }
   },
   vite: {

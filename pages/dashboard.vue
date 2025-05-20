@@ -4,9 +4,9 @@ import { useDisplay } from 'vuetify'
 import type { User } from '~/types/user'
 import type { DiscussionTopic } from '~/types/topic'
 
-const VOTE_LIMIT = 12
-
+const config = useRuntimeConfig()
 const { user } = useUserSession()
+const VOTE_LIMIT = config.public.maxVotesPerTopic
 const dialog = ref(false)
 const editDialog = ref(false)
 const newRoundConfirmDialog = ref(false)
@@ -458,35 +458,5 @@ const voteButtonText = (topic: DiscussionTopic) => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <v-row>
-      <v-col
-        v-for="(item, index) in data"
-        :key="'tile-' + index"
-        cols="12"
-        sm="6"
-        lg="4"
-        class="d-flex"
-      >
-        <WorkflowHealthTile
-          :title="item.title"
-          :drilldownRoute="item.drilldownRoute"
-          :drilldownParams="{}"
-          class="flex-grow-1"
-        />
-      </v-col>
-      
-      <!-- Placeholder tiles -->
-      <v-col
-        v-for="(_, index) in placeholders"
-        :key="'placeholder-' + index"
-        cols="12"
-        sm="6"
-        lg="4"
-        class="d-flex"
-      >
-        <WorkflowHealthTilePlaceholder class="flex-grow-1" />
-      </v-col>
-    </v-row>
   </v-container>
 </template>

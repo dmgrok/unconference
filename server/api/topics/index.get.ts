@@ -3,7 +3,8 @@ import { join } from 'path'
 import logger from '../../../utils/logger'
 
 export default defineEventHandler(async (event) => {
-  const topicsPath = join(process.cwd(), 'server/api/topics.json')
+  const config = useRuntimeConfig()
+  const topicsPath = join(process.cwd(), config.topicsFilePath)
   try {
     const topicsData = await fs.readFile(topicsPath, 'utf-8')
     return JSON.parse(topicsData)

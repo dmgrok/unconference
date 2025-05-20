@@ -4,6 +4,8 @@ import logger from '../../../utils/logger'
 import type { DiscussionTopic } from '~/types/topic'
 
 export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig()
+  const topTopicsCount = config.public.topTopicsCount
   const { user } = await requireUserSession(event)
   
   // Verify admin role
@@ -14,7 +16,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const topicsPath = join(process.cwd(), 'server/api/topics.json')
+  const topicsPath = join(process.cwd(), config.topicsFilePath)
   
   try {
     // Read existing topics
@@ -23,10 +25,10 @@ export default defineEventHandler(async (event) => {
     
     // Sort topics by votes to find top 10
     const sortedTopics = [...topics].sort((a, b) => b.votes - a.votes)
-    const top10 = sortedTopics.slice(0, 10)
+    const topTopics = sortedTopics.slice(0, topTopicsCount)
     
-    // Award badges to top 10
-    top10.forEach(topTopic => {
+    // Award badges to top topics
+    topTopics.forEach((topTopic: DiscussionTopic) => {
       const topic = topics.find(t => t.id === topTopic.id)
       if (topic) {
         // Initialize badges if not exists

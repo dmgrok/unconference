@@ -3,9 +3,9 @@ import { ref, computed, onMounted } from 'vue'
 import type { User } from '~/types/user'
 import type { DiscussionTopic } from '~/types/topic'
 
-const VOTE_LIMIT = 12
-
+const config = useRuntimeConfig()
 const { user } = useUserSession()
+const VOTE_LIMIT = config.public.maxVotesPerTopic
 const topics = ref<DiscussionTopic[]>([])
 
 // Get the topic the user voted for
@@ -13,11 +13,11 @@ const votedTopic = computed(() => {
   return topics.value.find(topic => topic.voters.includes(user.value?.email || ''))
 })
 
-// Sort topics by votes (descending) and get top 10
+// Sort topics by votes (descending) and get top N
 const topTopics = computed(() => {
   return [...topics.value]
     .sort((a, b) => b.votes - a.votes)
-    .slice(0, 10)
+    .slice(0, config.public.topTopicsCount)
 })
 
 async function fetchTopics() {
@@ -43,7 +43,7 @@ onMounted(() => {
   <v-container>
     <v-row>
       <v-col>
-        <h1 class="text-h4 mb-6">Top 10 Discussion Topics</h1>
+        <h1 class="text-h4 mb-6">Top {{ config.public.topTopicsCount }} Discussion Topics</h1>
       </v-col>
     </v-row>
 
