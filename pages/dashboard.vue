@@ -8,9 +8,16 @@ const VOTE_LIMIT = 12
 
 const { user } = useUserSession()
 const dialog = ref(false)
+const editDialog = ref(false)
 const newRoundConfirmDialog = ref(false)
 const freezeConfirmDialog = ref(false)
 const topicToFreeze = ref<DiscussionTopic | null>(null)
+const topicToEdit = ref<DiscussionTopic | null>(null)
+const editedTopic = ref({
+  title: '',
+  description: ''
+})
+
 const newTopic = ref({
   title: '',
   description: ''
@@ -25,6 +32,10 @@ const votedTopic = computed(() => {
 })
 
 const hasVoted = computed(() => !!votedTopic.value)
+
+const canEditTopic = (topic: DiscussionTopic) => {
+  return isAdmin.value || topic.createdBy === user.value?.email
+}
 
 const topicRules = {
   required: (v: string) => !!v || 'Field is required',
@@ -99,6 +110,31 @@ async function freezeTopic() {
     await fetchTopics()
   } catch (error) {
     console.error('Failed to freeze topic:', error)
+  }
+}
+
+function startEdit(topic: DiscussionTopic) {
+  topicToEdit.value = topic
+  editedTopic.value = {
+    title: topic.title,
+    description: topic.description
+  }
+  editDialog.value = true
+}
+
+async function saveTopic() {
+  if (!topicToEdit.value || !editedTopic.value.title || !editedTopic.value.description) return
+
+  try {
+    await $fetch(`/api/topics/${topicToEdit.value.id}/edit`, {
+      method: 'POST',
+      body: editedTopic.value
+    })
+    editDialog.value = false
+    topicToEdit.value = null
+    await fetchTopics()
+  } catch (error) {
+    console.error('Failed to edit topic:', error)
   }
 }
 
@@ -267,6 +303,15 @@ const voteButtonText = (topic: DiscussionTopic) => {
           </v-card-text>
           <v-card-actions>
             <v-btn
+              v-if="canEditTopic(topic)"
+              color="primary"
+              variant="text"
+              prepend-icon="mdi-pencil"
+              @click="startEdit(topic)"
+            >
+              Edit
+            </v-btn>
+            <v-btn
               v-if="isAdmin && !topic.frozen"
               color="error"
               variant="text"
@@ -327,6 +372,38 @@ const voteButtonText = (topic: DiscussionTopic) => {
             :disabled="!newTopic.title || !newTopic.description"
           >
             Create
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Edit Topic Dialog -->
+    <v-dialog v-model="editDialog" max-width="500px">
+      <v-card>
+        <v-card-title>Edit Topic</v-card-title>
+        <v-card-text>
+          <v-form @submit.prevent="saveTopic">
+            <v-text-field
+              v-model="editedTopic.title"
+              label="Title"
+              :rules="[topicRules.required, topicRules.minLength]"
+            />
+            <v-textarea
+              v-model="editedTopic.description"
+              label="Description"
+              :rules="[topicRules.required, topicRules.minLength]"
+            />
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="grey" @click="editDialog = false">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            @click="saveTopic"
+            :disabled="!editedTopic.title || !editedTopic.description"
+          >
+            Save Changes
           </v-btn>
         </v-card-actions>
       </v-card>
