@@ -1,13 +1,13 @@
 ARG NODE_VERSION=20.11.0
 
-FROM node:${NODE_VERSION}-slim as base
+FROM node:${NODE_VERSION}-slim AS base
 
 ARG PORT=3000
 
 WORKDIR /src
 
 # Build
-FROM base as build
+FROM base AS build
 
 COPY --link package.json package-lock.json .
 RUN npm install
@@ -23,8 +23,13 @@ ENV PORT=$PORT
 ENV NODE_ENV=production
 
 COPY --from=build /src/.output /src/.output
-COPY  users.json topics.json /src/
 # Optional, only needed if you rely on unbundled dependencies
 # COPY --from=build /src/node_modules /src/node_modules
+
+# Create a directory for the data volume
+RUN mkdir -p /src/data
+
+# Define the volume for the data directory
+VOLUME /src/data
 
 CMD [ "node", ".output/server/index.mjs" ]

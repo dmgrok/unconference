@@ -1,0 +1,24 @@
+[
+  {
+    "id": "d130774e-f7fe-420e-ac83-061585fff93f",
+    "title": "Copilot and MCP servers",
+    "description": "MCP servers are changing the landscape of AI. How do we leverage them securely?",
+    "createdBy": "helaili@github.com",
+    "votes": 0,
+    "voters": [],
+    "badges": 0,
+    "selectedForRound": false,
+    "frozen": false
+  },
+  {
+    "id": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+    "title": "GitHub Actions Hosted Runners optimization",
+    "description": "Private networking and custom images are bringing new possibilities to GitHub Actions. How do we leverage them?",
+    "createdBy": "helaili@github.com",
+    "votes": 0,
+    "voters": [],
+    "badges": 0,
+    "frozen": false,
+    "selectedForRound": false
+  }
+]

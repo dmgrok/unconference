@@ -24,4 +24,5 @@ logs
 !.env.example
 
 # data
-users.*
+data/users.json
+data/topics.json
