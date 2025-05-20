@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  const title = ref('Eurocats Unconference')
+  const title = ref('Eurocats 2025 Unconference')
 
   async function goHome() {
     await navigateTo('/')  
