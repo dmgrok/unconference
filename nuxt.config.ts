@@ -63,7 +63,7 @@ export default defineNuxtConfig({
       }
     },
     topicsFilePath: process.env.TOPICS_FILE_PATH,
-    usersFilePath: process.env.USERS_FILE_PATH,  
+    usersFilePath: process.env.NUXT_USERS_FILE_PATH,
     public: {
       devMode: process.env.APP_ENV === 'development',
       authUrl: process.env.AUTH_GITHUB === 'true' ?  '/auth/github' : '/login',
