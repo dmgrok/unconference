@@ -6,8 +6,7 @@
 
 <template>
   <div>
-    <NuxtRouteAnnouncer />
-    <NuxtWelcome />
+    <UnconferenceHeader />
   </div>
 </template>
   
