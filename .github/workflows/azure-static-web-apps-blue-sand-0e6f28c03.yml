@@ -18,10 +18,28 @@ jobs:
        id-token: write
        contents: read
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4      
+
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
-          submodules: true
-          lfs: false
+          client-id: ${{ secrets.AZURE_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_TENANTID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTIONID }}
+
+      - name: Set Static Web App Settings
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az staticwebapp appsettings set --name ${{ secrets.AZURE_STATIC_WEBAPP_NAME }} --setting-names \
+              NUXT_SESSION_PASSWORD="${{ secrets.NUXT_SESSION_PASSWORD }}" \
+              APP_ENV="production" \
+              AUTH_GITHUB="${{ vars.AUTH_GITHUB }}" \
+              TOPICS_FILE_PATH="${{ vars.TOPICS_FILE_PATH }}" \
+              USERS_FILE_PATH="${{ vars.USERS_FILE_PATH }}" \
+              MAX_VOTES_PER_TOPIC="${{ vars.MAX_VOTES_PER_TOPIC }}" \
+              TOP_TOPICS_COUNT="${{ vars.TOP_TOPICS_COUNT }}"
+
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client
       - name: Get Id Token
