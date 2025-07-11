@@ -3,10 +3,10 @@
     "id": "d130774e-f7fe-420e-ac83-061585fff93f",
     "title": "Copilot and MCP servers",
     "description": "MCP servers are changing the landscape of AI. How do we leverage them securely?",
-    "createdBy": "helaili@github.com",
+    "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 0,
+    "badges": 3,
     "selectedForRound": false,
     "frozen": false
   },
@@ -14,11 +14,44 @@
     "id": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
     "title": "GitHub Actions Hosted Runners optimization",
     "description": "Private networking and custom images are bringing new possibilities to GitHub Actions. How do we leverage them?",
-    "createdBy": "helaili@github.com",
+    "createdBy": "storm.trooper@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 0,
+    "badges": 3,
     "frozen": false,
     "selectedForRound": false
+  },
+  {
+    "id": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
+    "title": "TDO for IT",
+    "description": "Discuss the TDO for IT and how it impacts us",
+    "createdBy": "darth.vader@starwars.com",
+    "votes": 0,
+    "voters": [],
+    "frozen": false,
+    "selectedForRound": false,
+    "badges": 3
+  },
+  {
+    "id": "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
+    "title": "Accessibility",
+    "description": "Accessibility",
+    "createdBy": "darth.vader@starwars.com",
+    "votes": 0,
+    "voters": [],
+    "frozen": false,
+    "selectedForRound": false,
+    "badges": 1
+  },
+  {
+    "id": "c1256e92-7c82-49b4-9b06-2d7ee9d6ab87",
+    "title": "Learning",
+    "description": "Learnign",
+    "createdBy": "darth.vader@starwars.com",
+    "votes": 0,
+    "voters": [],
+    "badges": 1,
+    "selectedForRound": false,
+    "frozen": false
   }
 ]

@@ -3,12 +3,14 @@
     "Firstname": "Darth",
     "Lastname": "Vader",
     "Email": "darth.vader@starwars.com",
+    "Password": "AdminPassword123",
     "Role": "Admin"
   },
   {
     "Firstname": "Storm",
     "Lastname": "Trooper",
     "Email": "storm.trooper@starwars.com",
+    "Password": "UserPassword123", 
     "Role": "User"
   }
 ]

@@ -10,8 +10,15 @@
   }
 
   const { user, clear: clearSession } = useUserSession()
+  const { initializeTheme, setupAutoThemeWatcher } = useAppTheme()
 
-  const drawer = ref(false)
+  // Initialize theme on app load
+  onMounted(() => {
+    initializeTheme()
+    setupAutoThemeWatcher()
+  })
+
+  const drawer = ref(true)
   const navItems = reactive<NavItem[]>([
     {
       icon: 'mdi-view-dashboard',
@@ -66,9 +73,7 @@
     <v-navigation-drawer 
       id="nav-drawer" 
       data-testid="nav-drawer"
-      v-model="drawer" 
-      :rail="true"
-      expand-on-hover
+      v-model="drawer"
     >
     <v-list-item
       v-for="(item, i) in filteredNavItems"

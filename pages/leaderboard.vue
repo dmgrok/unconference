@@ -43,7 +43,7 @@ onMounted(() => {
   <v-container>
     <v-row>
       <v-col>
-        <h1 class="text-h4 mb-6">Top {{ config.public.topTopicsCount }} Discussion Topics</h1>
+        <h1 class="text-h4 mb-6 text-primary">Top {{ config.public.topTopicsCount }} Discussion Topics</h1>
       </v-col>
     </v-row>
 

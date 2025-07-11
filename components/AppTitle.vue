@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  const title = ref('Eurocats 2025 Unconference')
+  const { eventConfig } = useEventConfig()
 
   async function goHome() {
     await navigateTo('/')  
@@ -7,7 +7,7 @@
 </script>
 
 <template>
-  <v-btn data-testid="home-button" @click="goHome()">{{ title }}</v-btn>
+  <v-btn data-testid="home-button" @click="goHome()">{{ eventConfig.title }}</v-btn>
 </template>
 
 <style scoped></style>

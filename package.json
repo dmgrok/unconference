@@ -1,13 +1,13 @@
 {
-  "name": "eurocats-unconference",
+  "name": "unconference",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "nuxt build",
     "build:azure": "npx nuxi build --preset=azure",
-    "build:docker": "docker build -t eurocats-unconference .",
+    "build:docker": "docker build -t unconference .",
     "dev": "npx nuxi dev --dotenv .env",
-    "docker": "docker run --rm -it -p 3000:3000 -v \"$(pwd)/data:/src/data\" --env-file .env --name eurocats-unconference eurocats-unconference",
+    "docker": "docker run --rm -it -p 3000:3000 -v \"$(pwd)/data:/src/data\" --env-file .env --name unconference unconference",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"

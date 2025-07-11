@@ -4,11 +4,23 @@
 
     const { loggedIn, user, fetch: refreshSession } = useUserSession()
     const credentials = reactive({
-        email: devMode.value ? 'helaili@github.com' : '',
-        password: devMode.value ? 'Eurocats2025' : '',
+        email: '',
+        password: '',
     })
     const loginError = ref(false)
     const formValid = ref(false)
+
+    // Test credentials for quick access
+    const testCredentials = {
+        admin: {
+            email: 'darth.vader@starwars.com',
+            password: 'AdminPassword123'
+        },
+        user: {
+            email: 'storm.trooper@starwars.com',
+            password: 'UserPassword123'
+        }
+    }
 
     async function login() {
         useFetch('/api/auth/login', {
@@ -22,6 +34,18 @@
             loginError.value = true
             console.error('Login failed', error)
         })
+    }
+
+    function fillAdminCredentials() {
+        credentials.email = testCredentials.admin.email
+        credentials.password = testCredentials.admin.password
+        loginError.value = false
+    }
+
+    function fillUserCredentials() {
+        credentials.email = testCredentials.user.email
+        credentials.password = testCredentials.user.password
+        loginError.value = false
     }
 </script>
 
@@ -48,6 +72,40 @@
                 :rules="[v => !!v || 'Password is required', v => v.length >= 6 || 'Password must be at least 6 characters']"
                 class="mb-4"
             ></v-text-field>
+            
+            <!-- Test Buttons for Development -->
+            <div v-if="devMode" class="mb-4">
+                <v-divider class="mb-3"></v-divider>
+                <div class="text-center mb-2">
+                    <small class="text-grey">Quick Test Access</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <v-btn
+                        @click="fillAdminCredentials"
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                        data-testid="admin-test-button"
+                        class="flex-grow-1"
+                    >
+                        <v-icon start>mdi-account-star</v-icon>
+                        Admin
+                    </v-btn>
+                    <v-btn
+                        @click="fillUserCredentials"
+                        variant="outlined"
+                        color="secondary"
+                        size="small"
+                        data-testid="user-test-button"
+                        class="flex-grow-1"
+                    >
+                        <v-icon start>mdi-account</v-icon>
+                        User
+                    </v-btn>
+                </div>
+                <v-divider class="mt-3"></v-divider>
+            </div>
+
             <v-btn 
                 :disabled="!formValid" 
                 type="submit" 
