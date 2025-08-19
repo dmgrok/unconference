@@ -6,7 +6,7 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 3,
+    "badges": 4,
     "selectedForRound": false,
     "frozen": false
   },
@@ -17,7 +17,7 @@
     "createdBy": "storm.trooper@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 3,
+    "badges": 4,
     "frozen": false,
     "selectedForRound": false
   },
@@ -30,7 +30,7 @@
     "voters": [],
     "frozen": false,
     "selectedForRound": false,
-    "badges": 3
+    "badges": 4
   },
   {
     "id": "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
@@ -41,12 +41,23 @@
     "voters": [],
     "frozen": false,
     "selectedForRound": false,
-    "badges": 1
+    "badges": 2
   },
   {
     "id": "c1256e92-7c82-49b4-9b06-2d7ee9d6ab87",
     "title": "Learning",
-    "description": "Learnign",
+    "description": "Learning",
+    "createdBy": "darth.vader@starwars.com",
+    "votes": 0,
+    "voters": [],
+    "badges": 2,
+    "selectedForRound": false,
+    "frozen": false
+  },
+  {
+    "id": "6dd81849-2a8a-4d1e-adb5-044c433eb0e6",
+    "title": "Innovation with Agentic",
+    "description": "Discuss our expriences",
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
