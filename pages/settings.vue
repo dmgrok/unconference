@@ -20,6 +20,8 @@ onMounted(async () => {
     settings.admin.showVoterNames = loadedSettings.showVoterNames
     settings.admin.allowTopicSubmission = loadedSettings.allowTopicSubmission
     settings.admin.autoStartNewRound = loadedSettings.autoStartNewRound
+    settings.admin.roundDurationMinutes = loadedSettings.roundDurationMinutes || 20
+    settings.admin.maxTopicsPerRound = loadedSettings.maxTopicsPerRound || 8
   } catch (error) {
     console.warn('Failed to load admin settings, using defaults')
   }
@@ -38,6 +40,8 @@ const settings = reactive({
     topTopicsCount: config.public.topTopicsCount || 10,
     allowTopicSubmission: true,
     autoStartNewRound: false,
+    roundDurationMinutes: 20,
+    maxTopicsPerRound: 8,
     showVoterNames: adminSettings.value.showVoterNames,
     eventInfo: {
       title: eventConfig.title,
@@ -244,7 +248,9 @@ async function autoSaveAdminSettings() {
         topTopicsCount: settings.admin.topTopicsCount,
         showVoterNames: settings.admin.showVoterNames,
         allowTopicSubmission: settings.admin.allowTopicSubmission,
-        autoStartNewRound: settings.admin.autoStartNewRound
+        autoStartNewRound: settings.admin.autoStartNewRound,
+        roundDurationMinutes: settings.admin.roundDurationMinutes,
+        maxTopicsPerRound: settings.admin.maxTopicsPerRound
       }
     })
     
@@ -254,6 +260,8 @@ async function autoSaveAdminSettings() {
     updateSetting('topTopicsCount', settings.admin.topTopicsCount)
     updateSetting('allowTopicSubmission', settings.admin.allowTopicSubmission)
     updateSetting('autoStartNewRound', settings.admin.autoStartNewRound)
+    updateSetting('roundDurationMinutes', settings.admin.roundDurationMinutes)
+    updateSetting('maxTopicsPerRound', settings.admin.maxTopicsPerRound)
     
     console.log('Admin settings auto-saved')
   } catch (error) {
@@ -310,7 +318,7 @@ watch(() => settings.user, () => {
   }, 1000)
 }, { deep: true })
 
-watch(() => [settings.admin.maxVotesPerTopic, settings.admin.topTopicsCount, settings.admin.allowTopicSubmission, settings.admin.autoStartNewRound, settings.admin.showVoterNames], () => {
+watch(() => [settings.admin.maxVotesPerTopic, settings.admin.topTopicsCount, settings.admin.allowTopicSubmission, settings.admin.autoStartNewRound, settings.admin.showVoterNames, settings.admin.roundDurationMinutes, settings.admin.maxTopicsPerRound], () => {
   if (adminSettingsTimeout) {
     clearTimeout(adminSettingsTimeout)
   }
@@ -494,6 +502,36 @@ watch(() => settings.admin.eventInfo, () => {
                 hint="Display who voted for each topic (visible to all participants)"
               ></v-switch>
             </v-col>
+          </v-row>
+          
+          <!-- Round Management Configuration -->
+          <h3 class="text-h6 mb-4 mt-6">Round Management</h3>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model.number="settings.admin.roundDurationMinutes"
+                label="Round Duration (minutes)"
+                type="number"
+                min="5"
+                max="60"
+                prepend-icon="mdi-timer"
+                hint="How long each discussion round should last"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model.number="settings.admin.maxTopicsPerRound"
+                label="Max Topics Per Round"
+                type="number"
+                min="1"
+                max="20"
+                prepend-icon="mdi-format-list-numbered"
+                hint="Maximum number of topics that can be selected for each round"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          
+          <v-row>
             <v-col cols="12">
               <v-divider class="mb-4"></v-divider>
               <div class="d-flex align-center mb-4">

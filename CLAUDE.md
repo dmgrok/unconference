@@ -30,8 +30,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **nuxt-auth-utils** for authentication (GitHub OAuth support)
 
 ### Core Data Models
-- **DiscussionTopic** (`types/topic.ts`): Topics with voting system, badges, and round selection
+- **DiscussionTopic** (`types/topic.ts`): Topics with voting system, badges, round selection, and round tracking
 - **User** (`types/user.ts`): Users with Admin/User roles
+- **RoundHistory** (`types/topic.ts`): Historical round data with selected topics and participants
+- **ActiveRound** (`types/topic.ts`): Current round state with timer and topic selection
+- **TopicSelection** (`types/topic.ts`): Topic selection interface for round management
 
 ### Application Structure
 - **Pages**: Dashboard, leaderboard, settings with automatic authentication middleware
@@ -48,19 +51,26 @@ Critical environment variables:
 - `APP_ENV` - Controls dev mode and logging levels
 
 ### Key Features
-- **Voting System**: Topics can accumulate votes and badges
-- **Round Selection**: Topics can be selected/frozen for discussion rounds
+- **Voting System**: Topics can accumulate votes and badges with preference-based weighted voting
+- **Round Management**: Advanced round system with topic selection, timers, and participant redistribution
+- **Round Selection**: Topics can be selected/frozen for discussion rounds with manual admin control
+- **Timer System**: Configurable round timers with real-time countdown and auto-expiration
+- **Participant Assignment**: Automatic assignment of users to topics based on voting preferences
+- **Round History**: Complete tracking of past rounds with detailed analytics
 - **Auto-save**: Visual feedback system for settings changes
-- **Admin Functions**: Special pages and functionality for admin users
+- **Admin Functions**: Special pages and functionality for admin users including round management
 - **Logging**: Winston-based logging with file output in production
 
 ### File Organization
-- `server/api/` - API routes for topics, authentication, voting
+- `server/api/` - API routes for topics, authentication, voting, and round management
+- `server/api/admin/` - Admin-specific API routes including round management
 - `components/` - Vue components (AppTitle, LoginForm, UnconferenceHeader)
-- `composables/` - Vue composables (useAppTheme, useEventConfig)
-- `types/` - TypeScript type definitions
+- `composables/` - Vue composables (useAppTheme, useEventConfig, useAdminSettings)
+- `pages/admin/` - Admin-only pages including round management interface
+- `types/` - TypeScript type definitions including round management types
 - `utils/` - Utility functions (logger)
-- `data/` - Sample JSON data files
+- `data/` - JSON data files including round history and active round state
+- `docs/` - Documentation including round management guide
 
 ### Docker Support
 - Dockerfile configured for containerized deployment

@@ -2,7 +2,25 @@
 import { ref, computed, onMounted } from 'vue'
 import { useDisplay } from 'vuetify'
 import type { User } from '~/types/user'
-import type { DiscussionTopic } from '~/types/topic'
+import type { DiscussionTopic, ActiveRound } from '~/types/topic'
+
+interface UserAssignment {
+  hasAssignment: boolean
+  assignment?: {
+    topicId: string
+    topicTitle: string
+    roomAssignment?: string
+    participants: string[]
+    participantCount: number
+  }
+  message?: string
+  roundInfo?: {
+    roundNumber: number
+    startTime: string
+    duration: number
+    isActive: boolean
+  }
+}
 
 const config = useRuntimeConfig()
 const { user } = useUserSession()
@@ -27,6 +45,10 @@ const newTopic = ref({
 
 const isAdmin = computed(() => (user.value as User)?.role === 'Admin' && !shouldHideAdminFeatures((user.value as User)?.role))
 const topics = ref<DiscussionTopic[]>([])
+const activeRound = ref<ActiveRound | null>(null)
+const userAssignment = ref<UserAssignment | null>(null)
+const timeRemaining = ref(0)
+const timerInterval = ref<NodeJS.Timeout | null>(null)
 
 // Get user's preference votes
 const userFirstChoice = computed(() => {
@@ -38,6 +60,18 @@ const userSecondChoice = computed(() => {
 })
 
 const hasVotedPreferences = computed(() => !!(userFirstChoice.value || userSecondChoice.value))
+
+// Get user's current topic (if round is active)
+const userCurrentTopic = computed(() => {
+  if (!activeRound.value?.isActive || !userAssignment.value?.hasAssignment) return null
+  
+  return topics.value.find(topic => topic.id === userAssignment.value?.assignment?.topicId)
+})
+
+// Check if voting is disabled during active round
+const isVotingDisabled = computed(() => {
+  return activeRound.value?.isActive && activeRound.value?.votingDisabled
+})
 
 const canEditTopic = (topic: DiscussionTopic) => {
   return isAdmin.value || topic.createdBy === (user.value as User)?.email
@@ -72,7 +106,73 @@ async function fetchTopics() {
   topics.value = response as DiscussionTopic[]
 }
 
+async function loadActiveRound() {
+  try {
+    const data = await $fetch('/api/active-round') as ActiveRound | null
+    activeRound.value = data
+    if (activeRound.value?.isActive) {
+      startTimer()
+      await loadUserAssignment()
+    } else {
+      stopTimer()
+      userAssignment.value = null
+    }
+  } catch (error) {
+    console.error('Failed to load active round:', error)
+  }
+}
+
+async function loadUserAssignment() {
+  try {
+    const data = await $fetch('/api/my-assignment') as UserAssignment
+    userAssignment.value = data
+  } catch (error) {
+    console.error('Failed to load user assignment:', error)
+  }
+}
+
+function startTimer() {
+  if (!activeRound.value) return
+  
+  const startTime = new Date(activeRound.value.startTime)
+  const duration = activeRound.value.duration * 60 * 1000 // Convert to milliseconds
+  
+  const updateTimer = () => {
+    const now = new Date()
+    const elapsed = now.getTime() - startTime.getTime()
+    const remaining = Math.max(0, duration - elapsed)
+    
+    timeRemaining.value = Math.floor(remaining / 1000) // Convert to seconds
+    
+    if (remaining <= 0) {
+      clearInterval(timerInterval.value!)
+      activeRound.value!.isActive = false
+    }
+  }
+  
+  updateTimer()
+  timerInterval.value = setInterval(updateTimer, 1000)
+}
+
+function stopTimer() {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+    timerInterval.value = null
+  }
+}
+
+function formatTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+}
+
 async function voteForTopic(topicId: string) {
+  if (isVotingDisabled.value) {
+    alert('Voting is disabled during active rounds')
+    return
+  }
+  
   try {
     if (userFirstChoice.value && userFirstChoice.value.id === topicId) {
       // If clicking on their first choice, remove it
@@ -154,7 +254,7 @@ async function startNewRound() {
       method: 'POST'
     })
     newRoundConfirmDialog.value = false
-    await fetchTopics()
+    await Promise.all([fetchTopics(), loadActiveRound()])
   } catch (error) {
     console.error('Failed to start new round:', error)
   }
@@ -203,7 +303,12 @@ async function saveTopic() {
 // Fetch topics when component mounts
 onMounted(async () => {
   await loadSettings()
-  await fetchTopics()
+  await Promise.all([fetchTopics(), loadActiveRound()])
+})
+
+// Cleanup timer on unmount
+onBeforeUnmount(() => {
+  stopTimer()
 })
 
 const data = ref([
@@ -248,6 +353,11 @@ const placeholderCount = computed(() => {
 const placeholders = computed(() => Array(placeholderCount.value).fill(null))
 
 const getVoteStatus = (topic: DiscussionTopic) => {
+  // Check if voting is disabled during active rounds
+  if (isVotingDisabled.value) {
+    return { status: 'disabled', text: 'Voting Disabled', color: 'grey', variant: 'outlined' as const, disabled: true }
+  }
+  
   if (userFirstChoice.value && userFirstChoice.value.id === topic.id) {
     return { status: 'first', text: '1st Choice ⭐', color: 'warning', variant: 'elevated' as const }
   }
@@ -274,16 +384,107 @@ const getVoteStatus = (topic: DiscussionTopic) => {
 
 <template>
   <v-container>
+    <!-- Active Round Display -->
+    <v-row v-if="activeRound?.isActive" class="mb-4">
+      <v-col>
+        <v-card color="success" variant="elevated" class="mb-4">
+          <v-card-title class="d-flex align-center text-white">
+            <v-icon class="mr-2">mdi-account-group</v-icon>
+            Round {{ activeRound.roundNumber }} in Progress
+          </v-card-title>
+          <v-card-text class="text-white">
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <h2 class="text-h3 font-weight-bold">
+                  {{ formatTime(timeRemaining) }}
+                </h2>
+                <p class="text-caption">Time Remaining</p>
+              </div>
+              <div class="text-right">
+                <p><strong>{{ activeRound.selectedTopics.length }}</strong> topics discussing</p>
+                <p class="text-caption">{{ activeRound.duration }} minute round</p>
+              </div>
+            </div>
+            
+            <v-progress-linear
+              :model-value="((activeRound.duration * 60 - timeRemaining) / (activeRound.duration * 60)) * 100"
+              color="white"
+              height="6"
+              class="mt-3"
+            ></v-progress-linear>
+          </v-card-text>
+        </v-card>
+        
+        <!-- User's Current Topic Assignment -->
+        <v-card v-if="userAssignment?.hasAssignment" color="primary" variant="elevated" class="mb-4">
+          <v-card-title class="d-flex align-center text-white">
+            <v-icon class="mr-2">mdi-chat</v-icon>
+            Your Discussion Topic
+          </v-card-title>
+          <v-card-text class="text-white">
+            <h3 class="text-h5 mb-2">{{ userAssignment.assignment?.topicTitle }}</h3>
+            <p class="mb-2">
+              <v-icon class="mr-1">mdi-account-group</v-icon>
+              {{ userAssignment.assignment?.participantCount }} participants assigned
+            </p>
+            <div class="d-flex gap-2">
+              <v-chip color="white" text-color="primary" prepend-icon="mdi-map-marker">
+                {{ userAssignment.assignment?.roomAssignment || 'Check Groups page for room' }}
+              </v-chip>
+              <v-btn 
+                color="white" 
+                variant="outlined" 
+                size="small" 
+                prepend-icon="mdi-account-group"
+                to="/groups"
+              >
+                View Group Details
+              </v-btn>
+            </div>
+          </v-card-text>
+        </v-card>
+        
+        <!-- No Assignment Message -->
+        <v-card v-else-if="activeRound?.isActive" color="orange" variant="elevated" class="mb-4">
+          <v-card-title class="d-flex align-center text-white">
+            <v-icon class="mr-2">mdi-alert</v-icon>
+            No Topic Assignment
+          </v-card-title>
+          <v-card-text class="text-white">
+            <p>{{ userAssignment?.message || 'You don\'t have a topic assignment for this round. You can join any available discussion or wait for the next round.' }}</p>
+            <v-btn 
+              color="white" 
+              variant="outlined" 
+              size="small" 
+              prepend-icon="mdi-account-group"
+              to="/groups"
+              class="mt-2"
+            >
+              View All Groups
+            </v-btn>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
     <!-- Admin Actions -->
     <v-row class="mb-4">
       <v-col class="d-flex justify-end gap-4">
         <v-btn
           v-if="isAdmin"
+          color="success"
+          prepend-icon="mdi-cog"
+          :to="'/admin/round-management'"
+        >
+          Manage Rounds
+        </v-btn>
+        <v-btn
+          v-if="isAdmin && !activeRound?.isActive"
           color="error"
           prepend-icon="mdi-refresh"
           @click="newRoundConfirmDialog = true"
         >
-          New Round
+          Quick New Round
         </v-btn>
         <v-btn
           color="primary"
@@ -292,6 +493,26 @@ const getVoteStatus = (topic: DiscussionTopic) => {
         >
           Propose Topic
         </v-btn>
+      </v-col>
+    </v-row>
+
+    <!-- Voting Disabled Alert -->
+    <v-row v-if="isVotingDisabled" class="mb-4">
+      <v-col>
+        <v-alert
+          type="info"
+          prominent
+          border="start"
+          variant="tonal"
+          prepend-icon="mdi-vote-off"
+        >
+          <div class="d-flex align-center">
+            <div>
+              <v-alert-title>Voting Disabled</v-alert-title>
+              <div>Voting is disabled during active rounds. You can vote again when the round ends.</div>
+            </div>
+          </div>
+        </v-alert>
       </v-col>
     </v-row>
 
@@ -636,7 +857,7 @@ const getVoteStatus = (topic: DiscussionTopic) => {
     <!-- New Round Confirmation Dialog -->
     <v-dialog v-model="newRoundConfirmDialog" max-width="400px">
       <v-card>
-        <v-card-title>Start New Round</v-card-title>
+        <v-card-title>Quick Start New Round</v-card-title>
         <v-card-text>
           Are you sure you want to start a new round? This will:
           <ul class="mt-2">
@@ -644,6 +865,9 @@ const getVoteStatus = (topic: DiscussionTopic) => {
             <li>Reset all vote counters</li>
             <li>Allow users to vote again</li>
           </ul>
+          <v-alert type="info" class="mt-3">
+            For advanced round management with topic selection, use the "Manage Rounds" button.
+          </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer />

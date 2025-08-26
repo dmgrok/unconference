@@ -5,7 +5,9 @@ export const useAdminSettings = () => {
     topTopicsCount: 10,
     showVoterNames: true,
     allowTopicSubmission: true,
-    autoStartNewRound: false
+    autoStartNewRound: false,
+    roundDurationMinutes: 20,  // Default round duration
+    maxTopicsPerRound: 8       // Maximum topics that can be selected per round
   }))
 
   const loading = useState('admin-settings-loading', () => false)

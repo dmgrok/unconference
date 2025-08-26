@@ -53,6 +53,12 @@
       adminOnly: true
     },
     {
+      icon: 'mdi-timer',
+      title: 'Round Management',
+      to: '/admin/round-management',
+      adminOnly: true
+    },
+    {
       icon: 'mdi-home-city',
       title: 'Room Management',
       to: '/admin/rooms',

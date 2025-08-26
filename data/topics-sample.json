@@ -4,18 +4,15 @@
     "title": "Copilot and MCP servers",
     "description": "MCP servers are changing the landscape of AI. How do we leverage them securely?",
     "createdBy": "darth.vader@starwars.com",
-    "votes": 1,
-    "voters": [
-      "darth.vader@starwars.com"
-    ],
-    "badges": 6,
-    "selectedForRound": false,
+    "votes": 0,
+    "voters": [],
+    "badges": 8,
+    "selectedForRound": true,
     "frozen": false,
-    "firstChoiceVoters": [
-      "darth.vader@starwars.com"
-    ],
+    "firstChoiceVoters": [],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 2
+    "totalPreferenceScore": 0,
+    "currentRound": 2
   },
   {
     "id": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
@@ -24,28 +21,27 @@
     "createdBy": "storm.trooper@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 6,
+    "badges": 8,
     "frozen": false,
-    "selectedForRound": false,
+    "selectedForRound": true,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 0
+    "totalPreferenceScore": 0,
+    "currentRound": 2
   },
   {
     "id": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
     "title": "TDO for IT",
     "description": "Discuss the TDO for IT and how it impacts us",
     "createdBy": "darth.vader@starwars.com",
-    "votes": 1,
+    "votes": 0,
     "voters": [],
     "frozen": false,
     "selectedForRound": false,
-    "badges": 6,
+    "badges": 8,
     "firstChoiceVoters": [],
-    "secondChoiceVoters": [
-      "darth.vader@starwars.com"
-    ],
-    "totalPreferenceScore": 1
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0
   },
   {
     "id": "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
@@ -56,7 +52,7 @@
     "voters": [],
     "frozen": false,
     "selectedForRound": false,
-    "badges": 4,
+    "badges": 6,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
     "totalPreferenceScore": 0
@@ -68,7 +64,7 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 4,
+    "badges": 6,
     "selectedForRound": false,
     "frozen": false,
     "firstChoiceVoters": [],
@@ -82,7 +78,7 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 3,
+    "badges": 5,
     "selectedForRound": false,
     "frozen": false,
     "firstChoiceVoters": [],
