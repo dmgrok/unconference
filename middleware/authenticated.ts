@@ -2,6 +2,7 @@ interface User {
     name: string;
     email: string;
     role?: string;
+    isGuest?: boolean;
 }
 
 export default defineNuxtRouteMiddleware((to) => {

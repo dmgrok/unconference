@@ -1,0 +1,7 @@
+{
+  "maxVotesPerTopic": 1,
+  "topTopicsCount": 10,
+  "showVoterNames": true,
+  "allowTopicSubmission": true,
+  "autoStartNewRound": false
+}

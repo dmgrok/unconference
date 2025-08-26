@@ -3,11 +3,26 @@ const { user } = useUserSession()
 const config = useRuntimeConfig()
 const { eventConfig, updateEventConfig } = useEventConfig()
 const { applyTheme, getCurrentTheme, initializeTheme, setupAutoThemeWatcher } = useAppTheme()
+const { settings: adminSettings, updateSetting } = useAdminSettings()
+const { settings: viewerModeSettings, toggleViewerMode, isViewerMode } = useViewerMode()
 
 // Initialize theme on component mount
-onMounted(() => {
+onMounted(async () => {
   initializeTheme()
   setupAutoThemeWatcher()
+  
+  // Load admin settings from API
+  try {
+    const loadedSettings = await $fetch('/api/admin/settings')
+    // Update local settings
+    settings.admin.maxVotesPerTopic = loadedSettings.maxVotesPerTopic
+    settings.admin.topTopicsCount = loadedSettings.topTopicsCount
+    settings.admin.showVoterNames = loadedSettings.showVoterNames
+    settings.admin.allowTopicSubmission = loadedSettings.allowTopicSubmission
+    settings.admin.autoStartNewRound = loadedSettings.autoStartNewRound
+  } catch (error) {
+    console.warn('Failed to load admin settings, using defaults')
+  }
 })
 
 // Settings data
@@ -23,6 +38,7 @@ const settings = reactive({
     topTopicsCount: config.public.topTopicsCount || 10,
     allowTopicSubmission: true,
     autoStartNewRound: false,
+    showVoterNames: adminSettings.value.showVoterNames,
     eventInfo: {
       title: eventConfig.title,
       description: eventConfig.description,
@@ -49,6 +65,13 @@ const eventInfoSaving = ref(false)
 const userSettingsSaving = ref(false)
 const adminSettingsSaving = ref(false)
 const defaultTopicsSaving = ref(false)
+const qrCode = ref('')
+const qrCodeGenerated = ref(false)
+const qrGenerating = ref(false)
+const eventCodeForm = ref({
+  eventCode: 'DEMO2024',
+  eventName: 'Demo Unconference 2024'
+})
 
 // Check if user is admin
 const isAdmin = computed(() => user.value?.role === 'Admin')
@@ -144,6 +167,44 @@ async function updateEventInfo() {
   }
 }
 
+async function generateQRCode() {
+  if (!eventCodeForm.value.eventCode || !eventCodeForm.value.eventName) {
+    message.value = 'Event code and name are required'
+    messageType.value = 'error'
+    return
+  }
+
+  qrGenerating.value = true
+  try {
+    const response = await $fetch('/api/admin/generate-qr', {
+      method: 'POST',
+      body: {
+        eventCode: eventCodeForm.value.eventCode,
+        eventName: eventCodeForm.value.eventName
+      }
+    })
+    
+    qrCode.value = response.qrCode
+    qrCodeGenerated.value = true
+    message.value = `QR code generated! Join URL: ${response.joinUrl}`
+    messageType.value = 'success'
+  } catch (error: any) {
+    message.value = error.data?.message || 'Failed to generate QR code'
+    messageType.value = 'error'
+  } finally {
+    qrGenerating.value = false
+  }
+}
+
+function downloadQRCode() {
+  if (!qrCode.value) return
+  
+  const link = document.createElement('a')
+  link.href = qrCode.value
+  link.download = `qr-code-${eventCodeForm.value.eventCode}.png`
+  link.click()
+}
+
 // Auto-save functions with debouncing
 let userSettingsTimeout: NodeJS.Timeout | null = null
 let adminSettingsTimeout: NodeJS.Timeout | null = null
@@ -175,11 +236,30 @@ async function autoSaveAdminSettings() {
   
   adminSettingsSaving.value = true
   try {
-    // Here you would typically save to an API endpoint
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // Save settings via API
+    await $fetch('/api/admin/settings', {
+      method: 'POST',
+      body: {
+        maxVotesPerTopic: settings.admin.maxVotesPerTopic,
+        topTopicsCount: settings.admin.topTopicsCount,
+        showVoterNames: settings.admin.showVoterNames,
+        allowTopicSubmission: settings.admin.allowTopicSubmission,
+        autoStartNewRound: settings.admin.autoStartNewRound
+      }
+    })
+    
+    // Also update the global admin settings composable
+    updateSetting('showVoterNames', settings.admin.showVoterNames)
+    updateSetting('maxVotesPerTopic', settings.admin.maxVotesPerTopic)
+    updateSetting('topTopicsCount', settings.admin.topTopicsCount)
+    updateSetting('allowTopicSubmission', settings.admin.allowTopicSubmission)
+    updateSetting('autoStartNewRound', settings.admin.autoStartNewRound)
+    
     console.log('Admin settings auto-saved')
   } catch (error) {
     console.error('Failed to auto-save admin settings:', error)
+    message.value = 'Failed to save admin settings'
+    messageType.value = 'error'
   } finally {
     adminSettingsSaving.value = false
   }
@@ -230,7 +310,7 @@ watch(() => settings.user, () => {
   }, 1000)
 }, { deep: true })
 
-watch(() => [settings.admin.maxVotesPerTopic, settings.admin.topTopicsCount, settings.admin.allowTopicSubmission, settings.admin.autoStartNewRound], () => {
+watch(() => [settings.admin.maxVotesPerTopic, settings.admin.topTopicsCount, settings.admin.allowTopicSubmission, settings.admin.autoStartNewRound, settings.admin.showVoterNames], () => {
   if (adminSettingsTimeout) {
     clearTimeout(adminSettingsTimeout)
   }
@@ -405,6 +485,67 @@ watch(() => settings.admin.eventInfo, () => {
                 color="primary"
                 hint="Automatically start new round when vote limit reached"
               ></v-switch>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-switch
+                v-model="settings.admin.showVoterNames"
+                label="Show Voter Names"
+                color="primary"
+                hint="Display who voted for each topic (visible to all participants)"
+              ></v-switch>
+            </v-col>
+            <v-col cols="12">
+              <v-divider class="mb-4"></v-divider>
+              <div class="d-flex align-center mb-4">
+                <div>
+                  <h3 class="text-h6 mb-1">Viewer Mode</h3>
+                  <p class="text-body-2 text-grey-darken-1">
+                    See the interface as participants do. Admin features will be hidden when enabled.
+                  </p>
+                </div>
+                <v-spacer></v-spacer>
+                <v-switch
+                  :model-value="isViewerMode"
+                  @update:model-value="toggleViewerMode"
+                  color="purple"
+                  :label="isViewerMode ? 'ON' : 'OFF'"
+                ></v-switch>
+              </div>
+              
+              <v-row v-if="isViewerMode">
+                <v-col cols="12" md="6">
+                  <v-select
+                    :model-value="viewerModeSettings.simulateRole"
+                    @update:model-value="(value) => viewerModeSettings.simulateRole = value"
+                    :items="[
+                      { title: 'Regular User', value: 'User' },
+                      { title: 'Guest User', value: 'Guest' }
+                    ]"
+                    label="Simulate User Type"
+                    hint="Choose what type of user experience to simulate"
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    :model-value="viewerModeSettings.simulateUserEmail"
+                    @update:model-value="(value) => viewerModeSettings.simulateUserEmail = value"
+                    label="Simulated Email"
+                    hint="Email address for the simulated user"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+              
+              <v-alert 
+                v-if="isViewerMode" 
+                type="warning" 
+                variant="tonal" 
+                class="mt-4"
+                prepend-icon="mdi-eye"
+              >
+                <v-alert-title>Viewer Mode Active</v-alert-title>
+                You are currently viewing the interface as a {{ viewerModeSettings.simulateRole.toLowerCase() }} would see it. 
+                Admin features are hidden. Toggle off to return to admin view.
+              </v-alert>
             </v-col>
           </v-row>
           
@@ -581,6 +722,27 @@ watch(() => settings.admin.eventInfo, () => {
             <v-col cols="12" md="6">
               <v-card variant="outlined">
                 <v-card-title class="text-h6">
+                  <v-icon class="mr-2" color="primary">mdi-chart-bar</v-icon>
+                  Live Voting Dashboard
+                </v-card-title>
+                <v-card-text>
+                  View real-time voting results with a pixel art bar chart. Perfect for screen sharing during voting sessions.
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                    :to="'/admin/voting-dashboard'"
+                    color="primary"
+                    prepend-icon="mdi-chart-bar"
+                  >
+                    Open Dashboard
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+            
+            <v-col cols="12" md="6">
+              <v-card variant="outlined">
+                <v-card-title class="text-h6">
                   <v-icon class="mr-2" color="info">mdi-download</v-icon>
                   Export Data
                 </v-card-title>
@@ -638,6 +800,82 @@ watch(() => settings.admin.eventInfo, () => {
                     prepend-icon="mdi-web"
                   >
                     Update Homepage
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+            
+            <v-col cols="12">
+              <v-card variant="outlined">
+                <v-card-title class="text-h6">
+                  <v-icon class="mr-2" color="indigo">mdi-qrcode</v-icon>
+                  QR Code Quick Join
+                </v-card-title>
+                <v-card-text>
+                  <p class="text-body-2 text-grey-darken-1 mb-4">
+                    Generate a QR code that allows participants to join the event instantly without creating accounts.
+                  </p>
+                  
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="eventCodeForm.eventCode"
+                        label="Event Code"
+                        hint="Short code participants will use to join (e.g., DEMO2024)"
+                        prepend-icon="mdi-ticket-confirmation"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="eventCodeForm.eventName"
+                        label="Event Name"
+                        hint="Full name of the event for display"
+                        prepend-icon="mdi-calendar-text"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row v-if="qrCodeGenerated" class="mt-4">
+                    <v-col cols="12" md="6">
+                      <div class="text-center">
+                        <v-img
+                          :src="qrCode"
+                          max-width="256"
+                          class="mx-auto mb-4"
+                        ></v-img>
+                        <p class="text-body-2">
+                          Scan this QR code or visit the join URL to participate
+                        </p>
+                      </div>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-alert type="success" variant="tonal" class="mb-4">
+                        <v-alert-title>QR Code Generated!</v-alert-title>
+                        <p class="mt-2">
+                          Participants can now scan this code or use the event code 
+                          <strong>{{ eventCodeForm.eventCode }}</strong> to join instantly.
+                        </p>
+                      </v-alert>
+                      
+                      <v-btn
+                        @click="downloadQRCode"
+                        color="success"
+                        prepend-icon="mdi-download"
+                        class="me-2"
+                      >
+                        Download QR Code
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                    @click="generateQRCode"
+                    :loading="qrGenerating"
+                    color="indigo"
+                    prepend-icon="mdi-qrcode"
+                  >
+                    Generate QR Code
                   </v-btn>
                 </v-card-actions>
               </v-card>

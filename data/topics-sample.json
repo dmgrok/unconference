@@ -4,11 +4,18 @@
     "title": "Copilot and MCP servers",
     "description": "MCP servers are changing the landscape of AI. How do we leverage them securely?",
     "createdBy": "darth.vader@starwars.com",
-    "votes": 0,
-    "voters": [],
-    "badges": 4,
+    "votes": 1,
+    "voters": [
+      "darth.vader@starwars.com"
+    ],
+    "badges": 6,
     "selectedForRound": false,
-    "frozen": false
+    "frozen": false,
+    "firstChoiceVoters": [
+      "darth.vader@starwars.com"
+    ],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 2
   },
   {
     "id": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
@@ -17,20 +24,28 @@
     "createdBy": "storm.trooper@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 4,
+    "badges": 6,
     "frozen": false,
-    "selectedForRound": false
+    "selectedForRound": false,
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0
   },
   {
     "id": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
     "title": "TDO for IT",
     "description": "Discuss the TDO for IT and how it impacts us",
     "createdBy": "darth.vader@starwars.com",
-    "votes": 0,
+    "votes": 1,
     "voters": [],
     "frozen": false,
     "selectedForRound": false,
-    "badges": 4
+    "badges": 6,
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [
+      "darth.vader@starwars.com"
+    ],
+    "totalPreferenceScore": 1
   },
   {
     "id": "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
@@ -41,7 +56,10 @@
     "voters": [],
     "frozen": false,
     "selectedForRound": false,
-    "badges": 2
+    "badges": 4,
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0
   },
   {
     "id": "c1256e92-7c82-49b4-9b06-2d7ee9d6ab87",
@@ -50,9 +68,12 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 2,
+    "badges": 4,
     "selectedForRound": false,
-    "frozen": false
+    "frozen": false,
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0
   },
   {
     "id": "6dd81849-2a8a-4d1e-adb5-044c433eb0e6",
@@ -61,8 +82,11 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 1,
+    "badges": 3,
     "selectedForRound": false,
-    "frozen": false
+    "frozen": false,
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0
   }
 ]

@@ -1,0 +1,55 @@
+[
+  {
+    "id": "room-a",
+    "name": "Conference Room A",
+    "capacity": 12,
+    "location": "First Floor, East Wing",
+    "description": "Main conference room with presentation setup",
+    "amenities": [
+      "projector",
+      "whiteboard",
+      "microphone",
+      "speakers"
+    ],
+    "available": true
+  },
+  {
+    "id": "room-b",
+    "name": "Conference Room B",
+    "capacity": 8,
+    "location": "First Floor, West Wing",
+    "description": "Smaller meeting room, ideal for focused discussions",
+    "amenities": [
+      "whiteboard",
+      "flipchart",
+      "natural_light"
+    ],
+    "available": true
+  },
+  {
+    "id": "room-c",
+    "name": "Collaboration Space",
+    "capacity": 15,
+    "location": "Second Floor, Open Area",
+    "description": "Open collaborative space with flexible seating",
+    "amenities": [
+      "moveable_furniture",
+      "whiteboard",
+      "power_outlets",
+      "wifi_strong"
+    ],
+    "available": true
+  },
+  {
+    "id": "room-d",
+    "name": "Small Meeting Room",
+    "capacity": 6,
+    "location": "Second Floor, Corner",
+    "description": "Intimate space for small group discussions",
+    "amenities": [
+      "whiteboard",
+      "natural_light"
+    ],
+    "available": true
+  }
+]

@@ -8,15 +8,21 @@ const { user } = useUserSession()
 const VOTE_LIMIT = config.public.maxVotesPerTopic
 const topics = ref<DiscussionTopic[]>([])
 
-// Get the topic the user voted for
-const votedTopic = computed(() => {
-  return topics.value.find(topic => topic.voters.includes(user.value?.email || ''))
+// Get user's preference votes
+const userFirstChoice = computed(() => {
+  return topics.value.find(topic => topic.firstChoiceVoters?.includes((user.value as User)?.email || ''))
 })
 
-// Sort topics by votes (descending) and get top N
+const userSecondChoice = computed(() => {
+  return topics.value.find(topic => topic.secondChoiceVoters?.includes((user.value as User)?.email || ''))
+})
+
+const hasVotedPreferences = computed(() => !!(userFirstChoice.value || userSecondChoice.value))
+
+// Sort topics by preference score (descending) and get top N
 const topTopics = computed(() => {
   return [...topics.value]
-    .sort((a, b) => b.votes - a.votes)
+    .sort((a, b) => (b.totalPreferenceScore || 0) - (a.totalPreferenceScore || 0))
     .slice(0, config.public.topTopicsCount)
 })
 
@@ -48,23 +54,48 @@ onMounted(() => {
     </v-row>
 
     <!-- Current Vote Status -->
-    <v-row v-if="votedTopic" class="mb-4">
+    <v-row v-if="hasVotedPreferences" class="mb-4">
       <v-col>
         <v-alert
           type="info"
           variant="tonal"
-          class="d-flex align-center"
         >
-          <div class="flex-grow-1">
-            You have voted for: <strong>{{ votedTopic.title }}</strong>
+          <div class="d-flex align-center justify-space-between">
+            <div>
+              <strong>Your Voting Preferences:</strong>
+              <div class="mt-2">
+                <v-chip
+                  v-if="userFirstChoice"
+                  color="primary"
+                  size="small"
+                  class="mr-2 mb-1"
+                  prepend-icon="mdi-star"
+                  closable
+                  @click:close="cancelVote(userFirstChoice.id)"
+                >
+                  1st: {{ userFirstChoice.title }}
+                </v-chip>
+                <v-chip
+                  v-if="userSecondChoice"
+                  color="secondary"
+                  size="small"
+                  class="mr-2 mb-1"
+                  prepend-icon="mdi-star-half-full"
+                  closable
+                  @click:close="cancelVote(userSecondChoice.id)"
+                >
+                  2nd: {{ userSecondChoice.title }}
+                </v-chip>
+              </div>
+            </div>
+            <v-btn
+              color="primary"
+              variant="text"
+              :to="'/preferences'"
+            >
+              Change Preferences
+            </v-btn>
           </div>
-          <v-btn
-            color="primary"
-            variant="text"
-            @click="cancelVote(votedTopic.id)"
-          >
-            Cancel Vote
-          </v-btn>
         </v-alert>
       </v-col>
     </v-row>
@@ -76,10 +107,11 @@ onMounted(() => {
             v-for="(topic, index) in topTopics"
             :key="topic.id"
             :border="true"
-            :elevation="topic.voters.includes(user?.email || '') ? 3 : (index === 0 ? 3 : 1)"
+            :elevation="(topic.firstChoiceVoters?.includes((user as User)?.email || '') || topic.secondChoiceVoters?.includes((user as User)?.email || '')) ? 3 : (index === 0 ? 3 : 1)"
             :class="{
               'bg-primary-lighten-4': index === 0,
-              'border-primary border': topic.voters.includes(user?.email || '')
+              'border-primary border': topic.firstChoiceVoters?.includes((user as User)?.email || ''),
+              'border-secondary border': !topic.firstChoiceVoters?.includes((user as User)?.email || '') && topic.secondChoiceVoters?.includes((user as User)?.email || '')
             }"
             class="mb-2"
           >
@@ -116,27 +148,37 @@ onMounted(() => {
               {{ topic.description }}
               <div class="d-flex align-center mt-2 gap-2">
                 <v-progress-linear
-                  :model-value="(topic.votes / VOTE_LIMIT) * 100"
+                  :model-value="((topic.totalPreferenceScore || 0) / (VOTE_LIMIT * 2)) * 100"
                   color="primary"
                   height="8"
                   rounded
                 ></v-progress-linear>
-                <span class="text-caption">{{ topic.votes }}/{{ VOTE_LIMIT }}</span>
+                <span class="text-caption">{{ topic.totalPreferenceScore || 0 }}/{{ VOTE_LIMIT * 2 }} pts</span>
+              </div>
+              <div class="d-flex gap-4 mt-1">
+                <span class="text-caption">
+                  <v-icon size="small" color="primary">mdi-star</v-icon>
+                  1st: {{ topic.firstChoiceVoters?.length || 0 }}
+                </span>
+                <span class="text-caption">
+                  <v-icon size="small" color="secondary">mdi-star-half-full</v-icon>
+                  2nd: {{ topic.secondChoiceVoters?.length || 0 }}
+                </span>
               </div>
             </v-list-item-subtitle>
             
             <template v-slot:append>
               <div class="d-flex align-center gap-4">
                 <v-chip color="primary" size="large" class="px-4">
-                  {{ topic.votes }} votes
+                  {{ topic.totalPreferenceScore || 0 }} points
                 </v-chip>
                 <v-btn
-                  v-if="topic.voters.includes(user?.email || '')"
+                  v-if="topic.firstChoiceVoters?.includes((user as User)?.email || '') || topic.secondChoiceVoters?.includes((user as User)?.email || '')"
                   color="error"
                   variant="text"
-                  @click="cancelVote(topic.id)"
+                  :to="'/preferences'"
                 >
-                  Cancel Vote
+                  Change Vote
                 </v-btn>
               </div>
             </template>

@@ -6,7 +6,9 @@ import type { DiscussionTopic } from '~/types/topic'
 
 const config = useRuntimeConfig()
 const { user } = useUserSession()
-const VOTE_LIMIT = config.public.maxVotesPerTopic
+const { settings: adminSettings, loadSettings } = useAdminSettings()
+const { shouldHideAdminFeatures, getEffectiveRole } = useViewerMode()
+const VOTE_LIMIT = computed(() => adminSettings.value.maxVotesPerTopic)
 const dialog = ref(false)
 const editDialog = ref(false)
 const newRoundConfirmDialog = ref(false)
@@ -23,18 +25,22 @@ const newTopic = ref({
   description: ''
 })
 
-const isAdmin = computed(() => user.value?.role === 'Admin')
+const isAdmin = computed(() => (user.value as User)?.role === 'Admin' && !shouldHideAdminFeatures((user.value as User)?.role))
 const topics = ref<DiscussionTopic[]>([])
 
-// Get the topic the user voted for
-const votedTopic = computed(() => {
-  return topics.value.find(topic => topic.voters.includes(user.value?.email || ''))
+// Get user's preference votes
+const userFirstChoice = computed(() => {
+  return topics.value.find(topic => topic.firstChoiceVoters?.includes((user.value as User)?.email || ''))
 })
 
-const hasVoted = computed(() => !!votedTopic.value)
+const userSecondChoice = computed(() => {
+  return topics.value.find(topic => topic.secondChoiceVoters?.includes((user.value as User)?.email || ''))
+})
+
+const hasVotedPreferences = computed(() => !!(userFirstChoice.value || userSecondChoice.value))
 
 const canEditTopic = (topic: DiscussionTopic) => {
-  return isAdmin.value || topic.createdBy === user.value?.email
+  return isAdmin.value || topic.createdBy === (user.value as User)?.email
 }
 
 const topicRules = {
@@ -67,23 +73,79 @@ async function fetchTopics() {
 }
 
 async function voteForTopic(topicId: string) {
-  if (hasVoted.value) return
-
-  await $fetch(`/api/topics/${topicId}/vote`, {
-    method: 'POST'
-  })
-  
-  // Refresh topics to get updated votes
-  await fetchTopics()
+  try {
+    if (userFirstChoice.value && userFirstChoice.value.id === topicId) {
+      // If clicking on their first choice, remove it
+      await $fetch('/api/topics/preferences', {
+        method: 'POST',
+        body: {
+          firstChoice: undefined,
+          secondChoice: userSecondChoice.value?.id
+        }
+      })
+    } else if (userSecondChoice.value && userSecondChoice.value.id === topicId) {
+      // If clicking on their second choice, remove it
+      await $fetch('/api/topics/preferences', {
+        method: 'POST',
+        body: {
+          firstChoice: userFirstChoice.value?.id,
+          secondChoice: undefined
+        }
+      })
+    } else if (!userFirstChoice.value) {
+      // No votes yet, make this first choice
+      await $fetch('/api/topics/preferences', {
+        method: 'POST',
+        body: {
+          firstChoice: topicId,
+          secondChoice: userSecondChoice.value?.id
+        }
+      })
+    } else if (!userSecondChoice.value) {
+      // Has first choice, make this second choice
+      await $fetch('/api/topics/preferences', {
+        method: 'POST',
+        body: {
+          firstChoice: userFirstChoice.value.id,
+          secondChoice: topicId
+        }
+      })
+    } else {
+      // Both choices are taken, replace first choice and move it to second
+      await $fetch('/api/topics/preferences', {
+        method: 'POST',
+        body: {
+          firstChoice: topicId,
+          secondChoice: userFirstChoice.value.id
+        }
+      })
+    }
+    
+    // Refresh topics to get updated votes
+    await fetchTopics()
+  } catch (error: any) {
+    console.error('Voting failed:', error)
+  }
 }
 
-async function cancelVote(topicId: string) {
-  await $fetch(`/api/topics/${topicId}/cancel-vote`, {
-    method: 'POST'
-  })
+async function resetVotes() {
+  const confirmed = confirm('Are you sure you want to reset all your votes?')
+  if (!confirmed) return
   
-  // Refresh topics to get updated votes
-  await fetchTopics()
+  try {
+    await $fetch('/api/topics/preferences', {
+      method: 'POST',
+      body: {
+        firstChoice: undefined,
+        secondChoice: undefined
+      }
+    })
+    
+    // Refresh topics to get updated votes
+    await fetchTopics()
+  } catch (error: any) {
+    console.error('Reset votes failed:', error)
+  }
 }
 
 async function startNewRound() {
@@ -139,8 +201,9 @@ async function saveTopic() {
 }
 
 // Fetch topics when component mounts
-onMounted(() => {
-  fetchTopics()
+onMounted(async () => {
+  await loadSettings()
+  await fetchTopics()
 })
 
 const data = ref([
@@ -184,18 +247,28 @@ const placeholderCount = computed(() => {
 
 const placeholders = computed(() => Array(placeholderCount.value).fill(null))
 
-const isVoteDisabled = (topic: DiscussionTopic) => {
-  return hasVoted.value || topic.votes >= VOTE_LIMIT || topic.frozen
-}
-
-const voteButtonText = (topic: DiscussionTopic) => {
+const getVoteStatus = (topic: DiscussionTopic) => {
+  if (userFirstChoice.value && userFirstChoice.value.id === topic.id) {
+    return { status: 'first', text: '1st Choice ⭐', color: 'warning', variant: 'elevated' as const }
+  }
+  if (userSecondChoice.value && userSecondChoice.value.id === topic.id) {
+    return { status: 'second', text: '2nd Choice ⭐', color: 'info', variant: 'elevated' as const }
+  }
   if (topic.frozen) {
-    return 'Topic frozen'
+    return { status: 'frozen', text: 'Topic Frozen', color: 'error', variant: 'outlined' as const, disabled: true }
   }
-  if (topic.votes >= VOTE_LIMIT) {
-    return `Max votes reached (${VOTE_LIMIT})`
+  if (topic.votes >= VOTE_LIMIT.value) {
+    return { status: 'full', text: `Full (${VOTE_LIMIT.value}/${VOTE_LIMIT.value})`, color: 'grey', variant: 'outlined' as const, disabled: true }
   }
-  return `Vote (${topic.votes}/${VOTE_LIMIT})`
+  
+  // Determine what happens if they vote
+  if (!userFirstChoice.value) {
+    return { status: 'vote-first', text: 'Vote (1st Choice)', color: 'primary', variant: 'elevated' as const }
+  } else if (!userSecondChoice.value) {
+    return { status: 'vote-second', text: 'Vote (2nd Choice)', color: 'secondary', variant: 'elevated' as const }
+  } else {
+    return { status: 'vote-replace', text: 'Vote (Replace 1st)', color: 'primary', variant: 'outlined' as const }
+  }
 }
 </script>
 
@@ -222,25 +295,88 @@ const voteButtonText = (topic: DiscussionTopic) => {
       </v-col>
     </v-row>
 
-    <!-- Current Vote Status -->
-    <v-row v-if="hasVoted" class="mb-4">
+    <!-- Current Vote Status - More Prominent Display -->
+    <v-row class="mb-6">
       <v-col>
-        <v-alert
-          type="info"
-          variant="tonal"
-          class="d-flex align-center"
+        <v-card 
+          elevation="4" 
+          :color="hasVotedPreferences ? 'primary' : 'grey-lighten-4'"
+          :variant="hasVotedPreferences ? 'elevated' : 'outlined'"
         >
-          <div class="flex-grow-1">
-            You have voted for: <strong>{{ votedTopic?.title }}</strong>
-          </div>
-          <v-btn
-            color="primary"
-            variant="text"
-            @click="cancelVote(votedTopic?.id)"
-          >
-            Cancel Vote
-          </v-btn>
-        </v-alert>
+          <v-card-title class="text-center">
+            <v-icon :color="hasVotedPreferences ? 'white' : 'grey'" class="mr-2">
+              {{ hasVotedPreferences ? 'mdi-check-circle' : 'mdi-vote' }}
+            </v-icon>
+            <span :class="hasVotedPreferences ? 'text-white' : 'text-grey'">
+              {{ hasVotedPreferences ? 'Your Voting Preferences' : 'Ready to Vote' }}
+            </span>
+          </v-card-title>
+          
+          <v-card-text class="text-center">
+            <div v-if="hasVotedPreferences" class="d-flex justify-center align-center flex-wrap gap-4">
+              <div v-if="userFirstChoice" class="d-flex flex-column align-center">
+                <v-chip
+                  color="warning"
+                  size="large"
+                  prepend-icon="mdi-star"
+                  class="mb-2"
+                >
+                  1st Choice
+                </v-chip>
+                <h3 class="text-white text-center">{{ userFirstChoice.title }}</h3>
+              </div>
+              
+              <v-divider v-if="userFirstChoice && userSecondChoice" vertical class="mx-4"></v-divider>
+              
+              <div v-if="userSecondChoice" class="d-flex flex-column align-center">
+                <v-chip
+                  color="info"
+                  size="large"
+                  prepend-icon="mdi-star-half-full"
+                  class="mb-2"
+                >
+                  2nd Choice
+                </v-chip>
+                <h3 class="text-white text-center">{{ userSecondChoice.title }}</h3>
+              </div>
+            </div>
+            
+            <div v-else class="text-grey">
+              <p class="mb-2 text-center">
+                <strong>Direct Voting Instructions:</strong>
+              </p>
+              <ul class="text-left">
+                <li>🥇 <strong>First click</strong> = 1st Choice (2 points)</li>
+                <li>🥈 <strong>Second click</strong> = 2nd Choice (1 point)</li>
+                <li>🔄 <strong>Click again</strong> = Remove vote</li>
+                <li>📝 <strong>Third click</strong> = Replace 1st choice</li>
+              </ul>
+              <p class="text-center mt-3 text-caption">
+                Click on any topic below to start voting!
+              </p>
+            </div>
+          </v-card-text>
+          
+          <v-card-actions v-if="hasVotedPreferences" class="justify-center">
+            <v-btn
+              color="white"
+              variant="outlined"
+              :to="'/preferences'"
+              prepend-icon="mdi-pencil"
+              class="mr-2"
+            >
+              Advanced Voting
+            </v-btn>
+            <v-btn
+              color="warning"
+              variant="outlined"
+              @click="resetVotes"
+              prepend-icon="mdi-refresh"
+            >
+              Reset Votes
+            </v-btn>
+          </v-card-actions>
+        </v-card>
       </v-col>
     </v-row>
 
@@ -256,19 +392,48 @@ const voteButtonText = (topic: DiscussionTopic) => {
       >
         <v-card 
           class="flex-grow-1"
-          :class="{'border-primary border': topic.voters.includes(user?.email || '')}"
-          :elevation="topic.voters.includes(user?.email || '') ? 3 : 1"
+          :class="{
+            'border-warning border-lg': userFirstChoice && userFirstChoice.id === topic.id,
+            'border-info border-lg': userSecondChoice && userSecondChoice.id === topic.id,
+            'first-choice-glow': userFirstChoice && userFirstChoice.id === topic.id,
+            'second-choice-glow': userSecondChoice && userSecondChoice.id === topic.id
+          }"
+          :elevation="(userFirstChoice && userFirstChoice.id === topic.id) || (userSecondChoice && userSecondChoice.id === topic.id) ? 8 : 2"
         >
           <v-card-title class="d-flex align-center">
             {{ topic.title }}
+            
+            <!-- User's Choice Indicators -->
             <v-chip
-              v-if="topic.badges > 0"
+              v-if="userFirstChoice && userFirstChoice.id === topic.id"
               size="small"
               color="warning"
               class="ml-2"
               prepend-icon="mdi-star"
+              variant="elevated"
             >
-              {{ topic.badges }}
+              Your 1st Choice
+            </v-chip>
+            <v-chip
+              v-else-if="userSecondChoice && userSecondChoice.id === topic.id"
+              size="small"
+              color="info"
+              class="ml-2"
+              prepend-icon="mdi-star-half-full"
+              variant="elevated"
+            >
+              Your 2nd Choice
+            </v-chip>
+            
+            <!-- Other Status Chips -->
+            <v-chip
+              v-if="topic.badges > 0"
+              size="small"
+              color="success"
+              class="ml-2"
+              prepend-icon="mdi-medal"
+            >
+              {{ topic.badges }} Badge{{ topic.badges > 1 ? 's' : '' }}
             </v-chip>
             <v-chip
               v-if="topic.selectedForRound"
@@ -291,14 +456,83 @@ const voteButtonText = (topic: DiscussionTopic) => {
           </v-card-title>
           <v-card-text>
             <p>{{ topic.description }}</p>
-            <div class="d-flex align-center mt-2 gap-2">
-              <v-progress-linear
-                :model-value="(topic.votes / VOTE_LIMIT) * 100"
-                :color="topic.frozen ? 'error' : 'primary'"
-                height="8"
-                rounded
-              ></v-progress-linear>
-              <span class="text-caption">{{ topic.votes }}/{{ VOTE_LIMIT }}</span>
+            
+            <!-- Preference Voting Display -->
+            <div class="mt-3">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <span class="text-caption font-weight-bold">Preference Score: {{ topic.totalPreferenceScore || 0 }} points</span>
+                <span class="text-caption">{{ topic.votes || 0 }} total votes</span>
+              </div>
+              <div class="d-flex align-center mt-2 gap-2">
+                <v-progress-linear
+                  :model-value="((topic.totalPreferenceScore || 0) / (VOTE_LIMIT * 2)) * 100"
+                  :color="topic.frozen ? 'error' : 'primary'"
+                  height="8"
+                  rounded
+                ></v-progress-linear>
+                <span class="text-caption">{{ topic.totalPreferenceScore || 0 }}/{{ VOTE_LIMIT * 2 }}</span>
+              </div>
+              
+              <!-- Breakdown of votes -->
+              <div class="d-flex gap-4 mt-2">
+                <div class="text-caption">
+                  <v-icon size="small" color="primary">mdi-star</v-icon>
+                  1st choices: {{ topic.firstChoiceVoters?.length || 0 }} ({{ (topic.firstChoiceVoters?.length || 0) * 2 }} pts)
+                </div>
+                <div class="text-caption">
+                  <v-icon size="small" color="secondary">mdi-star-half-full</v-icon>
+                  2nd choices: {{ topic.secondChoiceVoters?.length || 0 }} ({{ topic.secondChoiceVoters?.length || 0 }} pts)
+                </div>
+              </div>
+            </div>
+            
+            <!-- Voter Names Section (if enabled by admin) -->
+            <div v-if="adminSettings.showVoterNames && ((topic.firstChoiceVoters?.length || 0) + (topic.secondChoiceVoters?.length || 0) > 0)" class="mt-3">
+              <v-divider class="mb-2"></v-divider>
+              
+              <!-- First Choice Voters -->
+              <div v-if="topic.firstChoiceVoters?.length" class="mb-2">
+                <div class="text-caption text-grey-darken-1 mb-1">
+                  <v-icon size="small" color="primary">mdi-star</v-icon>
+                  1st Choice Voters:
+                </div>
+                <v-chip-group>
+                  <v-chip
+                    v-for="voterEmail in topic.firstChoiceVoters"
+                    :key="`first-${voterEmail}`"
+                    size="small"
+                    :color="voterEmail === (user as User)?.email ? 'primary' : 'default'"
+                    variant="outlined"
+                    prepend-icon="mdi-star"
+                  >
+                    {{ voterEmail.includes('@unconference.guest') ? 
+                         `Guest ${voterEmail.split('_')[1]?.substring(0, 6).toUpperCase()}` :
+                         voterEmail.split('@')[0] }}
+                  </v-chip>
+                </v-chip-group>
+              </div>
+              
+              <!-- Second Choice Voters -->
+              <div v-if="topic.secondChoiceVoters?.length">
+                <div class="text-caption text-grey-darken-1 mb-1">
+                  <v-icon size="small" color="secondary">mdi-star-half-full</v-icon>
+                  2nd Choice Voters:
+                </div>
+                <v-chip-group>
+                  <v-chip
+                    v-for="voterEmail in topic.secondChoiceVoters"
+                    :key="`second-${voterEmail}`"
+                    size="small"
+                    :color="voterEmail === (user as User)?.email ? 'secondary' : 'default'"
+                    variant="outlined"
+                    prepend-icon="mdi-star-half-full"
+                  >
+                    {{ voterEmail.includes('@unconference.guest') ? 
+                         `Guest ${voterEmail.split('_')[1]?.substring(0, 6).toUpperCase()}` :
+                         voterEmail.split('@')[0] }}
+                  </v-chip>
+                </v-chip-group>
+              </div>
             </div>
           </v-card-text>
           <v-card-actions>
@@ -321,25 +555,15 @@ const voteButtonText = (topic: DiscussionTopic) => {
               Freeze
             </v-btn>
             <v-spacer />
-            <template v-if="topic.voters.includes(user?.email || '')">
-              <v-btn
-                color="error"
-                variant="text"
-                @click="cancelVote(topic.id)"
-              >
-                Cancel Vote
-              </v-btn>
-            </template>
-            <template v-else>
-              <v-btn
-                color="primary"
-                variant="tonal"
-                :disabled="isVoteDisabled(topic)"
-                @click="voteForTopic(topic.id)"
-              >
-                {{ voteButtonText(topic) }}
-              </v-btn>
-            </template>
+            <v-btn
+              :color="getVoteStatus(topic).color"
+              :variant="getVoteStatus(topic).variant"
+              :disabled="getVoteStatus(topic).disabled"
+              @click="voteForTopic(topic.id)"
+              class="vote-btn"
+            >
+              {{ getVoteStatus(topic).text }}
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -460,3 +684,29 @@ const voteButtonText = (topic: DiscussionTopic) => {
     </v-dialog>
   </v-container>
 </template>
+
+<style scoped>
+.vote-btn {
+  min-width: 140px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.vote-btn:hover {
+  transform: scale(1.05);
+}
+
+.first-choice-glow {
+  box-shadow: 0 0 20px rgba(255, 193, 7, 0.5) !important;
+  border-width: 3px !important;
+}
+
+.second-choice-glow {
+  box-shadow: 0 0 20px rgba(33, 150, 243, 0.5) !important;
+  border-width: 3px !important;
+}
+
+.border-lg {
+  border-width: 3px !important;
+}
+</style>

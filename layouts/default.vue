@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref } from 'vue'
   import { reactive, computed } from 'vue'
+  import type { User } from '~/types/user'
 
   interface NavItem {
     icon: string
@@ -11,6 +12,7 @@
 
   const { user, clear: clearSession } = useUserSession()
   const { initializeTheme, setupAutoThemeWatcher } = useAppTheme()
+  const { shouldHideAdminFeatures, isViewerMode } = useViewerMode()
 
   // Initialize theme on app load
   onMounted(() => {
@@ -27,10 +29,34 @@
       adminOnly: false
     },
     {
+      icon: 'mdi-vote',
+      title: 'Vote Preferences',
+      to: '/preferences',
+      adminOnly: false
+    },
+    {
       icon: 'mdi-trophy',
       title: 'Top Topics',
       to: '/leaderboard',
       adminOnly: false
+    },
+    {
+      icon: 'mdi-account-group',
+      title: 'Groups',
+      to: '/groups',
+      adminOnly: false
+    },
+    {
+      icon: 'mdi-chart-bar',
+      title: 'Live Voting',
+      to: '/admin/voting-dashboard',
+      adminOnly: true
+    },
+    {
+      icon: 'mdi-home-city',
+      title: 'Room Management',
+      to: '/admin/rooms',
+      adminOnly: true
     },
     {
       icon: 'mdi-cog',
@@ -41,7 +67,7 @@
   ])
 
   const filteredNavItems = computed<NavItem[]>(() => 
-    navItems.filter(item => !item.adminOnly || user.value?.role === 'Admin')
+    navItems.filter(item => !item.adminOnly || ((user.value as User)?.role === 'Admin' && !shouldHideAdminFeatures((user.value as User)?.role)))
   )
 
   const toggleDrawer = () => {
@@ -64,6 +90,19 @@
         </template>
       </v-app-bar-title>
       <v-spacer></v-spacer>
+      
+      <!-- Viewer Mode Toggle -->
+      <v-btn
+        v-if="(user as User)?.role === 'Admin'"
+        :color="isViewerMode ? 'purple' : 'default'"
+        :variant="isViewerMode ? 'elevated' : 'text'"
+        :prepend-icon="isViewerMode ? 'mdi-eye-off' : 'mdi-eye'"
+        @click="() => { const { toggleViewerMode } = useViewerMode(); toggleViewerMode() }"
+        class="mr-2"
+      >
+        {{ isViewerMode ? 'Exit Viewer' : 'View as User' }}
+      </v-btn>
+      
       <AuthState>
         <template #default="{ loggedIn, clear }">
           <v-btn v-if="loggedIn" data-testid="logout-button" @click="signOut('/')" append-icon="mdi-logout">Logout</v-btn>
