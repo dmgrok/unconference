@@ -43,10 +43,16 @@ This document provides a comprehensive overview of all features available in the
 
 ### Admin Interface
 - **Round Management**: Comprehensive round control interface
-- **Voting Dashboard**: Real-time voting statistics and analytics
+- **Voting Dashboard**: Real-time voting statistics and analytics with QR code for easy joining
 - **Settings Configuration**: Extensive customization options
 - **User Management**: View and manage user accounts
 - **System Monitoring**: Application status and health checks
+
+### Enhanced Voting Experience
+- **Detailed Topic Display**: Topics now show full descriptions in voting interfaces
+- **QR Code Integration**: Live voting dashboard displays QR code for easy event joining
+- **Auto-save Preferences**: Quick voting buttons with automatic preference saving
+- **Improved Topic Visibility**: Better contrast and detailed information in all voting screens
 
 ### Responsive Design
 - **Mobile Optimized**: Full functionality on mobile devices

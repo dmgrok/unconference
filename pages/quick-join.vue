@@ -43,7 +43,7 @@ async function joinAsGuest() {
     })
 
     // Refresh the user session
-    await refreshCookie()
+    await $fetch('/api/auth/session')
     
     // Redirect to dashboard
     await router.push('/dashboard')
@@ -66,13 +66,29 @@ const eventCodeRules = [
       <v-col cols="12" sm="8" md="6" lg="4">
         <v-card class="pa-4">
           <v-card-title class="text-center">
-            <h2>Quick Join Event</h2>
+            <div class="d-flex flex-column align-center">
+              <v-icon size="48" color="primary" class="mb-2">mdi-ticket-confirmation</v-icon>
+              <h2>Join Any Unconference Event</h2>
+            </div>
           </v-card-title>
           
           <v-card-text>
             <p class="text-center text-grey mb-4">
-              Join the unconference discussion instantly!
+              Enter your event code to join the discussion instantly!
             </p>
+
+            <v-alert type="info" variant="tonal" class="mb-4">
+              <v-alert-title class="d-flex align-center">
+                <v-icon class="mr-2">mdi-information</v-icon>
+                How to find your event code
+              </v-alert-title>
+              <ul class="mt-2 text-body-2">
+                <li>Look for QR codes at the event venue</li>
+                <li>Check your invitation email or message</li>
+                <li>Ask event organizers for the code</li>
+                <li>Examples: DEMO2024, CONF2025, SUMMIT25</li>
+              </ul>
+            </v-alert>
 
             <v-form @submit.prevent="joinAsGuest">
               <v-text-field
@@ -83,6 +99,9 @@ const eventCodeRules = [
                 class="mb-4"
                 :disabled="!!route.query.code"
                 hint="Enter the event code provided by the organizer"
+                prepend-inner-icon="mdi-ticket-confirmation"
+                style="text-transform: uppercase;"
+                @input="eventCode = eventCode.toUpperCase()"
               />
 
               <v-text-field
@@ -90,7 +109,8 @@ const eventCodeRules = [
                 label="Your Name (Optional)"
                 variant="outlined"
                 class="mb-4"
-                hint="Leave blank for a random name"
+                hint="Leave blank for a random generated name"
+                prepend-inner-icon="mdi-account"
               />
 
               <v-alert

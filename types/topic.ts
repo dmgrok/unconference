@@ -23,9 +23,16 @@ export interface UserVotePreferences {
 }
 
 export interface RoundHistory {
-  roundNumber: number
-  timestamp: string
-  selectedTopics: {
+  id: string
+  roundNumber?: number
+  timestamp?: string
+  topicIds: string[]
+  topicTitles: string[]
+  startTime: Date
+  duration: number
+  participantCount: number
+  eventId: string
+  selectedTopics?: {
     topicId: string
     title: string
     participantCount: number
@@ -33,17 +40,20 @@ export interface RoundHistory {
     assignedParticipants: string[]  // emails of assigned participants
     roomAssignment?: string
   }[]
-  totalParticipants: number
+  totalParticipants?: number
 }
 
 export interface ActiveRound {
-  roundNumber: number
-  startTime: string
+  id: string
+  roundNumber?: number
+  startTime: Date
   duration: number  // minutes
-  selectedTopics: string[]  // topic IDs
+  topicIds: string[]  // topic IDs
+  selectedTopics?: string[]  // topic IDs - legacy
   isActive: boolean
-  groupAssignments: GroupAssignment[]
+  groupAssignments?: GroupAssignment[]
   votingDisabled: boolean
+  eventId: string
 }
 
 export interface GroupAssignment {

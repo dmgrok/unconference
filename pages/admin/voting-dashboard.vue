@@ -18,6 +18,9 @@ const previousVoteCounts = ref<Record<string, number>>({})
 const showNewVoteAnimation = ref<Record<string, boolean>>({})
 const rooms = ref<any[]>([])
 const roomAssignments = ref<any[]>([])
+const qrCodeUrl = ref<string>('')
+const joinUrl = ref<string>('')
+const loadingQR = ref(false)
 
 // Sound for new votes (using Web Audio API)
 const playVoteSound = () => {
@@ -84,8 +87,13 @@ const getRankColor = (index: number) => {
   return rankColors[3 + (index % 2)] // Alternate between remaining colors
 }
 
-const getTruncatedTitle = (title: string, maxLength: number = 30) => {
+const getTruncatedTitle = (title: string, maxLength: number = 45) => {
   return title.length > maxLength ? title.substring(0, maxLength) + '...' : title
+}
+
+const getTruncatedDescription = (description: string, maxLength: number = 80) => {
+  if (!description) return ''
+  return description.length > maxLength ? description.substring(0, maxLength) + '...' : description
 }
 
 const totalVotes = computed(() => {
@@ -133,6 +141,43 @@ async function fetchTopics() {
     topics.value = newTopics
   } catch (error) {
     console.error('Error fetching topics:', error)
+  }
+}
+
+async function generateQRCodeForDashboard() {
+  loadingQR.value = true
+  try {
+    // Try to get admin settings to use existing event code
+    const adminSettings = await $fetch('/api/admin/settings')
+    
+    let eventCode = 'CONF2025'
+    let eventName = 'Unconference Event'
+    
+    if (adminSettings?.eventCode) {
+      eventCode = adminSettings.eventCode
+    }
+    if (adminSettings?.eventName) {
+      eventName = adminSettings.eventName
+    }
+    
+    const response = await $fetch('/api/admin/generate-qr', {
+      method: 'POST',
+      body: {
+        eventCode,
+        eventName
+      }
+    })
+    
+    qrCodeUrl.value = (response as any).qrCode
+    joinUrl.value = (response as any).joinUrl
+  } catch (error) {
+    console.error('Error generating QR code for dashboard:', error)
+    // Create a fallback join URL
+    const protocol = window.location.protocol
+    const host = window.location.host
+    joinUrl.value = `${protocol}//${host}/quick-join`
+  } finally {
+    loadingQR.value = false
   }
 }
 
@@ -189,6 +234,7 @@ function stopAutoRefresh() {
 onMounted(() => {
   fetchTopics()
   fetchRoomAssignments()
+  generateQRCodeForDashboard()
   startAutoRefresh()
   
   // Listen for fullscreen changes
@@ -207,13 +253,34 @@ onUnmounted(() => {
     <v-container fluid class="pa-4">
           <!-- Header -->
           <v-row class="mb-6">
-            <v-col cols="12" class="text-center">
+            <v-col cols="12" md="10" class="text-center">
               <div class="header-animation">
                 <h1 class="display-1 font-weight-bold text-white mb-4 pixel-text">
                   🗳️ LIVE VOTING DASHBOARD
                 </h1>
                 <div class="subtitle-text pixel-subtitle">REAL-TIME UPDATES • PERFECT FOR SCREEN SHARING</div>
               </div>
+            </v-col>
+            
+            <!-- QR Code Section -->
+            <v-col cols="12" md="2" class="d-flex justify-center align-center">
+              <v-card class="qr-code-card pa-4 text-center" variant="outlined" color="primary">
+                <div class="text-caption mb-2 text-primary font-weight-bold">JOIN EVENT</div>
+                <div id="qr-code-container" class="mb-2">
+                  <v-progress-circular v-if="loadingQR" indeterminate size="80" color="primary"></v-progress-circular>
+                  <img v-else-if="qrCodeUrl" :src="qrCodeUrl" alt="Join QR Code" style="width: 80px; height: 80px;" />
+                  <v-icon v-else size="80" color="grey">mdi-qrcode</v-icon>
+                </div>
+                <div class="text-caption text-grey">Scan to Join</div>
+                <div v-if="joinUrl" class="text-caption mt-1" style="font-size: 10px; word-break: break-all;">
+                  {{ joinUrl.replace(/^https?:\/\//, '') }}
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
+          
+          <v-row class="mb-4">
+            <v-col cols="12" class="text-center">
               
               <!-- Stats -->
               <div class="d-flex justify-center gap-8 mb-4">
@@ -281,6 +348,7 @@ onUnmounted(() => {
                   <div class="topic-rank pixel-rank" :style="{ backgroundColor: getRankColor(index) }">#{{ index + 1 }}</div>
                   <div class="topic-details">
                     <div class="topic-title pixel-title">{{ getTruncatedTitle(topic.title) }}</div>
+                    <div v-if="topic.description" class="topic-description pixel-description">{{ getTruncatedDescription(topic.description) }}</div>
                     <div class="topic-votes pixel-subtitle">{{ topic.totalPreferenceScore || 0 }} PTS • {{ (topic.firstChoiceVoters?.length || 0) + (topic.secondChoiceVoters?.length || 0) }} VOTES</div>
                   </div>
                 </div>
@@ -908,6 +976,44 @@ onUnmounted(() => {
 
 .chart-container::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(45deg, #FF00FF, #FFFF00);
+}
+
+/* QR Code Card Styles */
+.qr-code-card {
+  background: linear-gradient(45deg, #0a0a0a, #1a1a2e) !important;
+  border: 3px solid #00FFFF !important;
+  border-radius: 8px !important;
+  box-shadow: 
+    0 0 20px rgba(0, 255, 255, 0.4),
+    inset 0 0 10px rgba(0, 255, 255, 0.1);
+  animation: pulse-glow 3s infinite;
+  max-width: 120px;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(0, 255, 255, 0.4),
+      inset 0 0 10px rgba(0, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(0, 255, 255, 0.8),
+      inset 0 0 15px rgba(0, 255, 255, 0.2);
+  }
+}
+
+/* Topic Description Style */
+.topic-description {
+  color: #CCCCCC !important;
+  font-size: 0.7rem !important;
+  margin: 0.3rem 0;
+  line-height: 1.3;
+  text-shadow: 1px 1px 0px #000000;
+}
+
+.pixel-description {
+  font-family: 'Courier New', monospace !important;
 }
 
 /* Room Assignment Styles */

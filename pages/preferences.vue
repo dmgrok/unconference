@@ -14,10 +14,9 @@ const preferences = ref({
 })
 const loading = ref(false)
 const saving = ref(false)
+const autoSaving = ref(false)
 const error = ref('')
 const success = ref('')
-
-const isAdmin = computed(() => user.value?.role === 'Admin' && !shouldHideAdminFeatures(user.value?.role))
 
 const availableTopics = computed(() => 
   topics.value.filter(topic => !topic.frozen)
@@ -27,7 +26,7 @@ const firstChoiceOptions = computed(() =>
   availableTopics.value.map(topic => ({
     title: topic.title,
     value: topic.id,
-    subtitle: `${topic.totalPreferenceScore || topic.votes || 0} points`
+    subtitle: `${topic.totalPreferenceScore || topic.votes || 0} points • ${topic.description ? topic.description.substring(0, 60) + '...' : 'No description'}`
   }))
 )
 
@@ -37,7 +36,7 @@ const secondChoiceOptions = computed(() =>
     .map(topic => ({
       title: topic.title,
       value: topic.id,
-      subtitle: `${topic.totalPreferenceScore || topic.votes || 0} points`
+      subtitle: `${topic.totalPreferenceScore || topic.votes || 0} points • ${topic.description ? topic.description.substring(0, 60) + '...' : 'No description'}`
     }))
 )
 
@@ -130,6 +129,47 @@ function getTopicById(id: string) {
   return topics.value.find(t => t.id === id)
 }
 
+// Auto-save when preferences change via quick buttons
+let saveTimeout: NodeJS.Timeout | null = null
+
+function debouncedSave() {
+  if (saveTimeout) {
+    clearTimeout(saveTimeout)
+  }
+  autoSaving.value = true
+  saveTimeout = setTimeout(async () => {
+    if (preferences.value.firstChoice || preferences.value.secondChoice) {
+      try {
+        await $fetch('/api/topics/preferences', {
+          method: 'POST',
+          body: {
+            firstChoice: preferences.value.firstChoice || undefined,
+            secondChoice: preferences.value.secondChoice || undefined
+          }
+        })
+        // Don't show success message for auto-save to avoid clutter
+        await loadTopics()
+      } catch (err: any) {
+        error.value = err.data?.message || 'Failed to auto-save preferences'
+      }
+    }
+    autoSaving.value = false
+  }, 1000) // Save after 1 second of no changes
+}
+
+function quickVoteFirst(topicId: string) {
+  preferences.value.firstChoice = preferences.value.firstChoice === topicId ? '' : topicId
+  if (preferences.value.secondChoice === topicId) {
+    preferences.value.secondChoice = ''
+  }
+  debouncedSave()
+}
+
+function quickVoteSecond(topicId: string) {
+  preferences.value.secondChoice = preferences.value.secondChoice === topicId ? '' : topicId
+  debouncedSave()
+}
+
 onMounted(() => {
   loadTopics()
 })
@@ -143,23 +183,39 @@ definePageMeta({
   <v-container>
     <div class="d-flex justify-space-between align-center mb-6">
       <h1 class="text-h4 text-primary">Vote for Discussion Topics</h1>
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-refresh"
-        @click="loadTopics"
-        :loading="loading"
-      >
-        Refresh
-      </v-btn>
+      <div class="d-flex align-center gap-2">
+        <v-progress-circular 
+          v-if="autoSaving" 
+          indeterminate 
+          size="20" 
+          color="primary"
+          class="mr-2"
+        ></v-progress-circular>
+        <v-chip v-if="autoSaving" color="primary" variant="outlined" size="small">
+          Auto-saving...
+        </v-chip>
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-refresh"
+          @click="loadTopics"
+          :loading="loading"
+        >
+          Refresh
+        </v-btn>
+      </div>
     </div>
 
     <!-- Instructions -->
     <v-alert type="info" class="mb-6" prepend-icon="mdi-information">
       <v-alert-title>How Preference Voting Works</v-alert-title>
       <p class="mt-2">
-        Select your <strong>1st choice</strong> (most interested) and <strong>2nd choice</strong> (also interested) topics. 
-        First choices get 2 points, second choices get 1 point. If your first choice topic doesn't have enough people, 
+        This page lets you vote for discussion topics using a preference system. Browse all topics below to see their full descriptions, 
+        then select your <strong>1st choice</strong> (most interested, worth 2 points) and <strong>2nd choice</strong> (also interested, worth 1 point). 
+        The topics with the highest scores will be selected for discussion rounds. If your first choice topic doesn't have enough people, 
         you'll be assigned to your second choice if it has space available.
+      </p>
+      <p class="mt-2">
+        <strong>Tip:</strong> Use the quick vote buttons on each topic card below, or use the detailed selectors above for a more organized approach.
       </p>
     </v-alert>
 
@@ -317,19 +373,33 @@ definePageMeta({
 
     <!-- Topics Overview -->
     <v-card class="mt-6">
-      <v-card-title>All Topics Overview</v-card-title>
+      <v-card-title class="d-flex align-center">
+        <v-icon class="mr-2" color="primary">mdi-view-list</v-icon>
+        All Topics Overview
+        <v-spacer></v-spacer>
+        <v-chip variant="outlined" color="primary">{{ topics.length }} Topics</v-chip>
+      </v-card-title>
       <v-card-text>
         <v-row>
           <v-col
-            v-for="topic in topics"
+            v-for="(topic, index) in topics.slice().sort((a, b) => (b.totalPreferenceScore || 0) - (a.totalPreferenceScore || 0))"
             :key="topic.id"
             cols="12"
             sm="6"
             md="4"
           >
-            <v-card variant="outlined" class="h-100">
-              <v-card-title class="text-subtitle-1">
-                {{ topic.title }}
+            <v-card 
+              variant="outlined" 
+              class="h-100 topic-preview-card"
+              :class="{ 
+                'selected-first': preferences.firstChoice === topic.id,
+                'selected-second': preferences.secondChoice === topic.id,
+                'frozen-topic': topic.frozen
+              }"
+            >
+              <v-card-title class="text-subtitle-1 d-flex align-center">
+                <span class="topic-rank-badge mr-2">#{{ index + 1 }}</span>
+                <span class="flex-grow-1">{{ topic.title }}</span>
                 <v-chip
                   v-if="topic.frozen"
                   size="x-small"
@@ -338,14 +408,64 @@ definePageMeta({
                 >
                   Frozen
                 </v-chip>
+                <v-chip
+                  v-if="preferences.firstChoice === topic.id"
+                  size="x-small"
+                  color="primary"
+                  class="ml-1"
+                >
+                  1st Choice
+                </v-chip>
+                <v-chip
+                  v-if="preferences.secondChoice === topic.id"
+                  size="x-small"
+                  color="secondary"
+                  class="ml-1"
+                >
+                  2nd Choice
+                </v-chip>
               </v-card-title>
+              
               <v-card-text>
-                <div class="text-caption">
-                  Score: {{ topic.totalPreferenceScore || topic.votes || 0 }} points
+                <div v-if="topic.description" class="topic-description mb-3">
+                  {{ topic.description }}
                 </div>
-                <div class="text-caption">
-                  1st choices: {{ topic.firstChoiceVoters?.length || 0 }} |
-                  2nd choices: {{ topic.secondChoiceVoters?.length || 0 }}
+                <div v-else class="text-grey text-caption mb-3">
+                  No description provided
+                </div>
+                
+                <v-divider class="mb-2"></v-divider>
+                
+                <div class="d-flex justify-space-between align-center">
+                  <div class="text-caption">
+                    <strong>{{ topic.totalPreferenceScore || topic.votes || 0 }}</strong> points
+                  </div>
+                  <div class="text-caption text-grey">
+                    1st: {{ topic.firstChoiceVoters?.length || 0 }} | 2nd: {{ topic.secondChoiceVoters?.length || 0 }}
+                  </div>
+                </div>
+                
+                <!-- Quick vote buttons -->
+                <div class="mt-2">
+                  <v-btn
+                    v-if="!topic.frozen"
+                    size="x-small"
+                    variant="outlined"
+                    :color="preferences.firstChoice === topic.id ? 'primary' : 'grey'"
+                    @click="quickVoteFirst(topic.id)"
+                    class="mr-1"
+                  >
+                    1st Choice
+                  </v-btn>
+                  <v-btn
+                    v-if="!topic.frozen && preferences.firstChoice !== topic.id"
+                    size="x-small"
+                    variant="outlined"
+                    :color="preferences.secondChoice === topic.id ? 'secondary' : 'grey'"
+                    @click="quickVoteSecond(topic.id)"
+                  >
+                    2nd Choice
+                  </v-btn>
                 </div>
               </v-card-text>
             </v-card>
@@ -355,3 +475,46 @@ definePageMeta({
     </v-card>
   </v-container>
 </template>
+
+<style scoped>
+.topic-preview-card {
+  transition: all 0.3s ease;
+}
+
+.topic-preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.selected-first {
+  border-color: rgb(var(--v-theme-primary)) !important;
+  background-color: rgba(var(--v-theme-primary), 0.05);
+}
+
+.selected-second {
+  border-color: rgb(var(--v-theme-secondary)) !important;
+  background-color: rgba(var(--v-theme-secondary), 0.05);
+}
+
+.frozen-topic {
+  opacity: 0.6;
+  border-color: rgb(var(--v-theme-error)) !important;
+}
+
+.topic-rank-badge {
+  background-color: rgba(var(--v-theme-primary), 0.1);
+  color: rgb(var(--v-theme-primary));
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  min-width: 24px;
+  text-align: center;
+}
+
+.topic-description {
+  color: rgba(var(--v-theme-on-surface), 0.8);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+</style>

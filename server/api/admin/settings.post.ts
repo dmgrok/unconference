@@ -2,37 +2,43 @@ import { promises as fs } from 'fs'
 import { join } from 'path'
 import { z } from 'zod'
 import logger from '../../../utils/logger'
+import { requireEventPermission } from "../../../utils/authService"
 
 const settingsSchema = z.object({
   maxVotesPerTopic: z.number().min(1).max(50),
   topTopicsCount: z.number().min(1).max(20),
   showVoterNames: z.boolean(),
   allowTopicSubmission: z.boolean(),
-  autoStartNewRound: z.boolean()
+  autoStartNewRound: z.boolean(),
+  allowGuestAccess: z.boolean().optional(),
+  maxParticipants: z.number().min(1).optional()
 })
 
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
+  const eventId = getQuery(event).eventId as string
   
-  // Check if user is admin
-  if ((user as any).role !== 'Admin') {
+  if (!eventId) {
     throw createError({
-      statusCode: 403,
-      message: 'Admin access required'
+      statusCode: 400,
+      message: 'Event ID is required'
     })
   }
 
+  // Check if user has permission to update event settings
+  await requireEventPermission(event, eventId, 'settings', 'update')
+
   const body = await readValidatedBody(event, settingsSchema.parse)
-  const settingsPath = join(process.cwd(), 'data', 'admin-settings.json')
   
   try {
-    // Ensure data directory exists
-    await fs.mkdir(join(process.cwd(), 'data'), { recursive: true })
+    // Ensure event directory exists
+    const eventDir = join(process.cwd(), 'data', 'events', eventId)
+    await fs.mkdir(eventDir, { recursive: true })
     
-    // Save settings to file
+    // Save settings to event-specific file
+    const settingsPath = join(eventDir, 'settings.json')
     await fs.writeFile(settingsPath, JSON.stringify(body, null, 2))
     
-    logger.info('Admin settings saved successfully', body)
+    logger.info(`Event settings saved successfully for event ${eventId}`, body)
     
     return {
       success: true,

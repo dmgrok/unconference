@@ -6,5 +6,6 @@
     "d130774e-f7fe-420e-ac83-061585fff93f",
     "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
   ],
-  "isActive": false
+  "isActive": false,
+  "votingDisabled": false
 }

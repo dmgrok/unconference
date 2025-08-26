@@ -147,6 +147,42 @@
 
         <!-- Mode Toggle -->
         <div class="text-center mb-4" v-if="!existingGuestData">
+            <v-card variant="outlined" class="pa-4 mb-4">
+                <v-card-title class="text-h6 mb-3">Choose Your Login Method</v-card-title>
+                <v-card-text>
+                    <v-row>
+                        <v-col cols="6">
+                            <v-card 
+                                :color="!isGuestMode ? 'primary' : 'grey-lighten-3'" 
+                                :variant="!isGuestMode ? 'flat' : 'outlined'"
+                                class="pa-3 text-center cursor-pointer"
+                                @click="switchToLogin"
+                            >
+                                <v-icon size="48" class="mb-2">mdi-github</v-icon>
+                                <h3>GitHub Account</h3>
+                                <p class="text-caption mt-2">
+                                    Full features, edit topics, admin access
+                                </p>
+                            </v-card>
+                        </v-col>
+                        <v-col cols="6">
+                            <v-card 
+                                :color="isGuestMode ? 'secondary' : 'grey-lighten-3'" 
+                                :variant="isGuestMode ? 'flat' : 'outlined'"
+                                class="pa-3 text-center cursor-pointer"
+                                @click="switchToGuest"
+                            >
+                                <v-icon size="48" class="mb-2">mdi-account-question</v-icon>
+                                <h3>Guest Access</h3>
+                                <p class="text-caption mt-2">
+                                    Anonymous, vote & participate, no setup
+                                </p>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+            </v-card>
+
             <v-btn-toggle 
                 :model-value="isGuestMode ? 1 : 0"
                 @update:model-value="isGuestMode = !!$event"
@@ -237,15 +273,28 @@
 
         <!-- Guest Join Form -->
         <div v-if="isGuestMode && !existingGuestData">
+            <v-alert type="info" variant="tonal" class="mb-4">
+                <v-alert-title>
+                    <v-icon class="mr-2">mdi-rocket-launch</v-icon>
+                    Quick Access to Any Event
+                </v-alert-title>
+                <p class="mt-2 text-body-2">
+                    Enter your event code to join instantly! You can vote, propose topics, and participate 
+                    in discussions without creating any accounts.
+                </p>
+            </v-alert>
+            
             <v-form @submit.prevent="guestJoin" v-model="guestFormValid">
                 <v-text-field
                     v-model="guestForm.eventCode"
                     label="Event Code"
-                    placeholder="Enter event code (e.g., DEMO2024)"
+                    placeholder="Enter event code (e.g., DEMO2024, SUMMIT25)"
                     required
                     :rules="[v => !!v || 'Event code is required', v => v.length >= 4 || 'Event code must be at least 4 characters']"
                     class="mb-4"
                     prepend-icon="mdi-ticket-confirmation"
+                    style="text-transform: uppercase;"
+                    @input="guestForm.eventCode = guestForm.eventCode.toUpperCase()"
                 ></v-text-field>
 
                 <v-divider class="mb-4"></v-divider>

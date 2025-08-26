@@ -1,28 +1,56 @@
 # User Guide
 
-This comprehensive guide covers how to use the Unconference application for both participants and event organizers.
+Welcome to the **Unconference Platform** - a comprehensive guide for participants and event organizers.
+
+## 🌍 **Platform Overview**
+
+The Unconference Platform is a **generic, multi-event system** that allows anyone to host and participate in unconference events worldwide. Each event has its own unique code, topics, participants, and discussions, but all use the same powerful platform features.
 
 ## 🎯 Getting Started
 
 ### For Participants
 
-#### Joining an Event
+#### What is an Unconference?
 
-1. **Get the Event Link**
-   - Receive invitation link from organizers
-   - Scan QR code at the event venue
-   - Visit the event URL directly
+An **unconference** is a participant-driven event where **you** shape the agenda! Instead of predetermined speakers, attendees propose discussion topics, vote on what interests them most, and participate in focused small-group conversations.
 
-2. **Sign In**
-   - **GitHub Account**: Click "Sign in with GitHub" for full features
-   - **Guest Access**: Click "Join as Guest" for anonymous participation
-   - Enter guest name if joining anonymously
+**How it works:**
+1. **Join with Event Code** - Enter the unique code for your specific event
+2. **Propose Topics** - Share what you want to discuss
+3. **Vote on Interests** - Choose your 1st and 2nd preferences  
+4. **Join Discussions** - Participate in small focused groups
+5. **Share Knowledge** - Learn from and teach others
 
-3. **Navigate the Interface**
+#### Joining Any Event
+
+The platform supports multiple events simultaneously. To join any unconference event:
+
+1. **Get Your Event Code**
+   - **At the venue**: Scan QR codes displayed on screens or posters
+   - **From organizers**: Event codes like "DEMO2024", "SUMMIT25", "CONF2025"
+   - **Via invitation**: Click links shared by event organizers
+   - **By email/chat**: Look for 6-8 character codes in communications
+
+2. **Enter the Platform**
+   - Visit the main page and click **"Join an Event"**
+   - Or go directly to **Quick Join** if you have a code
+   - Or scan a QR code for instant access
+
+3. **Choose Your Sign-In Method**
+   - **GitHub Account**: Full features, can edit topics, potential admin access
+   - **Guest Access**: Anonymous participation, voting and discussion only, no setup required
+   
+   💡 **Tip**: Guest access is perfect if you just want to participate without creating accounts!
+
+4. **Take the Welcome Tour** (First-time users)
+   - Interactive guide to voting, navigation, and key features
+   - Skip if you're already familiar with the interface
+
+5. **Start Participating**
    - **Dashboard**: Main hub for topics and voting
-   - **Preferences**: Advanced voting interface
-   - **Groups**: View discussion groups and room assignments
-   - **Leaderboard**: See top topics and popular discussions
+   - **Vote Preferences**: Detailed voting page with full topic descriptions
+   - **Topic Leaderboard**: See what's popular and trending
+   - **Discussion Groups**: View your group assignments and room locations
 
 ### For Event Organizers
 
@@ -103,15 +131,19 @@ The application uses a **preference-based voting system**:
 #### 2. Advanced Preferences Page
 
 1. **Navigate to Preferences**
-2. **Use Dropdown Selectors**:
+2. **Browse All Topics**: View complete topic descriptions and current voting status
+3. **Use Dropdown Selectors** or **Quick Vote Buttons**:
    - Select first choice from dropdown
    - Select second choice from dropdown
-   - Submit preferences
+   - Or use quick vote buttons on each topic card for instant voting
+   - Submit preferences (or let auto-save handle it)
 
 3. **Benefits**:
-   - See all topics in organized list
+   - See all topics with full descriptions in organized list
    - More deliberate selection process
    - Bulk preference management
+   - Auto-save functionality for quick voting
+   - Visual ranking and score display
 
 ### Voting Strategies
 
@@ -314,10 +346,17 @@ Rounds are focused discussion periods where selected topics are discussed simult
 #### Live Voting Dashboard
 
 **Real-Time Monitoring**:
-- Current voting activity
-- Topic performance trends
+- Current voting activity with detailed topic information
+- Topic performance trends with descriptions
 - Participant engagement levels
 - Voting velocity tracking
+- **QR Code Display**: Always-visible QR code in top-right corner for easy event joining
+
+**Enhanced Topic Display**:
+- Full topic titles with extended character limits
+- Topic descriptions shown in voting charts
+- Better visual contrast and readability
+- Rank-based color coding
 
 **Intervention Tools**:
 - Freeze problematic topics

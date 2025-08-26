@@ -1,22 +1,12 @@
 import { z } from 'zod'
 import logger from '../../../utils/logger'
 import { randomBytes } from 'crypto'
+import { eventService } from "../../../utils/eventService"
 
 const bodySchema = z.object({
   eventCode: z.string().min(4).max(8),
   name: z.string().min(1).max(50).optional()
 })
-
-// Simple in-memory store for event codes (in production, use database)
-const eventCodes = new Map<string, { name: string, created: Date }>()
-
-// Initialize with a default event code for development
-if (!eventCodes.has('DEMO2024')) {
-  eventCodes.set('DEMO2024', {
-    name: 'Demo Unconference 2024',
-    created: new Date()
-  })
-}
 
 function generateGuestName(): string {
   const adjectives = [
@@ -38,12 +28,20 @@ function generateGuestName(): string {
 export default defineEventHandler(async (event) => {
   const { eventCode, name } = await readValidatedBody(event, bodySchema.parse)
   
-  // Verify event code exists
-  const eventInfo = eventCodes.get(eventCode.toUpperCase())
-  if (!eventInfo) {
+  // Verify event code exists using event service
+  const eventData = await eventService.getEventByCode(eventCode)
+  if (!eventData) {
     throw createError({
       statusCode: 404,
       message: 'Invalid event code'
+    })
+  }
+
+  // Check if event allows guest access
+  if (!eventData.settings.allowGuestAccess) {
+    throw createError({
+      statusCode: 403,
+      message: 'Guest access is not allowed for this event'
     })
   }
 
@@ -51,16 +49,22 @@ export default defineEventHandler(async (event) => {
   const guestName = name || generateGuestName()
   const guestEmail = `guest_${randomBytes(8).toString('hex')}@unconference.guest`
   
-  logger.info(`Guest user joining: ${guestName} (${guestEmail}) with event code: ${eventCode}`)
+  logger.info(`Guest user joining: ${guestName} (${guestEmail}) for event: ${eventData.name} (${eventCode})`)
   
-  // Set the user session
+  // Add guest membership to event
+  const guestId = guestEmail
+  await eventService.addEventMembership(eventData.id, guestId, 'Participant')
+  
+  // Set the user session with event context
   await setUserSession(event, {
     user: {
+      id: guestId,
       name: guestName,
       email: guestEmail,
       role: 'Guest',
       isGuest: true,
-      eventCode: eventCode.toUpperCase()
+      eventCode: eventCode.toUpperCase(),
+      currentEventId: eventData.id
     }
   })
   
@@ -70,7 +74,9 @@ export default defineEventHandler(async (event) => {
       name: guestName,
       email: guestEmail,
       role: 'Guest',
-      eventCode: eventCode.toUpperCase()
+      eventCode: eventCode.toUpperCase(),
+      eventId: eventData.id,
+      eventName: eventData.name
     }
   }
 })

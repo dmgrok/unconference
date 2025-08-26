@@ -6,6 +6,9 @@ export interface Room {
   description?: string
   amenities: string[]
   available: boolean
+  eventId?: string
+  createdAt?: string
+  updatedAt?: string
   currentSession?: SessionAssignment
 }
 

@@ -31,6 +31,8 @@ const dialog = ref(false)
 const editDialog = ref(false)
 const newRoundConfirmDialog = ref(false)
 const freezeConfirmDialog = ref(false)
+const showOnboardingTour = ref(false)
+const tourStep = ref(0)
 const topicToFreeze = ref<DiscussionTopic | null>(null)
 const topicToEdit = ref<DiscussionTopic | null>(null)
 const editedTopic = ref({
@@ -304,6 +306,12 @@ async function saveTopic() {
 onMounted(async () => {
   await loadSettings()
   await Promise.all([fetchTopics(), loadActiveRound()])
+  
+  // Check if user is new and should see onboarding
+  const hasSeenTour = localStorage.getItem('unconference-tour-seen')
+  if (!hasSeenTour && topics.value.length > 0) {
+    showOnboardingTour.value = true
+  }
 })
 
 // Cleanup timer on unmount
@@ -352,7 +360,7 @@ const placeholderCount = computed(() => {
 
 const placeholders = computed(() => Array(placeholderCount.value).fill(null))
 
-const getVoteStatus = (topic: DiscussionTopic) => {
+function getVoteStatus(topic: DiscussionTopic) {
   // Check if voting is disabled during active rounds
   if (isVotingDisabled.value) {
     return { status: 'disabled', text: 'Voting Disabled', color: 'grey', variant: 'outlined' as const, disabled: true }
@@ -378,6 +386,13 @@ const getVoteStatus = (topic: DiscussionTopic) => {
     return { status: 'vote-second', text: 'Vote (2nd Choice)', color: 'secondary', variant: 'elevated' as const }
   } else {
     return { status: 'vote-replace', text: 'Vote (Replace 1st)', color: 'primary', variant: 'outlined' as const }
+  }
+}
+
+function closeTour() {
+  showOnboardingTour.value = false
+  if (process.client) {
+    localStorage.setItem('unconference-tour-seen', 'true')
   }
 }
 </script>
@@ -902,6 +917,125 @@ const getVoteStatus = (topic: DiscussionTopic) => {
             @click="freezeTopic"
           >
             Freeze Topic
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Onboarding Tour Dialog -->
+    <v-dialog v-model="showOnboardingTour" max-width="600" persistent>
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon class="mr-2" color="primary">mdi-map-marker-path</v-icon>
+          Welcome to the Unconference!
+        </v-card-title>
+        
+        <v-card-text>
+          <div v-if="tourStep === 0">
+            <h3 class="mb-3">🎉 Welcome to the Unconference Platform!</h3>
+            <p class="mb-3">
+              You're now connected to <strong>your specific event</strong>. This dashboard is your home base where you can:
+            </p>
+            <v-list>
+              <v-list-item prepend-icon="mdi-lightbulb">
+                <v-list-item-title>Propose discussion topics you're passionate about</v-list-item-title>
+              </v-list-item>
+              <v-list-item prepend-icon="mdi-vote">
+                <v-list-item-title>Vote for topics you want to discuss (1st & 2nd choice)</v-list-item-title>
+              </v-list-item>
+              <v-list-item prepend-icon="mdi-account-group">
+                <v-list-item-title>Join assigned discussion groups when rounds start</v-list-item-title>
+              </v-list-item>
+            </v-list>
+            <v-alert color="info" variant="tonal" class="mt-3">
+              <div class="text-caption">
+                <strong>Remember:</strong> You're part of a specific event community. All topics and discussions are for your event only.
+              </div>
+            </v-alert>
+          </div>
+          
+          <div v-if="tourStep === 1">
+            <h3 class="mb-3">🗳️ Voting Made Simple</h3>
+            <p class="mb-3">
+              Each topic card has a <strong>Vote</strong> button. Here's how it works:
+            </p>
+            <v-alert color="info" variant="tonal" class="mb-3">
+              <div><strong>1st click:</strong> Makes it your 1st Choice (⭐⭐) - Worth 2 points</div>
+              <div><strong>2nd click:</strong> Makes it your 2nd Choice (⭐) - Worth 1 point</div>
+              <div><strong>3rd click:</strong> Removes your vote</div>
+            </v-alert>
+            <p>
+              You can only have one 1st choice and one 2nd choice at a time. 
+              The topics with the most points get selected for discussion rounds!
+            </p>
+          </div>
+          
+          <div v-if="tourStep === 2">
+            <h3 class="mb-3">🧭 Navigation Tour</h3>
+            <p class="mb-3">Use the menu (☰) to explore:</p>
+            <v-list density="compact">
+              <v-list-item>
+                <template #prepend>
+                  <v-icon color="primary">mdi-view-dashboard</v-icon>
+                </template>
+                <v-list-item-title><strong>Dashboard:</strong> Main hub - propose topics, vote, see rounds</v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <template #prepend>
+                  <v-icon color="secondary">mdi-vote</v-icon>
+                </template>
+                <v-list-item-title><strong>Vote Preferences:</strong> Detailed voting page with descriptions</v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <template #prepend>
+                  <v-icon color="warning">mdi-trophy</v-icon>
+                </template>
+                <v-list-item-title><strong>Top Topics:</strong> Leaderboard of highest-voted topics</v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <template #prepend>
+                  <v-icon color="success">mdi-account-group</v-icon>
+                </template>
+                <v-list-item-title><strong>Groups:</strong> See your discussion group assignments</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </div>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-btn 
+            v-if="tourStep > 0" 
+            color="grey" 
+            variant="text" 
+            @click="tourStep--"
+          >
+            Back
+          </v-btn>
+          
+          <v-spacer></v-spacer>
+          
+          <v-btn 
+            color="grey" 
+            variant="text" 
+            @click="closeTour"
+          >
+            Skip Tour
+          </v-btn>
+          
+          <v-btn 
+            v-if="tourStep < 2" 
+            color="primary" 
+            @click="tourStep++"
+          >
+            Next
+          </v-btn>
+          
+          <v-btn 
+            v-if="tourStep === 2" 
+            color="success" 
+            @click="closeTour"
+          >
+            Get Started!
           </v-btn>
         </v-card-actions>
       </v-card>

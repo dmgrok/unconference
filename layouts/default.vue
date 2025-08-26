@@ -42,9 +42,15 @@
     },
     {
       icon: 'mdi-account-group',
-      title: 'Groups',
+      title: 'Discussion Groups',
       to: '/groups',
       adminOnly: false
+    },
+    {
+      icon: 'mdi-account-star',
+      title: 'Organizer Hub',
+      to: '/organizer',
+      adminOnly: true
     },
     {
       icon: 'mdi-chart-bar',

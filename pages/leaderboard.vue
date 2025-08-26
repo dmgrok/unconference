@@ -49,15 +49,51 @@ onMounted(() => {
   <v-container>
     <v-row>
       <v-col>
-        <h1 class="text-h4 mb-6 text-primary">Top {{ config.public.topTopicsCount }} Discussion Topics</h1>
+        <div class="d-flex align-center justify-space-between mb-6">
+          <div>
+            <h1 class="text-h4 mb-2 text-primary">🏆 Topic Leaderboard</h1>
+            <p class="text-body-1 text-grey-darken-1">
+              Top {{ config.public.topTopicsCount }} most popular discussion topics
+            </p>
+          </div>
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-refresh"
+            variant="outlined"
+            @click="fetchTopics"
+          >
+            Refresh
+          </v-btn>
+        </div>
       </v-col>
     </v-row>
 
     <!-- Current Vote Status -->
-    <v-row v-if="hasVotedPreferences" class="mb-4">
+    <v-row class="mb-4">
       <v-col>
+        <v-card v-if="!hasVotedPreferences" color="warning" variant="tonal">
+          <v-card-text class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center">
+              <v-icon class="mr-3" size="24">mdi-vote-outline</v-icon>
+              <div>
+                <strong>Haven't voted yet?</strong>
+                <div class="text-caption">Choose your 1st and 2nd preference topics to influence the leaderboard!</div>
+              </div>
+            </div>
+            <v-btn
+              color="warning"
+              variant="elevated"
+              :to="'/preferences'"
+              prepend-icon="mdi-vote"
+            >
+              Vote Now
+            </v-btn>
+          </v-card-text>
+        </v-card>
+        
         <v-alert
-          type="info"
+          v-else
+          type="success"
           variant="tonal"
         >
           <div class="d-flex align-center justify-space-between">
