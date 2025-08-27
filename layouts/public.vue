@@ -10,7 +10,7 @@ const authUrl = ref(
 );
 
 async function goToDashboard() {
-  await navigateTo('/dashboard')  
+  await navigateTo('/voting')  
 }
 
 async function signIn() {

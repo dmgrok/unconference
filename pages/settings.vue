@@ -346,6 +346,11 @@ watch(() => settings.admin.eventInfo, () => {
     autoSaveEventInfo()
   }, 1000)
 }, { deep: true })
+
+definePageMeta({
+  middleware: 'authenticated',
+  requiresAdmin: true
+})
 </script>
 
 <template>

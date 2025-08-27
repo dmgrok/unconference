@@ -482,21 +482,12 @@ onUnmounted(() => {
                   </div>
                 </div>
                 
-                <!-- Pixel Stick Figures -->
-                <div class="pixel-figures-container">
-                  <div class="pixel-figures">
-                    {{ getPixelStickFigures(getRegistrationCount(topic)) }}
-                  </div>
-                  <div class="vote-label pixel-label">
-                    {{ getRegistrationCount(topic) }} people
-                    <v-icon 
-                      v-if="showNewVoteAnimation[topic.id]" 
-                      color="success" 
-                      class="new-vote-icon"
-                    >
-                      mdi-plus-circle
-                    </v-icon>
-                  </div>
+                <!-- Emoji Cloud Visualization -->
+                <div v-if="getRegistrationCount(topic) > 0" class="emoji-cloud-section">
+                  <EmojiCloud 
+                    :voters="[...(topic.firstChoiceVoters || []), ...(topic.secondChoiceVoters || [])]" 
+                    :container-height="120"
+                  />
                 </div>
               </div>
             </div>
@@ -1385,6 +1376,80 @@ onUnmounted(() => {
   .room-assignments-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* Emoji Cloud for Live Dashboard */
+.emoji-cloud-section {
+  margin-left: 2rem;
+  width: 300px;
+  min-height: 120px;
+}
+
+.emoji-cloud-section .emoji-cloud-container {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  position: relative;
+  overflow: visible !important;
+}
+
+.emoji-cloud-section .emoji-cloud {
+  position: relative !important;
+  width: 100% !important;
+  height: calc(100% - 60px) !important;
+  overflow: visible !important;
+  z-index: 10 !important;
+}
+
+.emoji-cloud-section .emoji-cloud-header h4 {
+  color: #00FFFF !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 0.7rem !important;
+  text-shadow: 1px 1px 0px #000000;
+  letter-spacing: 1px;
+}
+
+.emoji-cloud-section .emoji-cloud-header p {
+  color: #FFFF00 !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 0.5rem !important;
+  text-shadow: 1px 1px 0px #000000;
+}
+
+/* Make emojis more prominent in the retro theme */
+.emoji-cloud-section .voter-emoji {
+  position: absolute !important;
+  z-index: 100 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  filter: 
+    drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
+    drop-shadow(0 0 6px rgba(0, 255, 255, 0.4)) !important;
+  font-size: 1.5em !important;
+  line-height: 1 !important;
+  pointer-events: auto !important;
+  color: transparent !important;
+  text-shadow: none !important;
+}
+
+.emoji-cloud-section .voter-emoji:hover {
+  filter: 
+    drop-shadow(0 0 5px rgba(255, 255, 255, 1))
+    drop-shadow(0 0 10px rgba(0, 255, 255, 0.8))
+    drop-shadow(0 0 15px rgba(255, 0, 255, 0.6)) !important;
+  transform: scale(1.3) !important;
+  z-index: 200 !important;
+}
+
+.emoji-cloud-section .no-voters {
+  color: #666 !important;
+}
+
+.emoji-cloud-section .no-voters .v-icon {
+  filter: grayscale(1);
 }
 
 @media (min-width: 1800px) {

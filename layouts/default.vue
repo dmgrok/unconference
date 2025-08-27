@@ -30,9 +30,9 @@
   const drawer = ref(true)
   const navItems = reactive<NavItem[]>([
     {
-      icon: 'mdi-view-dashboard',
-      title: 'Dashboard',
-      to: '/dashboard',
+      icon: 'mdi-vote',
+      title: 'Voting & Topics',
+      to: '/voting',
       adminOnly: false
     },
     {

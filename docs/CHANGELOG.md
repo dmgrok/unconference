@@ -5,6 +5,35 @@ All notable changes to the Unconference application will be documented in this f
 ## [Unreleased]
 
 ### Added
+- **Topic Deletion Feature** - Users can now delete their own topics
+  - New delete button available on voting page for topic authors
+  - Admin users can delete any topic
+  - Smart restrictions: cannot delete frozen topics or topics in active rounds
+  - Confirmation dialog to prevent accidental deletions
+  - New API endpoint: `POST /api/topics/[id]/delete`
+
+- **Enhanced Header for Organizers**
+  - Header now displays "Unconference Organizer" for admin/organizer users
+  - Provides clear visual indication of elevated privileges
+  - Maintains event title display for regular participants
+
+- **Emoji Cloud Voting Visualization** - Interactive visual representation of voters
+  - Each registered voter appears as a unique emoji with animation
+  - Creates an engaging "emoji cloud" effect for live voting feedback on the admin dashboard
+  - Consistent emoji assignment per user based on email hash
+  - Multiple animation styles (bounce, pulse, wobble, float, spin)
+  - Hover effects and smooth transitions
+  - Shows all voters (1st and 2nd choice combined) for each topic
+  - Integrated into the live voting dashboard (`/admin/voting-dashboard`) with retro styling
+  - Real-time updates as people vote
+
+- **Enhanced Round Management Interface**
+  - Improved topic selection with detailed vote breakdowns
+  - Visual progress bars showing relative topic popularity
+  - Clear display of 1st choice vs 2nd choice vote distribution
+  - Point calculation breakdown for transparency
+  - Enhanced card design with better visual hierarchy
+
 - **Round Management System** - Complete overhaul of round functionality
   - Pre-round planning screen with topic selection interface
   - Real-time round timer with configurable duration (5-60 minutes)

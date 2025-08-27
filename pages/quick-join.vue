@@ -18,9 +18,9 @@ onMounted(() => {
     eventCode.value = code.toUpperCase()
   }
   
-  // If user is already logged in, redirect to dashboard
+  // If user is already logged in, redirect to voting page
   if (loggedIn.value) {
-    router.push('/dashboard')
+    router.push('/voting')
   }
 })
 
@@ -45,8 +45,8 @@ async function joinAsGuest() {
     // Refresh the user session
     await $fetch('/api/auth/session')
     
-    // Redirect to dashboard
-    await router.push('/dashboard')
+    // Redirect to voting page
+    await router.push('/voting')
   } catch (err: any) {
     error.value = err.data?.message || 'Failed to join event'
   } finally {

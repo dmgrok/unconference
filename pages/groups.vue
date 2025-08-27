@@ -433,16 +433,57 @@ onMounted(() => {
                   {{ topic.title }}
                 </v-card-title>
                 <v-card-text>
-                  <p class="mb-2">{{ topic.description }}</p>
-                  <div class="d-flex justify-space-between">
-                    <span class="text-caption">
-                      <v-icon size="small">mdi-account-group</v-icon>
-                      {{ topic.participantCount }} participants
-                    </span>
-                    <span class="text-caption font-weight-bold">
-                      {{ topic.totalPreferenceScore }} points
-                    </span>
+                  <p class="mb-3">{{ topic.description }}</p>
+                  
+                  <!-- Voting Details -->
+                  <div class="voting-details mb-3">
+                    <div class="d-flex justify-space-between align-center mb-2">
+                      <span class="text-h6 font-weight-bold text-primary">
+                        {{ topic.totalPreferenceScore }} points
+                      </span>
+                      <span class="text-caption">
+                        <v-icon size="small">mdi-account-group</v-icon>
+                        {{ topic.participantCount }} voters
+                      </span>
+                    </div>
+                    
+                    <!-- Vote Breakdown -->
+                    <div class="vote-breakdown">
+                      <div class="d-flex gap-4">
+                        <div class="text-caption">
+                          <v-icon size="small" color="primary">mdi-star</v-icon>
+                          1st choices: {{ Math.floor(topic.totalPreferenceScore / 2) || 0 }}
+                          <span class="text-grey">({{ (Math.floor(topic.totalPreferenceScore / 2) || 0) * 2 }} pts)</span>
+                        </div>
+                        <div class="text-caption">
+                          <v-icon size="small" color="secondary">mdi-star-half-full</v-icon>
+                          2nd choices: {{ topic.totalPreferenceScore % 2 || (topic.participantCount - Math.floor(topic.totalPreferenceScore / 2)) }}
+                          <span class="text-grey">({{ topic.totalPreferenceScore % 2 || (topic.participantCount - Math.floor(topic.totalPreferenceScore / 2)) }} pts)</span>
+                        </div>
+                      </div>
+                      
+                      <!-- Progress bar showing relative popularity -->
+                      <v-progress-linear
+                        :model-value="topic.totalPreferenceScore"
+                        :max="Math.max(...topicSelections.map(t => t.totalPreferenceScore))"
+                        color="primary"
+                        height="4"
+                        rounded
+                        class="mt-2"
+                      ></v-progress-linear>
+                    </div>
                   </div>
+                  
+                  <!-- Selection Status -->
+                  <v-chip
+                    v-if="topic.selected"
+                    color="success"
+                    size="small"
+                    prepend-icon="mdi-check"
+                    class="mt-2"
+                  >
+                    Selected for Round
+                  </v-chip>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -483,5 +524,21 @@ onMounted(() => {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.cursor-pointer:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+.voting-details {
+  background: rgba(var(--v-theme-surface), 0.5);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid rgba(var(--v-border-color), 0.2);
+}
+
+.vote-breakdown {
+  font-size: 0.875rem;
 }
 </style>

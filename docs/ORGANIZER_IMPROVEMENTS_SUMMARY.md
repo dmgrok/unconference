@@ -38,6 +38,7 @@
 - Logical grouping of admin functions
 - Clear separation of participant vs. admin features
 - Quick access to most-used organizer tools
+- **Header Identity**: Shows "Unconference Organizer" for admin/organizer users
 
 ## 🎯 **ORGANIZER WORKFLOW TRANSFORMATION**
 

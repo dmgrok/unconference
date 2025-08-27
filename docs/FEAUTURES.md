@@ -9,16 +9,20 @@ This document provides a comprehensive overview of all features available in the
 - **Preference Voting**: Weighted voting system (1st choice = 2 points, 2nd choice = 1 point)
 - **Direct Voting**: Simple click-to-vote interface on dashboard
 - **Topic Editing**: Users can edit their own topics; admins can edit any topic
+- **Topic Deletion**: Users can delete their own topics; admins can delete any topic (with restrictions)
 - **Topic Freezing**: Admins can freeze topics to prevent new votes
 - **Badge System**: Popular topics earn badges based on voting performance
+- **Smart Restrictions**: Topics cannot be deleted if frozen or active in a round
 
 ### Round Management System
 - **Pre-Round Planning**: Review round history and select topics before starting
+- **Enhanced Topic Selection**: Visual interface showing vote breakdowns and preference scores
 - **Topic Selection**: Manual selection of topics for each round (configurable maximum)
 - **Round Timer**: Configurable duration (5-60 minutes) with real-time countdown
 - **Participant Assignment**: Automatic assignment based on voting preferences
 - **Round History**: Complete tracking of past rounds with analytics
 - **Visual Progress**: Progress bars and status indicators for active rounds
+- **Vote Visualization**: Progress bars showing relative topic popularity in selection interface
 
 ### User Authentication & Roles
 - **GitHub OAuth**: Secure authentication via GitHub accounts
@@ -40,10 +44,14 @@ This document provides a comprehensive overview of all features available in the
 - **Voting Interface**: Direct voting buttons with visual feedback
 - **Topic Cards**: Rich display of topics with voting status and participant info
 - **Real-time Updates**: Live voting counts and round progress
+- **Emoji Cloud Visualization**: Interactive emoji cloud showing all voters for each topic
+- **Animated Voting Feedback**: Emojis represent individual voters with unique animations
 
 ### Admin Interface
 - **Round Management**: Comprehensive round control interface
 - **Voting Dashboard**: Real-time voting statistics and analytics with QR code for easy joining
+- **Live Emoji Cloud**: Interactive emoji visualization showing all voters for each topic
+- **Retro Pixel Art Design**: Engaging visual theme with animations and effects
 - **Settings Configuration**: Extensive customization options
 - **User Management**: View and manage user accounts
 - **System Monitoring**: Application status and health checks

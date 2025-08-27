@@ -45,7 +45,10 @@ const newTopic = ref({
   description: ''
 })
 
-const isAdmin = computed(() => (user.value as any)?.Role === 'Admin' && !shouldHideAdminFeatures((user.value as any)?.Role))
+const isAdmin = computed(() => {
+  const userRole = (user.value as any)?.Role || (user.value as any)?.role
+  return ['Admin', 'Organizer'].includes(userRole) && !shouldHideAdminFeatures(userRole)
+})
 const topics = ref<DiscussionTopic[]>([])
 const activeRound = ref<ActiveRound | null>(null)
 const userAssignment = ref<UserAssignment | null>(null)
@@ -298,7 +301,23 @@ async function saveTopic() {
     topicToEdit.value = null
     await fetchTopics()
   } catch (error) {
-    console.error('Failed to edit topic:', error)
+    console.error('Failed to update topic:', error)
+  }
+}
+
+async function deleteTopic(topic: DiscussionTopic) {
+  const confirmed = confirm(`Are you sure you want to delete the topic "${topic.title}"? This action cannot be undone.`)
+  if (!confirmed) return
+
+  try {
+    await $fetch(`/api/topics/${topic.id}/delete`, {
+      method: 'POST'
+    })
+    await fetchTopics()
+  } catch (error: any) {
+    console.error('Failed to delete topic:', error)
+    const errorMessage = error.data?.statusMessage || error.message || 'Failed to delete topic'
+    alert(`Error: ${errorMessage}`)
   }
 }
 
@@ -416,7 +435,7 @@ function closeTour() {
                 <p class="text-caption">Time Remaining</p>
               </div>
               <div class="text-right">
-                <p><strong>{{ activeRound.selectedTopics.length }}</strong> topics discussing</p>
+                <p><strong>{{ activeRound.selectedTopics?.length || 0 }}</strong> topics discussing</p>
                 <p class="text-caption">{{ activeRound.duration }} minute round</p>
               </div>
             </div>
@@ -771,6 +790,15 @@ function closeTour() {
               @click="startEdit(topic)"
             >
               Edit
+            </v-btn>
+            <v-btn
+              v-if="canEditTopic(topic)"
+              color="red"
+              variant="text"
+              prepend-icon="mdi-delete"
+              @click="deleteTopic(topic)"
+            >
+              Delete
             </v-btn>
             <v-btn
               v-if="isAdmin && !topic.frozen"

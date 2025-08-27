@@ -3,5 +3,7 @@
   "topTopicsCount": 10,
   "showVoterNames": true,
   "allowTopicSubmission": true,
-  "autoStartNewRound": false
+  "autoStartNewRound": false,
+  "roundDurationMinutes": 20,
+  "maxTopicsPerRound": 8
 }

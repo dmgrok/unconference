@@ -85,9 +85,12 @@ The platform supports multiple events simultaneously. To join any unconference e
    - Avoid overly broad or narrow topics
 
 3. **Managing Your Topics**
-   - Edit your topics using the pencil icon
-   - View voting progress and participant interest
-   - See your topic's performance in leaderboards
+   - **Edit**: Use the pencil icon to modify your topics
+   - **Delete**: Use the delete button to remove topics you created
+   - **View Performance**: See voting progress and participant interest
+   - **Track Placement**: Monitor your topic's performance in leaderboards
+
+> **Note**: Topics cannot be deleted if they are frozen by an admin or currently active in a discussion round.
 
 ### Topic Examples
 

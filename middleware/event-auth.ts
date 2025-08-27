@@ -32,7 +32,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     // Legacy admin check (for platform-wide admin pages)
     if (to.meta.requiresAdmin) {
         if (currentUser?.globalRole !== 'SuperAdmin' && currentUser?.role !== 'Admin') {
-            return navigateTo('/dashboard')
+            return navigateTo('/voting')
         }
     }
     

@@ -20,11 +20,13 @@ const isOrganizer = computed(() => {
         <div class="d-flex align-items-center">
           <v-btn
             variant="text"
-            :to="loggedIn ? '/dashboard' : '/'"
+            :to="loggedIn ? '/voting' : '/'"
             class="header-logo"
           >
             <v-icon class="mr-2" size="28">mdi-forum</v-icon>
-            <span class="logo-text">{{ eventConfig.title || 'Unconference Platform' }}</span>
+            <span class="logo-text">
+              {{ isOrganizer ? 'Unconference Organizer' : (eventConfig.title || 'Unconference Platform') }}
+            </span>
           </v-btn>
         </div>
 

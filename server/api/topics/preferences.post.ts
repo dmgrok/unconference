@@ -8,9 +8,14 @@ import type { DiscussionTopic } from '~/types/topic'
 const preferencesSchema = z.object({
   firstChoice: z.string().optional(),
   secondChoice: z.string().optional()
-}).refine(data => data.firstChoice || data.secondChoice, {
-  message: "At least one preference must be selected"
-}).refine(data => data.firstChoice !== data.secondChoice, {
+}).refine(data => {
+  // Allow both to be undefined (for vote reset)
+  // Or require different choices if both are provided
+  if (data.firstChoice && data.secondChoice) {
+    return data.firstChoice !== data.secondChoice
+  }
+  return true
+}, {
   message: "First and second choices must be different"
 })
 
