@@ -28,10 +28,11 @@ export default defineEventHandler(async (event) => {
       user: {
         name: `${user.Firstname} ${user.Lastname}`,
         email: user.Email,
-        role: user.Role
+        role: user.Role,
+        globalRole: user.GlobalRole || null
       }
     })
-    logger.debug(`User session set for user ${(session as any)?.user?.name} (${(session as any)?.user?.email}) with role ${(session as any)?.user?.role}`)
+    logger.debug(`User session set for user ${(session as any)?.user?.name} (${(session as any)?.user?.email}) with role ${(session as any)?.user?.role} and globalRole ${(session as any)?.user?.globalRole}`)
     return {}
   }
 

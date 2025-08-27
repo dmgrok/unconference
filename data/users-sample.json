@@ -1,5 +1,13 @@
 [
   {
+    "Firstname": "Super",
+    "Lastname": "Admin",
+    "Email": "superadmin@unconference.com",
+    "Password": "SuperAdmin123",
+    "Role": "Admin",
+    "GlobalRole": "SuperAdmin"
+  },
+  {
     "Firstname": "Darth",
     "Lastname": "Vader",
     "Email": "darth.vader@starwars.com",
