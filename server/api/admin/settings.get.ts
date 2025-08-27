@@ -1,28 +1,26 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import logger from '../../../utils/logger'
-import { requireEventPermission } from "../../../utils/authService"
 
 export default defineEventHandler(async (event) => {
+  // For backward compatibility, support calls without eventId
   const eventId = getQuery(event).eventId as string
   
-  if (!eventId) {
-    throw createError({
-      statusCode: 400,
-      message: 'Event ID is required'
-    })
-  }
-
-  // Check if user has permission to read event settings
-  await requireEventPermission(event, eventId, 'settings', 'read')
-
   try {
-    // Read event-specific settings
-    const settingsPath = join(process.cwd(), 'data', 'events', eventId, 'settings.json')
+    let settingsPath: string
+    
+    if (eventId) {
+      // Multi-event mode
+      settingsPath = join(process.cwd(), 'data', 'events', eventId, 'settings.json')
+    } else {
+      // Single event mode (backward compatibility)
+      settingsPath = join(process.cwd(), 'data', 'admin-settings.json')
+    }
+    
     const settingsData = await fs.readFile(settingsPath, 'utf-8')
     const settings = JSON.parse(settingsData)
     
-    logger.debug(`Event settings loaded for event ${eventId}`)
+    logger.debug(`Admin settings loaded from ${settingsPath}`)
     return settings
   } catch (error) {
     // If file doesn't exist, return default settings
@@ -32,10 +30,12 @@ export default defineEventHandler(async (event) => {
       showVoterNames: true,
       allowTopicSubmission: true,
       autoStartNewRound: false,
+      roundDurationMinutes: 20,
+      maxTopicsPerRound: 8,
       allowGuestAccess: true
     }
     
-    logger.debug(`Using default settings for event ${eventId}`)
+    logger.debug(`Using default admin settings`)
     return defaultSettings
   }
 })

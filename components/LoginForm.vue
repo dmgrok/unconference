@@ -42,6 +42,10 @@
 
     // Test credentials for quick access
     const testCredentials = {
+        superAdmin: {
+            email: 'superadmin@unconference.com',
+            password: 'SuperAdmin123'
+        },
         admin: {
             email: 'darth.vader@starwars.com',
             password: 'AdminPassword123'
@@ -61,9 +65,9 @@
             method: 'POST',
             body: credentials
         }).then(async () => {
-            // Refresh the session on client-side and redirect to the home page
+            // Refresh the session on client-side and redirect to the voting page
             await refreshSession()
-            await navigateTo('/dashboard')
+            await navigateTo('/voting')
         }).catch((error) => {
             loginError.value = true
             console.error('Login failed', error)
@@ -91,7 +95,7 @@
             
             // Refresh the session and redirect
             await refreshSession()
-            await navigateTo('/dashboard')
+            await navigateTo('/voting')
         } catch (error: any) {
             loginError.value = true
             console.error('Guest login failed', error)
@@ -106,6 +110,12 @@
             selectedIcon.value = existingGuestData.value.icon || 'mdi-account'
             await guestJoin()
         }
+    }
+
+    function fillSuperAdminCredentials() {
+        credentials.email = testCredentials.superAdmin.email
+        credentials.password = testCredentials.superAdmin.password
+        loginError.value = false
     }
 
     function fillAdminCredentials() {
@@ -257,6 +267,17 @@
                             </div>
                             <div class="test-buttons">
                                 <v-btn
+                                    @click="fillSuperAdminCredentials"
+                                    variant="outlined"
+                                    color="error"
+                                    size="small"
+                                    data-testid="super-admin-test-button"
+                                    class="test-btn"
+                                >
+                                    <v-icon start>mdi-shield-crown</v-icon>
+                                    Super Admin
+                                </v-btn>
+                                <v-btn
                                     @click="fillAdminCredentials"
                                     variant="outlined"
                                     color="primary"
@@ -268,17 +289,6 @@
                                     Admin
                                 </v-btn>
                                 <v-btn
-                                    @click="fillUserCredentials"
-                                    variant="outlined"
-                                    color="secondary"
-                                    size="small"
-                                    data-testid="user-test-button"
-                                    class="test-btn"
-                                >
-                                    <v-icon start>mdi-account</v-icon>
-                                    User
-                                </v-btn>
-                                <v-btn
                                     @click="fillOrganizerCredentials"
                                     variant="outlined"
                                     color="info"
@@ -288,6 +298,17 @@
                                 >
                                     <v-icon start>mdi-account-tie</v-icon>
                                     Organizer
+                                </v-btn>
+                                <v-btn
+                                    @click="fillUserCredentials"
+                                    variant="outlined"
+                                    color="secondary"
+                                    size="small"
+                                    data-testid="user-test-button"
+                                    class="test-btn"
+                                >
+                                    <v-icon start>mdi-account</v-icon>
+                                    User
                                 </v-btn>
                             </div>
                             <v-divider class="mt-4"></v-divider>
@@ -383,6 +404,31 @@
                                     <p class="preview-code">{{ guestForm.eventCode || 'Event Code' }}</p>
                                 </div>
                             </v-card>
+                        </div>
+
+                        <!-- Test Access Section for Development -->
+                        <div v-if="devMode" class="dev-section guest-dev-section">
+                            <v-divider class="mb-4"></v-divider>
+                            <div class="dev-header">
+                                <v-icon class="mr-2" size="20">mdi-test-tube</v-icon>
+                                <span class="dev-title">Super Admin Test Access</span>
+                            </div>
+                            <v-alert type="warning" variant="tonal" class="mb-3">
+                                <v-alert-title>Development Access</v-alert-title>
+                                <p class="mb-2">Use these special event codes for testing:</p>
+                                <div class="test-codes">
+                                    <v-chip color="error" variant="outlined" class="mr-2 mb-1">
+                                        <v-icon start>mdi-shield-crown</v-icon>
+                                        SUPERADMIN
+                                    </v-chip>
+                                    <v-chip color="error" variant="outlined" class="mb-1">
+                                        <v-icon start>mdi-account-star</v-icon>
+                                        TESTADMIN
+                                    </v-chip>
+                                </div>
+                                <p class="text-caption mt-2">These bypass normal validation and grant super admin privileges</p>
+                            </v-alert>
+                            <v-divider class="mt-4"></v-divider>
                         </div>
 
                         <v-btn 
@@ -653,6 +699,22 @@
   text-transform: none;
   font-weight: 600;
   border-radius: 8px;
+}
+
+/* Guest Dev Section */
+.guest-dev-section {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.1);
+}
+
+.test-codes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
 }
 
 /* Guest Form Specific Styles */

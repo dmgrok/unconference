@@ -30,6 +30,19 @@ const roomAssignments = ref<any[]>([])
 const qrCodeUrl = ref<string>('')
 const joinUrl = ref<string>('')
 const loadingQR = ref(false)
+const newRoundDialog = ref(false)
+const roundDuration = ref(20)
+const startingRound = ref(false)
+const topicSelections = ref<any[]>([])
+
+interface TopicSelection {
+  topicId: string
+  title: string
+  description: string
+  totalPreferenceScore: number
+  participantCount: number
+  selected: boolean
+}
 
 // Sound for new votes (using Web Audio API)
 const playVoteSound = () => {
@@ -96,6 +109,14 @@ const getRankColor = (index: number) => {
   return rankColors[3 + (index % 2)] // Alternate between remaining colors
 }
 
+const getRegistrationCount = (topic: DiscussionTopic) => {
+  return (topic.firstChoiceVoters?.length || 0) + (topic.secondChoiceVoters?.length || 0)
+}
+
+const getPixelStickFigures = (count: number) => {
+  return '🚶'.repeat(Math.min(count, 20)) + (count > 20 ? `+${count - 20}` : '')
+}
+
 const getTruncatedTitle = (title: string, maxLength: number = 45) => {
   return title.length > maxLength ? title.substring(0, maxLength) + '...' : title
 }
@@ -116,6 +137,10 @@ const totalVoters = computed(() => {
     topic.secondChoiceVoters?.forEach(voter => allVoters.add(voter))
   })
   return allVoters.size
+})
+
+const totalRegistrations = computed(() => {
+  return topics.value.reduce((sum, topic) => sum + (topic.firstChoiceVoters?.length || 0) + (topic.secondChoiceVoters?.length || 0), 0)
 })
 
 async function fetchTopics() {
@@ -240,6 +265,67 @@ function stopAutoRefresh() {
   }
 }
 
+async function loadTopicSelections() {
+  try {
+    const data = await $fetch('/api/admin/topic-selection') as TopicSelection[]
+    topicSelections.value = data
+  } catch (error) {
+    console.error('Failed to load topic selections:', error)
+  }
+}
+
+function toggleTopicSelection(topicId: string) {
+  const topic = topicSelections.value.find(t => t.topicId === topicId)
+  if (topic) {
+    if (topic.selected) {
+      topic.selected = false
+    } else if (selectedTopics.value.length < 8) { // Max 8 topics
+      topic.selected = true
+    }
+  }
+}
+
+const selectedTopics = computed(() => 
+  topicSelections.value.filter(topic => topic.selected)
+)
+
+const canStartRound = computed(() => 
+  selectedTopics.value.length > 0 && selectedTopics.value.length <= 8
+)
+
+async function startNewRound() {
+  if (!canStartRound.value) return
+  
+  startingRound.value = true
+  try {
+    const selectedTopicIds = selectedTopics.value.map(t => t.topicId)
+    const result = await $fetch('/api/admin/start-round', {
+      method: 'POST',
+      body: {
+        selectedTopicIds,
+        roundDuration: roundDuration.value
+      }
+    }) as { roundNumber: number; selectedTopics: any[]; message: string }
+    
+    newRoundDialog.value = false
+    await fetchTopics()
+    
+    // Show success message
+    alert(`Round ${result.roundNumber} started successfully with ${selectedTopics.value.length} topics!`)
+  } catch (error) {
+    console.error('Failed to start new round:', error)
+    alert('Failed to start new round. Please try again.')
+  } finally {
+    startingRound.value = false
+  }
+}
+
+async function openNewRoundDialog() {
+  newRoundDialog.value = true
+  await loadTopicSelections()
+  roundDuration.value = 20
+}
+
 onMounted(() => {
   fetchTopics()
   fetchRoomAssignments()
@@ -273,8 +359,8 @@ onUnmounted(() => {
         </p>
       </v-card-text>
       <v-card-actions class="justify-center">
-        <v-btn color="primary" to="/dashboard">
-          Return to Dashboard
+        <v-btn color="primary" to="/voting">
+          Return to Voting & Topics
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -282,10 +368,10 @@ onUnmounted(() => {
   <div v-else class="voting-dashboard" :class="{ 'fullscreen-mode': isFullscreen }">
     <v-container fluid class="pa-4">
           <!-- Header -->
-          <v-row class="mb-6">
+          <v-row class="mb-2">
             <v-col cols="12" md="10" class="text-center">
               <div class="header-animation">
-                <h1 class="display-1 font-weight-bold text-white mb-4 pixel-text">
+                <h1 class="text-h4 font-weight-bold text-white mb-2 pixel-text">
                   🗳️ LIVE VOTING DASHBOARD
                 </h1>
                 <div class="subtitle-text pixel-subtitle">REAL-TIME UPDATES • PERFECT FOR SCREEN SHARING</div>
@@ -313,31 +399,42 @@ onUnmounted(() => {
             <v-col cols="12" class="text-center">
               
               <!-- Stats -->
-              <div class="d-flex justify-center gap-8 mb-4">
-                <v-card variant="outlined" class="px-6 py-3 stat-card pixel-card">
-                  <div class="text-h4 font-weight-bold stat-number">{{ totalVotes }}</div>
-                  <div class="text-caption stat-label">TOTAL POINTS</div>
+              <div class="d-flex justify-center gap-8 mb-2">
+                <v-card variant="outlined" class="px-4 py-2 stat-card pixel-card">
+                  <div class="text-h5 font-weight-bold stat-number">{{ totalRegistrations }}</div>
+                  <div class="text-caption stat-label">REGISTRATIONS</div>
                 </v-card>
-                <v-card variant="outlined" class="px-6 py-3 stat-card pixel-card">
-                  <div class="text-h4 font-weight-bold stat-number">{{ totalVoters }}</div>
+                <v-card variant="outlined" class="px-4 py-2 stat-card pixel-card">
+                  <div class="text-h5 font-weight-bold stat-number">{{ totalVoters }}</div>
                   <div class="text-caption stat-label">ACTIVE VOTERS</div>
                 </v-card>
-                <v-card variant="outlined" class="px-6 py-3 stat-card pixel-card">
-                  <div class="text-h4 font-weight-bold stat-number">{{ sortedTopics.length }}</div>
+                <v-card variant="outlined" class="px-4 py-2 stat-card pixel-card">
+                  <div class="text-h5 font-weight-bold stat-number">{{ sortedTopics.length }}</div>
                   <div class="text-caption stat-label">TOPICS</div>
                 </v-card>
               </div>
           
           <!-- Controls -->
-          <div class="d-flex justify-center gap-4">
+          <div class="d-flex justify-center gap-4 mb-2">
             <v-btn
               @click="fetchTopics"
               color="#00FFFF"
               prepend-icon="mdi-refresh"
               variant="outlined"
               class="pixel-btn"
+              size="small"
             >
               REFRESH
+            </v-btn>
+            <v-btn
+              @click="openNewRoundDialog"
+              color="#00FF00"
+              prepend-icon="mdi-play-circle"
+              variant="outlined"
+              class="pixel-btn"
+              size="small"
+            >
+              START ROUND
             </v-btn>
             <v-btn
               @click="showRoomAssignments = !showRoomAssignments; if (showRoomAssignments) fetchRoomAssignments()"
@@ -345,6 +442,7 @@ onUnmounted(() => {
               :prepend-icon="showRoomAssignments ? 'mdi-view-dashboard' : 'mdi-account-group'"
               variant="outlined"
               class="pixel-btn"
+              size="small"
             >
               {{ showRoomAssignments ? 'SHOW VOTING' : 'SHOW ROOMS' }}
             </v-btn>
@@ -354,6 +452,7 @@ onUnmounted(() => {
               :prepend-icon="isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
               variant="outlined"
               class="pixel-btn"
+              size="small"
             >
               {{ isFullscreen ? 'EXIT FULLSCREEN' : 'FULLSCREEN' }}
             </v-btn>
@@ -379,25 +478,17 @@ onUnmounted(() => {
                   <div class="topic-details">
                     <div class="topic-title pixel-title">{{ getTruncatedTitle(topic.title) }}</div>
                     <div v-if="topic.description" class="topic-description pixel-description">{{ getTruncatedDescription(topic.description) }}</div>
-                    <div class="topic-votes pixel-subtitle">{{ topic.totalPreferenceScore || 0 }} PTS • {{ (topic.firstChoiceVoters?.length || 0) + (topic.secondChoiceVoters?.length || 0) }} VOTES</div>
+                    <div class="topic-votes pixel-subtitle">{{ getRegistrationCount(topic) }} PEOPLE • {{ topic.totalPreferenceScore || 0 }} PTS</div>
                   </div>
                 </div>
                 
-                <!-- Pixel Bar -->
-                <div class="pixel-bar-container">
-                  <div
-                    class="pixel-bar"
-                    :style="{
-                      width: `${getBarWidth(topic.totalPreferenceScore || 0)}%`,
-                      backgroundColor: getPixelColor(index),
-                      animationDelay: `${index * 150}ms`
-                    }"
-                  >
-                    <!-- Pixel effect -->
-                    <div class="pixel-overlay"></div>
+                <!-- Pixel Stick Figures -->
+                <div class="pixel-figures-container">
+                  <div class="pixel-figures">
+                    {{ getPixelStickFigures(getRegistrationCount(topic)) }}
                   </div>
                   <div class="vote-label pixel-label">
-                    {{ topic.totalPreferenceScore || 0 }}
+                    {{ getRegistrationCount(topic) }} people
                     <v-icon 
                       v-if="showNewVoteAnimation[topic.id]" 
                       color="success" 
@@ -516,6 +607,107 @@ onUnmounted(() => {
         </v-col>
       </v-row>
     </v-container>
+
+    <!-- New Round Dialog for Topic Selection -->
+    <v-dialog v-model="newRoundDialog" max-width="800px" persistent>
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon class="mr-2">mdi-plus-circle</v-icon>
+          Start New Round - Select Topics
+        </v-card-title>
+        
+        <v-card-text>
+          <!-- Round Configuration -->
+          <v-row class="mb-4">
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model.number="roundDuration"
+                label="Round Duration (minutes)"
+                type="number"
+                min="5"
+                max="60"
+                prepend-icon="mdi-timer"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-chip
+                :color="selectedTopics.length > 0 ? 'success' : 'default'"
+                size="large"
+                prepend-icon="mdi-check-circle"
+              >
+                {{ selectedTopics.length }}/8 topics selected
+              </v-chip>
+            </v-col>
+          </v-row>
+          
+          <!-- Topic Selection -->
+          <h3 class="mb-3">Select Topics for Discussion</h3>
+          <p class="text-caption mb-4">Click on topics to select them for the round. Topics are sorted by preference score.</p>
+          
+          <v-row v-if="topicSelections.length > 0">
+            <v-col
+              v-for="topic in topicSelections"
+              :key="topic.topicId"
+              cols="12"
+              md="6"
+            >
+              <v-card
+                :color="topic.selected ? 'primary' : 'default'"
+                :variant="topic.selected ? 'elevated' : 'outlined'"
+                class="cursor-pointer"
+                @click="toggleTopicSelection(topic.topicId)"
+                :disabled="!topic.selected && selectedTopics.length >= 8"
+              >
+                <v-card-title class="d-flex align-center">
+                  <v-checkbox
+                    :model-value="topic.selected"
+                    class="mr-2"
+                    hide-details
+                    readonly
+                  ></v-checkbox>
+                  {{ topic.title }}
+                </v-card-title>
+                <v-card-text>
+                  <p class="mb-2">{{ topic.description }}</p>
+                  <div class="d-flex justify-space-between">
+                    <span class="text-caption">
+                      <v-icon size="small">mdi-account-group</v-icon>
+                      {{ topic.participantCount }} participants
+                    </span>
+                    <span class="text-caption font-weight-bold">
+                      {{ topic.totalPreferenceScore }} points
+                    </span>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+          
+          <v-alert v-else type="info" class="mt-4">
+            No topics available for selection. Users need to propose and vote on topics first.
+          </v-alert>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey"
+            variant="outlined"
+            @click="newRoundDialog = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            :disabled="!canStartRound || startingRound"
+            :loading="startingRound"
+            @click="startNewRound"
+          >
+            Start Round
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -744,6 +936,35 @@ onUnmounted(() => {
   box-shadow: 
     inset 0 0 20px rgba(0,0,0,0.8),
     0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* Pixel Figures Container */
+.pixel-figures-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: 1;
+  min-width: 300px;
+  padding: 0.5rem;
+}
+
+.pixel-figures {
+  font-size: 1.2rem;
+  line-height: 1.4;
+  text-align: right;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  animation: pixelGlow 2s infinite alternate;
+}
+
+@keyframes pixelGlow {
+  0% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+  100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.4); }
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .pixel-bar {

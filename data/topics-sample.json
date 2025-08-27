@@ -4,14 +4,18 @@
     "title": "Copilot and MCP servers",
     "description": "MCP servers are changing the landscape of AI. How do we leverage them securely?",
     "createdBy": "darth.vader@starwars.com",
-    "votes": 0,
-    "voters": [],
+    "votes": 1,
+    "voters": [
+      "organizer@example.com"
+    ],
     "badges": 9,
     "selectedForRound": true,
     "frozen": false,
-    "firstChoiceVoters": [],
+    "firstChoiceVoters": [
+      "organizer@example.com"
+    ],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 0,
+    "totalPreferenceScore": 2,
     "currentRound": 3
   },
   {
@@ -19,14 +23,16 @@
     "title": "GitHub Actions Hosted Runners optimization",
     "description": "Private networking and custom images are bringing new possibilities to GitHub Actions. How do we leverage them?",
     "createdBy": "storm.trooper@starwars.com",
-    "votes": 0,
+    "votes": 1,
     "voters": [],
     "badges": 9,
     "frozen": false,
     "selectedForRound": true,
     "firstChoiceVoters": [],
-    "secondChoiceVoters": [],
-    "totalPreferenceScore": 0,
+    "secondChoiceVoters": [
+      "organizer@example.com"
+    ],
+    "totalPreferenceScore": 1,
     "currentRound": 3
   },
   {

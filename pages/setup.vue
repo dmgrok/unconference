@@ -207,7 +207,7 @@ onMounted(() => {
             <v-btn 
               color="primary" 
               size="x-large" 
-              to="/dashboard"
+              to="/voting"
               prepend-icon="mdi-view-dashboard"
             >
               Go to Dashboard

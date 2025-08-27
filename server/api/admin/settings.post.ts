@@ -2,7 +2,6 @@ import { promises as fs } from 'fs'
 import { join } from 'path'
 import { z } from 'zod'
 import logger from '../../../utils/logger'
-import { requireEventPermission } from "../../../utils/authService"
 
 const settingsSchema = z.object({
   maxVotesPerTopic: z.number().min(1).max(50),
@@ -10,35 +9,34 @@ const settingsSchema = z.object({
   showVoterNames: z.boolean(),
   allowTopicSubmission: z.boolean(),
   autoStartNewRound: z.boolean(),
+  roundDurationMinutes: z.number().min(5).max(180).optional(),
+  maxTopicsPerRound: z.number().min(1).max(20).optional(),
   allowGuestAccess: z.boolean().optional(),
   maxParticipants: z.number().min(1).optional()
 })
 
 export default defineEventHandler(async (event) => {
+  // For backward compatibility, support calls without eventId
   const eventId = getQuery(event).eventId as string
   
-  if (!eventId) {
-    throw createError({
-      statusCode: 400,
-      message: 'Event ID is required'
-    })
-  }
-
-  // Check if user has permission to update event settings
-  await requireEventPermission(event, eventId, 'settings', 'update')
-
   const body = await readValidatedBody(event, settingsSchema.parse)
   
   try {
-    // Ensure event directory exists
-    const eventDir = join(process.cwd(), 'data', 'events', eventId)
-    await fs.mkdir(eventDir, { recursive: true })
+    let settingsPath: string
     
-    // Save settings to event-specific file
-    const settingsPath = join(eventDir, 'settings.json')
+    if (eventId) {
+      // Multi-event mode
+      const eventDir = join(process.cwd(), 'data', 'events', eventId)
+      await fs.mkdir(eventDir, { recursive: true })
+      settingsPath = join(eventDir, 'settings.json')
+    } else {
+      // Single event mode (backward compatibility)
+      settingsPath = join(process.cwd(), 'data', 'admin-settings.json')
+    }
+    
     await fs.writeFile(settingsPath, JSON.stringify(body, null, 2))
     
-    logger.info(`Event settings saved successfully for event ${eventId}`, body)
+    logger.info(`Admin settings saved successfully to ${settingsPath}`, body)
     
     return {
       success: true,

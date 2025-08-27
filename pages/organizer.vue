@@ -35,6 +35,14 @@ const quickActions = [
     action: 'participants'
   },
   {
+    title: 'Configure Rooms',
+    subtitle: 'Set up discussion rooms and locations',
+    icon: 'mdi-home-city',
+    color: 'info',
+    to: '/admin/rooms',
+    action: 'rooms'
+  },
+  {
     title: 'Start New Round',
     subtitle: 'Begin discussions with selected topics',
     icon: 'mdi-play-circle',
@@ -43,7 +51,7 @@ const quickActions = [
     action: 'start-round'
   },
   {
-    title: 'Live Voting Display',
+    title: 'Live Voting Dashboard',
     subtitle: 'Show real-time voting for participants',
     icon: 'mdi-monitor',
     color: 'primary',

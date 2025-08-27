@@ -112,7 +112,7 @@ onMounted(() => {
         <p class="text-body-1 text-grey-darken-1">
           Group assignments are created when a round starts. Check back when a round is active.
         </p>
-        <v-btn color="primary" to="/dashboard" class="mt-4">
+        <v-btn color="primary" to="/voting" class="mt-4">
           Go to Dashboard
         </v-btn>
       </v-card-text>

@@ -19,11 +19,27 @@ interface ActiveRound {
   votingDisabled: boolean
 }
 
+interface TopicSelection {
+  topicId: string
+  title: string
+  description: string
+  totalPreferenceScore: number
+  participantCount: number
+  selected: boolean
+}
+
 const { user } = useUserSession()
+const { settings: adminSettings, loadSettings } = useAdminSettings()
 const groups = ref<GroupAssignment[]>([])
 const activeRound = ref<ActiveRound | null>(null)
 const loading = ref(true)
 const error = ref('')
+
+// Topic selection for organizers
+const topicSelections = ref<TopicSelection[]>([])
+const newRoundDialog = ref(false)
+const roundDuration = ref(20)
+const startingRound = ref(false)
 
 const userEmail = computed(() => (user.value as User)?.email || '')
 
@@ -31,6 +47,20 @@ const userGroup = computed(() => {
   if (!userEmail.value || !groups.value.length) return null
   return groups.value.find(group => group.participants.includes(userEmail.value))
 })
+
+// Check if user is organizer/admin
+const isOrganizer = computed(() => {
+  const userRole = (user.value as any)?.Role || (user.value as any)?.role
+  return ['Admin', 'Organizer'].includes(userRole)
+})
+
+const selectedTopics = computed(() => 
+  topicSelections.value.filter(topic => topic.selected)
+)
+
+const canStartRound = computed(() => 
+  selectedTopics.value.length > 0 && selectedTopics.value.length <= adminSettings.value.maxTopicsPerRound
+)
 
 async function loadGroups() {
   loading.value = true
@@ -65,7 +95,61 @@ function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleString()
 }
 
+async function loadTopicSelections() {
+  try {
+    const data = await $fetch('/api/admin/topic-selection') as TopicSelection[]
+    topicSelections.value = data
+  } catch (error) {
+    console.error('Failed to load topic selections:', error)
+  }
+}
+
+function toggleTopicSelection(topicId: string) {
+  const topic = topicSelections.value.find(t => t.topicId === topicId)
+  if (topic) {
+    if (topic.selected) {
+      topic.selected = false
+    } else if (selectedTopics.value.length < adminSettings.value.maxTopicsPerRound) {
+      topic.selected = true
+    }
+  }
+}
+
+async function startNewRound() {
+  if (!canStartRound.value) return
+  
+  startingRound.value = true
+  try {
+    const selectedTopicIds = selectedTopics.value.map(t => t.topicId)
+    const result = await $fetch('/api/admin/start-round', {
+      method: 'POST',
+      body: {
+        selectedTopicIds,
+        roundDuration: roundDuration.value
+      }
+    }) as { roundNumber: number; selectedTopics: any[]; message: string }
+    
+    newRoundDialog.value = false
+    await loadGroups()
+    
+    // Show success message
+    alert(`Round ${result.roundNumber} started successfully with ${selectedTopics.value.length} topics!`)
+  } catch (error) {
+    console.error('Failed to start new round:', error)
+    alert('Failed to start new round. Please try again.')
+  } finally {
+    startingRound.value = false
+  }
+}
+
+async function openNewRoundDialog() {
+  newRoundDialog.value = true
+  await loadTopicSelections()
+  roundDuration.value = adminSettings.value.roundDurationMinutes
+}
+
 onMounted(() => {
+  loadSettings()
   loadGroups()
 })
 </script>
@@ -82,12 +166,29 @@ onMounted(() => {
       
       <div class="d-flex gap-2">
         <v-btn
+          v-if="isOrganizer"
+          color="info"
+          prepend-icon="mdi-home-city"
+          variant="outlined"
+          to="/admin/rooms"
+        >
+          Configure Rooms
+        </v-btn>
+        <v-btn
           color="primary"
           prepend-icon="mdi-refresh"
           variant="outlined"
           @click="loadGroups"
         >
           Refresh
+        </v-btn>
+        <v-btn
+          v-if="isOrganizer && !activeRound?.isActive"
+          color="success"
+          prepend-icon="mdi-play-circle"
+          @click="openNewRoundDialog"
+        >
+          Start New Round
         </v-btn>
       </div>
     </div>
@@ -119,22 +220,36 @@ onMounted(() => {
           Discussion groups are created when an organizer starts a new round. 
           <br>Check back when a round is active, or start voting on topics to influence the next round.
         </p>
+        
+        <!-- Room Setup Info for Organizers -->
+        <v-alert v-if="isOrganizer" type="info" variant="outlined" class="mb-4 text-left">
+          <v-alert-title>🏢 Room Setup</v-alert-title>
+          <div>
+            <p class="mb-2">Before starting a round, make sure you have configured discussion rooms:</p>
+            <ul class="text-left">
+              <li>Go to <strong>Configure Rooms</strong> to set up available discussion spaces</li>
+              <li>Each topic will be automatically assigned to a room when you start a round</li>
+              <li>Participants will be distributed based on their voting preferences and room capacity</li>
+            </ul>
+          </div>
+        </v-alert>
+        
         <div class="d-flex gap-3 justify-center flex-wrap">
-          <v-btn color="primary" to="/dashboard">
+          <v-btn color="primary" to="/voting">
             <v-icon class="mr-2">mdi-vote</v-icon>
             Vote on Topics
           </v-btn>
           <v-btn 
-            v-if="((user as any)?.Role === 'Admin' || (user as any)?.role === 'Admin') || ((user as any)?.Role === 'Organizer' || (user as any)?.role === 'Organizer')" 
+            v-if="isOrganizer" 
             color="success" 
-            to="/admin/round-management"
+            @click="openNewRoundDialog"
             variant="elevated"
           >
             <v-icon class="mr-2">mdi-play-circle</v-icon>
             Start New Round
           </v-btn>
           <v-btn 
-            v-if="((user as any)?.Role === 'Admin' || (user as any)?.role === 'Admin') || ((user as any)?.Role === 'Organizer' || (user as any)?.role === 'Organizer')" 
+            v-if="isOrganizer" 
             color="secondary" 
             to="/organizer"
             variant="outlined"
@@ -257,11 +372,116 @@ onMounted(() => {
         </v-col>
       </v-row>
     </div>
+
+    <!-- New Round Dialog for Topic Selection -->
+    <v-dialog v-model="newRoundDialog" max-width="800px" persistent>
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon class="mr-2">mdi-plus-circle</v-icon>
+          Start New Round - Select Topics
+        </v-card-title>
+        
+        <v-card-text>
+          <!-- Round Configuration -->
+          <v-row class="mb-4">
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model.number="roundDuration"
+                label="Round Duration (minutes)"
+                type="number"
+                min="5"
+                max="60"
+                prepend-icon="mdi-timer"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-chip
+                :color="selectedTopics.length > 0 ? 'success' : 'default'"
+                size="large"
+                prepend-icon="mdi-check-circle"
+              >
+                {{ selectedTopics.length }}/{{ adminSettings.maxTopicsPerRound }} topics selected
+              </v-chip>
+            </v-col>
+          </v-row>
+          
+          <!-- Topic Selection -->
+          <h3 class="mb-3">Select Topics for Discussion</h3>
+          <p class="text-caption mb-4">Click on topics to select them for the round. Topics are sorted by preference score.</p>
+          
+          <v-row v-if="topicSelections.length > 0">
+            <v-col
+              v-for="topic in topicSelections"
+              :key="topic.topicId"
+              cols="12"
+              md="6"
+            >
+              <v-card
+                :color="topic.selected ? 'primary' : 'default'"
+                :variant="topic.selected ? 'elevated' : 'outlined'"
+                class="cursor-pointer"
+                @click="toggleTopicSelection(topic.topicId)"
+                :disabled="!topic.selected && selectedTopics.length >= adminSettings.maxTopicsPerRound"
+              >
+                <v-card-title class="d-flex align-center">
+                  <v-checkbox
+                    :model-value="topic.selected"
+                    class="mr-2"
+                    hide-details
+                    readonly
+                  ></v-checkbox>
+                  {{ topic.title }}
+                </v-card-title>
+                <v-card-text>
+                  <p class="mb-2">{{ topic.description }}</p>
+                  <div class="d-flex justify-space-between">
+                    <span class="text-caption">
+                      <v-icon size="small">mdi-account-group</v-icon>
+                      {{ topic.participantCount }} participants
+                    </span>
+                    <span class="text-caption font-weight-bold">
+                      {{ topic.totalPreferenceScore }} points
+                    </span>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+          
+          <v-alert v-else type="info" class="mt-4">
+            No topics available for selection. Users need to propose and vote on topics first.
+          </v-alert>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey"
+            variant="outlined"
+            @click="newRoundDialog = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            :disabled="!canStartRound || startingRound"
+            :loading="startingRound"
+            @click="startNewRound"
+          >
+            Start Round
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <style scoped>
 .border-primary {
   border: 2px solid rgb(var(--v-theme-primary)) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>

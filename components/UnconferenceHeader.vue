@@ -34,10 +34,10 @@ const isOrganizer = computed(() => {
           <template v-if="loggedIn">
             <v-btn
               variant="text"
-              to="/dashboard"
-              prepend-icon="mdi-view-dashboard"
+              to="/voting"
+              prepend-icon="mdi-vote"
             >
-              Dashboard
+              Voting & Topics
             </v-btn>
             
             <v-btn

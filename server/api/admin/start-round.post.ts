@@ -3,19 +3,43 @@ import { join } from 'path'
 import logger from '../../../utils/logger'
 import type { DiscussionTopic, RoundHistory, ActiveRound, GroupAssignment } from '~/types/topic'
 import type { User } from '~/types/user'
+import type { Room } from '~/types/room'
 
-// Function to automatically assign participants to groups based on their votes
-function createGroupAssignments(topics: DiscussionTopic[], selectedTopicIds: string[]): GroupAssignment[] {
+// Function to automatically assign participants to groups based on their votes and assign rooms
+async function createGroupAssignments(topics: DiscussionTopic[], selectedTopicIds: string[]): Promise<GroupAssignment[]> {
   const selectedTopics = topics.filter(topic => selectedTopicIds.includes(topic.id))
   const groupAssignments: GroupAssignment[] = []
   
+  // Load available rooms
+  let availableRooms: Room[] = []
+  try {
+    const roomsPath = join(process.cwd(), 'data', 'rooms.json')
+    const roomsData = await fs.readFile(roomsPath, 'utf-8')
+    const allRooms = JSON.parse(roomsData) as Room[]
+    availableRooms = allRooms.filter(room => room.available)
+  } catch (error) {
+    logger.warn('No rooms configured, groups will be created without room assignments')
+  }
+  
   // Create initial assignments based on first choices
-  selectedTopics.forEach(topic => {
+  selectedTopics.forEach((topic, index) => {
+    const participants = [...(topic.firstChoiceVoters || [])]
+    
+    // Assign room if available
+    let roomAssignment = undefined
+    if (availableRooms.length > index) {
+      const assignedRoom = availableRooms[index]
+      roomAssignment = `${assignedRoom.name} (${assignedRoom.location})`
+    } else {
+      // Generate default room names if no rooms configured
+      roomAssignment = `Room ${String.fromCharCode(65 + index)}`
+    }
+    
     groupAssignments.push({
       topicId: topic.id,
       topicTitle: topic.title,
-      participants: [...(topic.firstChoiceVoters || [])],
-      roomAssignment: undefined // Will be assigned separately
+      participants,
+      roomAssignment
     })
   })
   
@@ -73,7 +97,8 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   
   // Verify admin role
-  if ((user as User).role !== 'Admin') {
+  const userRole = (user as any).Role || (user as any).role
+  if (userRole !== 'Admin') {
     throw createError({
       statusCode: 403,
       message: 'Only administrators can start a new round'
@@ -109,7 +134,7 @@ export default defineEventHandler(async (event) => {
     
     // Determine next round number
     const nextRoundNumber = roundHistory.length > 0 
-      ? Math.max(...roundHistory.map(r => r.roundNumber)) + 1 
+      ? Math.max(...roundHistory.map(r => r.roundNumber || 0)) + 1 
       : 1
     
     // Get top topics for badges (before resetting votes)
@@ -127,13 +152,20 @@ export default defineEventHandler(async (event) => {
     
     // Save round history
     const selectedTopics = topics.filter(topic => selectedTopicIds.includes(topic.id))
-    const groupAssignments = createGroupAssignments(topics, selectedTopicIds)
+    const groupAssignments = await createGroupAssignments(topics, selectedTopicIds)
     
     const newRoundHistory: RoundHistory = {
+      id: `round-${nextRoundNumber}`,
       roundNumber: nextRoundNumber,
       timestamp: new Date().toISOString(),
+      startTime: new Date(),
+      duration: roundDuration || 20,
+      topicIds: selectedTopicIds,
+      topicTitles: selectedTopics.map(t => t.title),
+      participantCount: groupAssignments.reduce((sum: number, group: GroupAssignment) => sum + group.participants.length, 0),
+      eventId: 'default-event', // TODO: Replace with actual event ID from multi-event system
       selectedTopics: selectedTopics.map(topic => {
-        const assignment = groupAssignments.find(g => g.topicId === topic.id)
+        const assignment = groupAssignments.find((g: GroupAssignment) => g.topicId === topic.id)
         return {
           topicId: topic.id,
           title: topic.title,
@@ -143,7 +175,7 @@ export default defineEventHandler(async (event) => {
           roomAssignment: assignment?.roomAssignment
         }
       }),
-      totalParticipants: groupAssignments.reduce((sum, group) => sum + group.participants.length, 0)
+      totalParticipants: groupAssignments.reduce((sum: number, group: GroupAssignment) => sum + group.participants.length, 0)
     }
     
     roundHistory.push(newRoundHistory)
@@ -151,13 +183,16 @@ export default defineEventHandler(async (event) => {
     
     // Create active round with group assignments
     const activeRound: ActiveRound = {
+      id: `active-round-${nextRoundNumber}`,
       roundNumber: nextRoundNumber,
-      startTime: new Date().toISOString(),
+      startTime: new Date(),
       duration: roundDuration || 20,
+      topicIds: selectedTopicIds,
       selectedTopics: selectedTopicIds,
       isActive: true,
       groupAssignments: groupAssignments,
-      votingDisabled: true  // Disable voting during active rounds
+      votingDisabled: true,  // Disable voting during active rounds
+      eventId: 'default-event' // TODO: Replace with actual event ID from multi-event system
     }
     await fs.writeFile(activeRoundPath, JSON.stringify(activeRound, null, 2))
     
@@ -184,7 +219,7 @@ export default defineEventHandler(async (event) => {
     // Write back to file
     await fs.writeFile(topicsPath, JSON.stringify(topics, null, 2))
     
-    logger.debug(`New round ${nextRoundNumber} started by admin ${(user as User).email}. Selected topics: ${selectedTopicIds.join(', ')}`)
+    logger.debug(`New round ${nextRoundNumber} started by admin ${(user as any).email}. Selected topics: ${selectedTopicIds.join(', ')}`)
     
     return { 
       message: 'New round started successfully',
