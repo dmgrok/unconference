@@ -3,10 +3,19 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { DiscussionTopic } from '~/types/topic'
 
 definePageMeta({
-  requiresAdmin: true
+  middleware: 'authenticated'
 })
 
 const { user } = useUserSession()
+
+// Check if user is admin or organizer - defensive approach with reactivity
+const hasAccess = ref(false)
+
+// Watch user changes and update access
+watch(user, (newUser) => {
+  const userRole = (newUser as any)?.Role || (newUser as any)?.role
+  hasAccess.value = ['Admin', 'Organizer'].includes(userRole)
+}, { immediate: true })
 const config = useRuntimeConfig()
 const VOTE_LIMIT = config.public.maxVotesPerTopic
 
@@ -249,7 +258,28 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="voting-dashboard" :class="{ 'fullscreen-mode': isFullscreen }">
+  <div v-if="!hasAccess" class="d-flex justify-center align-center fill-height">
+    <v-card class="pa-8 text-center" max-width="500">
+      <v-card-title class="text-h4 mb-4">
+        <v-icon size="48" color="warning" class="mr-2">mdi-shield-alert</v-icon>
+        Access Restricted
+      </v-card-title>
+      <v-card-text>
+        <p class="text-body-1 mb-4">
+          This voting dashboard is only accessible to event organizers and administrators.
+        </p>
+        <p class="text-body-2 text-grey">
+          If you believe you should have access, please contact an administrator.
+        </p>
+      </v-card-text>
+      <v-card-actions class="justify-center">
+        <v-btn color="primary" to="/dashboard">
+          Return to Dashboard
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </div>
+  <div v-else class="voting-dashboard" :class="{ 'fullscreen-mode': isFullscreen }">
     <v-container fluid class="pa-4">
           <!-- Header -->
           <v-row class="mb-6">

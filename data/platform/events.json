@@ -1,0 +1,41 @@
+[
+  {
+    "id": "event-001",
+    "code": "DEMO24",
+    "name": "Demo Unconference 2024",
+    "description": "A sample unconference event for testing",
+    "organizerId": "organizer-001",
+    "location": "Conference Center A",
+    "startDate": "2024-08-27T09:00:00.000Z",
+    "endDate": "2024-08-27T18:00:00.000Z", 
+    "isActive": true,
+    "createdAt": "2024-08-20T10:00:00.000Z",
+    "updatedAt": "2024-08-27T08:00:00.000Z"
+  },
+  {
+    "id": "event-002", 
+    "code": "TECH25",
+    "name": "Tech Innovation Unconference 2025",
+    "description": "Discussing the future of technology",
+    "organizerId": "admin-001",
+    "location": "Tech Hub Downtown",
+    "startDate": "2024-09-15T09:00:00.000Z",
+    "endDate": "2024-09-15T17:00:00.000Z",
+    "isActive": false,
+    "createdAt": "2024-08-15T14:00:00.000Z", 
+    "updatedAt": "2024-08-25T16:00:00.000Z"
+  },
+  {
+    "id": "event-003",
+    "code": "STARTUP",
+    "name": "Startup Founders Unconference",
+    "description": "Networking and learning for startup founders",
+    "organizerId": "organizer-001",
+    "location": "Innovation Campus",
+    "startDate": "2024-10-01T10:00:00.000Z",
+    "endDate": "2024-10-01T16:00:00.000Z",
+    "isActive": true,
+    "createdAt": "2024-08-01T09:00:00.000Z",
+    "updatedAt": "2024-08-20T11:00:00.000Z"
+  }
+]

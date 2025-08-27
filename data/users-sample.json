@@ -7,6 +7,13 @@
     "Role": "Admin"
   },
   {
+    "Firstname": "Luke",
+    "Lastname": "Skywalker",
+    "Email": "organizer@example.com",
+    "Password": "organizerPassword",
+    "Role": "Organizer"
+  },
+  {
     "Firstname": "Storm",
     "Lastname": "Trooper",
     "Email": "storm.trooper@starwars.com",

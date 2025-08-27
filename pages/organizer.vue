@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import type { User } from '~/types/user'
 
 definePageMeta({
   middleware: 'authenticated'
 })
 
 const { user } = useUserSession()
-const { eventConfig } = useEventConfig()
+// TODO: Implement multi-event support later
+// const { currentEventId } = useEventContext()
+// const currentEvent = inject('currentEvent') as any
 
-// Check if user is admin
-const isAdmin = computed(() => (user.value as User)?.role === 'Admin')
-if (!isAdmin.value) {
-  throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
-}
+// Check if user is admin/organizer  
+const isOrganizer = computed(() => {
+  const userRole = (user.value as any)?.Role || (user.value as any)?.role
+  return ['Admin', 'Organizer'].includes(userRole)
+})
 
 // Dashboard data
 const eventStats = ref({
@@ -25,6 +26,14 @@ const eventStats = ref({
 })
 
 const quickActions = [
+  {
+    title: 'Manage Participants',
+    subtitle: 'Invite and manage event participants',
+    icon: 'mdi-account-group',
+    color: 'primary',
+    to: '/organizer/participants',
+    action: 'participants'
+  },
   {
     title: 'Start New Round',
     subtitle: 'Begin discussions with selected topics',
@@ -139,7 +148,7 @@ async function handleQuickAction(action: string) {
           method: 'POST',
           body: {
             eventCode: 'DEMO2024', // Would get from settings
-            eventName: eventConfig.title
+            eventName: 'Current Event' // TODO: Get from event config
           }
         })
         alert('QR Code generated successfully!')
@@ -181,7 +190,7 @@ onMounted(() => {
       <div>
         <h1 class="text-h4 font-weight-bold">Organizer Dashboard</h1>
         <p class="text-body-1 text-grey-darken-1">
-          Central hub for managing {{ eventConfig.title }}
+          Central hub for managing your unconference event
         </p>
       </div>
       

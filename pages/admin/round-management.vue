@@ -10,11 +10,14 @@ definePageMeta({
 const { user } = useUserSession()
 const { settings: adminSettings, loadSettings } = useAdminSettings()
 
-const isAdmin = computed(() => (user.value as User)?.role === 'Admin')
+const hasAccess = computed(() => {
+  const userRole = (user.value as any)?.Role || (user.value as any)?.role
+  return ['Admin', 'Organizer'].includes(userRole)
+})
 
-// Redirect non-admins
-if (!isAdmin.value) {
-  throw createError({ statusCode: 403, statusMessage: 'Access denied' })
+// Redirect if no access
+if (!hasAccess.value) {
+  throw createError({ statusCode: 403, statusMessage: 'Admin or Organizer access required' })
 }
 
 const roundHistory = ref<RoundHistory[]>([])

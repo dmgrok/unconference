@@ -6,13 +6,13 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 8,
+    "badges": 9,
     "selectedForRound": true,
     "frozen": false,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
     "totalPreferenceScore": 0,
-    "currentRound": 2
+    "currentRound": 3
   },
   {
     "id": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
@@ -21,13 +21,13 @@
     "createdBy": "storm.trooper@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 8,
+    "badges": 9,
     "frozen": false,
     "selectedForRound": true,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
     "totalPreferenceScore": 0,
-    "currentRound": 2
+    "currentRound": 3
   },
   {
     "id": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
@@ -38,7 +38,7 @@
     "voters": [],
     "frozen": false,
     "selectedForRound": false,
-    "badges": 8,
+    "badges": 9,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
     "totalPreferenceScore": 0
@@ -52,7 +52,7 @@
     "voters": [],
     "frozen": false,
     "selectedForRound": false,
-    "badges": 6,
+    "badges": 7,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
     "totalPreferenceScore": 0
@@ -64,7 +64,7 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 6,
+    "badges": 7,
     "selectedForRound": false,
     "frozen": false,
     "firstChoiceVoters": [],
@@ -78,7 +78,7 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 5,
+    "badges": 6,
     "selectedForRound": false,
     "frozen": false,
     "firstChoiceVoters": [],

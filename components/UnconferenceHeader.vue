@@ -1,125 +1,215 @@
 <script setup lang="ts">
 const { eventConfig } = useEventConfig()
+const { user, loggedIn } = useUserSession()
+
+const isOrganizer = computed(() => {
+  const userRole = (user.value as any)?.Role || (user.value as any)?.role
+  return ['Admin', 'Organizer'].includes(userRole)
+})
 </script>
 
 <template>
-  <v-container class="text-center py-16">
-    <v-row justify="center">
-      <v-col cols="12" md="10">
-        <!-- Platform Branding -->
-        <div class="mb-8">
-          <h1 class="text-h1 font-weight-bold mb-4 text-primary">Unconference Platform</h1>
-          <p class="text-h5 text-grey-darken-1 mb-2">
-            Join collaborative discussions and shape the agenda together
-          </p>
-          <p class="text-body-1 text-grey">
-            Enter your event code to participate in any unconference worldwide
-          </p>
+  <header class="unconference-header">
+    <v-app-bar 
+      :elevation="2"
+      color="surface"
+      height="70"
+      flat
+    >
+      <v-container class="d-flex align-center">
+        <div class="d-flex align-items-center">
+          <v-btn
+            variant="text"
+            :to="loggedIn ? '/dashboard' : '/'"
+            class="header-logo"
+          >
+            <v-icon class="mr-2" size="28">mdi-forum</v-icon>
+            <span class="logo-text">{{ eventConfig.title || 'Unconference Platform' }}</span>
+          </v-btn>
         </div>
 
-        <!-- What is an Unconference? -->
-        <v-card class="mx-auto pa-6 mb-6" max-width="900" elevation="2" color="primary" variant="tonal">
-          <v-card-title class="text-h5 mb-4">
-            <v-icon class="mr-2">mdi-help-circle</v-icon>
-            What is an Unconference?
-          </v-card-title>
-          <v-card-text class="text-left">
-            <p class="text-body-1 mb-3">
-              An <strong>unconference</strong> is a participant-driven event where <em>you</em> shape the agenda! 
-              Instead of predetermined speakers, attendees propose discussion topics, vote on what interests them most, 
-              and participate in focused small-group conversations.
-            </p>
-            <div class="d-flex flex-wrap justify-center gap-4 mt-4">
-              <v-chip color="success" variant="outlined" prepend-icon="mdi-lightbulb">
-                Propose Topics
-              </v-chip>
-              <v-chip color="info" variant="outlined" prepend-icon="mdi-vote">
-                Vote on Interests
-              </v-chip>
-              <v-chip color="warning" variant="outlined" prepend-icon="mdi-account-group">
-                Join Discussions
-              </v-chip>
-              <v-chip color="purple" variant="outlined" prepend-icon="mdi-share-variant">
-                Share Knowledge
-              </v-chip>
-            </div>
-          </v-card-text>
-        </v-card>
+        <v-spacer />
 
-        <!-- How to Join -->
-        <v-card class="mx-auto pa-6 mb-8" max-width="900" elevation="2" variant="outlined">
-          <v-card-title class="text-h5 mb-4">
-            <v-icon class="mr-2">mdi-rocket-launch</v-icon>
-            How to Join Any Event
-          </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="12" md="4" class="text-center">
-                <v-icon size="64" color="primary" class="mb-3">mdi-qrcode</v-icon>
-                <h3 class="mb-2">Scan QR Code</h3>
-                <p class="text-body-2">
-                  At the event venue, look for QR codes on screens or posters
-                </p>
-              </v-col>
-              <v-col cols="12" md="4" class="text-center">
-                <v-icon size="64" color="secondary" class="mb-3">mdi-ticket-confirmation</v-icon>
-                <h3 class="mb-2">Enter Event Code</h3>
-                <p class="text-body-2">
-                  Use the event code provided by organizers (e.g., "DEMO2024")
-                </p>
-              </v-col>
-              <v-col cols="12" md="4" class="text-center">
-                <v-icon size="64" color="success" class="mb-3">mdi-web</v-icon>
-                <h3 class="mb-2">Follow Link</h3>
-                <p class="text-body-2">
-                  Click invitation links shared by event organizers
-                </p>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-
-        <!-- Action Buttons -->
-        <div class="d-flex flex-column align-center gap-4">
-          <v-btn
-            color="primary"
-            size="x-large"
-            to="/quick-join"
-            class="text-h6 px-8"
-            prepend-icon="mdi-rocket-launch"
-          >
-            Join an Event
-          </v-btn>
-
-          <div class="text-center">
-            <p class="text-body-2 text-grey mb-2">Already participating or have an account?</p>
+        <div class="header-actions">
+          <template v-if="loggedIn">
             <v-btn
-              color="grey"
+              variant="text"
+              to="/dashboard"
+              prepend-icon="mdi-view-dashboard"
+            >
+              Dashboard
+            </v-btn>
+            
+            <v-btn
+              v-if="isOrganizer"
+              variant="text"
+              to="/organizer"
+              prepend-icon="mdi-cog"
+            >
+              Organizer Hub
+            </v-btn>
+            
+            <v-btn
+              variant="outlined"
+              color="error"
+              @click="$router.push('/login')"
+              prepend-icon="mdi-logout"
+            >
+              Logout
+            </v-btn>
+          </template>
+          
+          <template v-else>
+            <v-btn
               variant="text"
               to="/login"
               prepend-icon="mdi-login"
             >
               Sign In
             </v-btn>
-          </div>
+            
+            <v-btn
+              color="primary"
+              to="/quick-join"
+              prepend-icon="mdi-ticket-confirmation"
+            >
+              Join Event
+            </v-btn>
+          </template>
         </div>
-
-        <!-- Demo Event Info (if applicable) -->
-        <v-card v-if="eventConfig.title !== 'Unconference Platform'" class="mx-auto pa-4 mt-8" max-width="600" elevation="1" color="info" variant="tonal">
-          <v-card-title class="text-h6">
-            <v-icon class="mr-2">mdi-star</v-icon>
-            Currently Featured Event
-          </v-card-title>
-          <v-card-text>
-            <h3 class="mb-2">{{ eventConfig.title }}</h3>
-            <p class="mb-2">{{ eventConfig.description }}</p>
-            <div class="d-flex align-center gap-4 text-body-2">
-              <span><v-icon size="small" class="mr-1">mdi-calendar</v-icon>{{ eventConfig.dates }}</span>
-              <span><v-icon size="small" class="mr-1">mdi-map-marker</v-icon>{{ eventConfig.location }}</span>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+      </v-container>
+    </v-app-bar>
+  </header>
 </template>
+
+<style scoped>
+.unconference-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.v-app-bar {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.header-logo {
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-transform: none;
+  color: #1E293B !important;
+  border-radius: 12px;
+  padding: 8px 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+}
+
+.header-logo:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+  transform: translateY(-1px);
+}
+
+.header-logo .v-icon {
+  color: #6366F1 !important;
+}
+
+.logo-text {
+  font-weight: 800;
+  background: linear-gradient(135deg, #1E293B 0%, #6366F1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-actions .v-btn {
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 12px;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-actions .v-btn[variant="text"] {
+  color: #64748B;
+}
+
+.header-actions .v-btn[variant="text"]:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366F1;
+}
+
+.header-actions .v-btn[color="primary"] {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.header-actions .v-btn[color="primary"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.header-actions .v-btn[color="error"] {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #EF4444;
+}
+
+.header-actions .v-btn[color="error"]:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+@media (max-width: 768px) {
+  .logo-text {
+    display: none;
+  }
+  
+  .header-actions .v-btn {
+    min-width: auto;
+    padding: 0 12px;
+  }
+  
+  .header-actions .v-btn .v-btn__content {
+    font-size: 0.875rem;
+  }
+  
+  .header-logo {
+    font-size: 1.1rem;
+    padding: 6px 12px;
+  }
+}
+
+/* Dark mode support */
+.v-theme--dark .v-app-bar {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-bottom-color: rgba(71, 85, 105, 0.2);
+}
+
+.v-theme--dark .header-logo {
+  color: #F1F5F9 !important;
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.15) 0%, rgba(167, 139, 250, 0.1) 100%);
+}
+
+.v-theme--dark .logo-text {
+  background: linear-gradient(135deg, #F1F5F9 0%, #818CF8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.v-theme--dark .header-actions .v-btn[variant="text"] {
+  color: #CBD5E1;
+}
+
+.v-theme--dark .header-actions .v-btn[variant="text"]:hover {
+  background: rgba(129, 140, 248, 0.15);
+  color: #818CF8;
+}
+</style>

@@ -36,5 +36,28 @@
       }
     ],
     "totalParticipants": 0
+  },
+  {
+    "roundNumber": 3,
+    "timestamp": "2025-08-26T17:24:15.857Z",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "darth.vader@starwars.com"
+        ]
+      },
+      {
+        "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+        "title": "GitHub Actions Hosted Runners optimization",
+        "participantCount": 0,
+        "finalScore": 1,
+        "assignedParticipants": []
+      }
+    ],
+    "totalParticipants": 1
   }
 ]

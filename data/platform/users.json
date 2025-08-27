@@ -1,0 +1,38 @@
+[
+  {
+    "id": "super-admin-001",
+    "name": "Super Admin",
+    "email": "superadmin@unconference.com",
+    "globalRole": "SuperAdmin",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "lastLoginAt": "2024-08-27T08:00:00.000Z"
+  },
+  {
+    "id": "admin-001", 
+    "name": "Darth Vader",
+    "email": "darth.vader@starwars.com",
+    "globalRole": "User",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "lastLoginAt": "2024-08-27T07:00:00.000Z"
+  },
+  {
+    "id": "organizer-001",
+    "name": "Luke Skywalker", 
+    "email": "organizer@example.com",
+    "globalRole": "User",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "lastLoginAt": "2024-08-27T06:00:00.000Z"
+  },
+  {
+    "id": "user-001",
+    "name": "Storm Trooper",
+    "email": "storm.trooper@starwars.com", 
+    "globalRole": "User",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "lastLoginAt": "2024-08-26T20:00:00.000Z"
+  }
+]

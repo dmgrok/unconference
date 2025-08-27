@@ -26,25 +26,28 @@ export const useEventContext = () => {
   }
 
   // Get user's role in current event
-  const currentEventRole = ref<string | null>(null)
+  const userRole = ref<string | null>(null)
 
   const loadEventRole = async () => {
     if (!currentEventId.value) return
     
     try {
       const response = await $fetch(`/api/events/${currentEventId.value}/my-role`) as any
-      currentEventRole.value = response.role
+      userRole.value = response.role
     } catch {
-      currentEventRole.value = null
+      userRole.value = null
     }
   }
 
   // Watch for event changes and reload role
   watch(currentEventId, loadEventRole, { immediate: true })
 
+  const isAdmin = computed(() => ['Admin', 'Organizer'].includes(userRole.value || ''))
+
   return {
     currentEventId: readonly(currentEventId),
-    currentEventRole: readonly(currentEventRole),
+    userRole: readonly(userRole),
+    isAdmin,
     hasEventPermission,
     loadEventRole
   }

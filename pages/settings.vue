@@ -77,8 +77,10 @@ const eventCodeForm = ref({
   eventName: 'Demo Unconference 2024'
 })
 
-// Check if user is admin
-const isAdmin = computed(() => user.value?.role === 'Admin')
+// Check if user is admin or organizer
+const isAdmin = computed(() => (user.value as any)?.Role === 'Admin' || (user.value as any)?.role === 'Admin')
+const isOrganizer = computed(() => (user.value as any)?.Role === 'Organizer' || (user.value as any)?.role === 'Organizer')
+const hasEventAccess = computed(() => isAdmin.value || isOrganizer.value)
 
 // Theme options
 const themeOptions = [
@@ -430,12 +432,14 @@ watch(() => settings.admin.eventInfo, () => {
         </v-card-text>
       </v-card>
 
-      <!-- Admin Settings Section (Only visible to admins) -->
-      <v-card v-if="isAdmin" class="mb-6">
+      <!-- Admin Settings Section (Visible to admins and organizers) -->
+      <v-card v-if="hasEventAccess" class="mb-6">
         <v-card-title class="d-flex align-center">
           <v-icon class="mr-2">mdi-shield-crown</v-icon>
           Admin Settings
-          <v-chip class="ml-2" color="warning" size="small">Admin Only</v-chip>
+          <v-chip class="ml-2" color="warning" size="small">
+            {{ isAdmin ? 'Admin Only' : 'Organizer Access' }}
+          </v-chip>
           <v-spacer></v-spacer>
           <v-chip 
             v-if="adminSettingsSaving" 
@@ -724,7 +728,7 @@ watch(() => settings.admin.eventInfo, () => {
       </v-card>
 
       <!-- Admin Actions Section -->
-      <v-card v-if="isAdmin" class="mb-6">
+      <v-card v-if="hasEventAccess" class="mb-6">
         <v-card-title class="d-flex align-center">
           <v-icon class="mr-2">mdi-cogs</v-icon>
           Admin Actions

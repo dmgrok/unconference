@@ -37,7 +37,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **TopicSelection** (`types/topic.ts`): Topic selection interface for round management
 
 ### Application Structure
-- **Pages**: Dashboard, leaderboard, settings with automatic authentication middleware
+- **Pages**: Dashboard, settings with automatic authentication middleware
 - **Authentication**: GitHub OAuth integration with role-based access (Admin vs User)
 - **Middleware**: Automatic authentication enforcement for non-public pages
 - **File-based data storage**: JSON files for topics and users (configurable via env vars)
@@ -47,7 +47,6 @@ Critical environment variables:
 - `NUXT_TOPICS_FILE_PATH` / `NUXT_USERS_FILE_PATH` - Data file locations
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - OAuth configuration
 - `NUXT_MAX_VOTES_PER_TOPIC` - Voting limits (default: 12)
-- `NUXT_TOP_TOPICS_COUNT` - Leaderboard size (default: 10)
 - `APP_ENV` - Controls dev mode and logging levels
 
 ### Key Features

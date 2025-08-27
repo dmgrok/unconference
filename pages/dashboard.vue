@@ -45,7 +45,7 @@ const newTopic = ref({
   description: ''
 })
 
-const isAdmin = computed(() => (user.value as User)?.role === 'Admin' && !shouldHideAdminFeatures((user.value as User)?.role))
+const isAdmin = computed(() => (user.value as any)?.Role === 'Admin' && !shouldHideAdminFeatures((user.value as any)?.Role))
 const topics = ref<DiscussionTopic[]>([])
 const activeRound = ref<ActiveRound | null>(null)
 const userAssignment = ref<UserAssignment | null>(null)
@@ -594,15 +594,6 @@ function closeTour() {
           </v-card-text>
           
           <v-card-actions v-if="hasVotedPreferences" class="justify-center">
-            <v-btn
-              color="white"
-              variant="outlined"
-              :to="'/preferences'"
-              prepend-icon="mdi-pencil"
-              class="mr-2"
-            >
-              Advanced Voting
-            </v-btn>
             <v-btn
               color="warning"
               variant="outlined"

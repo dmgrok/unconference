@@ -44,12 +44,18 @@ async function loadGroups() {
       groups.value = response.groupAssignments
     } else {
       groups.value = []
-      if (!response?.isActive) {
-        error.value = 'No active round with group assignments'
-      }
+      // Don't set error for no active round - this is a normal state
     }
   } catch (err: any) {
-    error.value = err.data?.message || 'Failed to load group assignments'
+    // Only set error for actual API failures, not missing active rounds
+    const errorMessage = err.data?.message || 'Failed to load group assignments'
+    if (errorMessage.includes('No active round')) {
+      // This is a normal state, not an error
+      activeRound.value = null
+      groups.value = []
+    } else {
+      error.value = errorMessage
+    }
   } finally {
     loading.value = false
   }
@@ -109,12 +115,34 @@ onMounted(() => {
       <v-card-text>
         <v-icon size="64" color="grey" class="mb-4">mdi-account-group-outline</v-icon>
         <h2 class="text-h5 mb-2">No Active Round</h2>
-        <p class="text-body-1 text-grey-darken-1">
-          Group assignments are created when a round starts. Check back when a round is active.
+        <p class="text-body-1 text-grey-darken-1 mb-4">
+          Discussion groups are created when an organizer starts a new round. 
+          <br>Check back when a round is active, or start voting on topics to influence the next round.
         </p>
-        <v-btn color="primary" to="/dashboard" class="mt-4">
-          Go to Dashboard
-        </v-btn>
+        <div class="d-flex gap-3 justify-center flex-wrap">
+          <v-btn color="primary" to="/dashboard">
+            <v-icon class="mr-2">mdi-vote</v-icon>
+            Vote on Topics
+          </v-btn>
+          <v-btn 
+            v-if="((user as any)?.Role === 'Admin' || (user as any)?.role === 'Admin') || ((user as any)?.Role === 'Organizer' || (user as any)?.role === 'Organizer')" 
+            color="success" 
+            to="/admin/round-management"
+            variant="elevated"
+          >
+            <v-icon class="mr-2">mdi-play-circle</v-icon>
+            Start New Round
+          </v-btn>
+          <v-btn 
+            v-if="((user as any)?.Role === 'Admin' || (user as any)?.role === 'Admin') || ((user as any)?.Role === 'Organizer' || (user as any)?.role === 'Organizer')" 
+            color="secondary" 
+            to="/organizer"
+            variant="outlined"
+          >
+            <v-icon class="mr-2">mdi-cog</v-icon>
+            Organizer Hub
+          </v-btn>
+        </div>
       </v-card-text>
     </v-card>
 
