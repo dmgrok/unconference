@@ -23,12 +23,13 @@ interface RebalanceResult {
 }
 
 export default defineEventHandler(async (event) => {
-  // Require admin authentication
+  // Require admin or organizer authentication
   const { user } = await requireUserSession(event)
-  if (user.role !== 'Admin') {
+  const userRole = (user as any).Role || (user as any).role
+  if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'SuperAdmin') {
     throw createError({
       statusCode: 403,
-      message: 'Admin access required'
+      message: 'Admin or organizer access required'
     })
   }
 

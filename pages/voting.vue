@@ -533,21 +533,22 @@ function closeTour() {
     <v-row class="mb-6">
       <v-col>
         <v-card 
-          elevation="4" 
-          :color="hasVotedPreferences ? 'success' : 'surface-variant'"
-          :variant="hasVotedPreferences ? 'elevated' : 'outlined'"
+          elevation="2" 
+          :color="hasVotedPreferences ? 'surface' : 'surface'"
+          variant="outlined"
           class="voting-status-card"
+          :class="{ 'voting-status-card--voted': hasVotedPreferences }"
         >
           <v-card-title class="text-center py-3">
             <v-icon 
-              :color="hasVotedPreferences ? 'white' : 'primary'" 
+              :color="hasVotedPreferences ? 'success' : 'primary'" 
               class="mr-2" 
               size="default"
             >
               {{ hasVotedPreferences ? 'mdi-check-circle' : 'mdi-vote' }}
             </v-icon>
             <span 
-              :class="hasVotedPreferences ? 'text-white' : 'text-primary'" 
+              :class="hasVotedPreferences ? 'text-success' : 'text-primary'" 
               class="text-h6 font-weight-bold"
             >
               {{ hasVotedPreferences ? 'Your Voting Preferences' : 'Ready to Vote' }}
@@ -702,9 +703,9 @@ function closeTour() {
           :elevation="(userFirstChoice && userFirstChoice.id === topic.id) || (userSecondChoice && userSecondChoice.id === topic.id) ? 12 : 3"
         >
           <!-- Topic Header -->
-          <v-card-title class="d-flex align-start justify-space-between pa-4 pb-2">
-            <div class="topic-title-container flex-grow-1">
-              <h3 class="text-h6 font-weight-bold mb-1">{{ topic.title }}</h3>
+          <v-card-title class="pa-4 pb-2">
+            <div class="topic-title-container w-100">
+              <h3 class="text-h6 font-weight-bold mb-1 topic-title">{{ topic.title }}</h3>
               <div class="topic-chips d-flex flex-wrap gap-1">
                 <!-- User's Choice Indicators -->
                 <v-chip
@@ -762,7 +763,7 @@ function closeTour() {
 
           <!-- Topic Description -->
           <v-card-text class="px-4 py-2">
-            <p class="text-body-1 mb-3">{{ topic.description }}</p>
+            <p class="text-body-1 mb-3 topic-description">{{ topic.description }}</p>
             
             <!-- Voting Score Display -->
             <div class="voting-score-section">
@@ -1134,11 +1135,19 @@ function closeTour() {
 /* Voting Status Card */
 .voting-status-card {
   border-radius: 12px !important;
+  border-width: 2px !important;
+}
+
+.voting-status-card--voted {
+  border-color: rgb(var(--v-theme-success)) !important;
+  background: linear-gradient(135deg, rgba(var(--v-theme-success), 0.05) 0%, rgba(var(--v-theme-success), 0.02) 100%) !important;
 }
 
 .voting-summary .choice-card {
   border-radius: 8px;
   transition: all 0.3s ease;
+  background: rgb(var(--v-theme-surface)) !important;
+  border: 1px solid rgba(var(--v-theme-outline), 0.2) !important;
 }
 
 .voting-summary .choice-card:hover {
@@ -1146,13 +1155,13 @@ function closeTour() {
 }
 
 .voting-summary .first-choice {
-  border: 1px solid rgb(var(--v-theme-warning));
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 193, 7, 0.03) 100%);
+  border: 1px solid rgb(var(--v-theme-warning)) !important;
+  background: linear-gradient(135deg, rgba(var(--v-theme-warning), 0.08) 0%, rgba(var(--v-theme-warning), 0.03) 100%) !important;
 }
 
 .voting-summary .second-choice {
-  border: 1px solid rgb(var(--v-theme-info));
-  background: linear-gradient(135deg, rgba(33, 150, 243, 0.08) 0%, rgba(33, 150, 243, 0.03) 100%);
+  border: 1px solid rgb(var(--v-theme-info)) !important;
+  background: linear-gradient(135deg, rgba(var(--v-theme-info), 0.08) 0%, rgba(var(--v-theme-info), 0.03) 100%) !important;
 }
 
 .instruction-card {
@@ -1170,6 +1179,23 @@ function closeTour() {
   border-radius: 16px !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: linear-gradient(135deg, rgba(var(--v-theme-surface), 1) 0%, rgba(var(--v-theme-surface), 0.95) 100%);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.topic-card .v-card-title {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.topic-card .v-card-text {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.topic-title-container {
+  min-width: 0; /* Allows flexbox item to shrink below content size */
+  max-width: 100%;
 }
 
 .topic-card:hover {
@@ -1190,6 +1216,25 @@ function closeTour() {
 .topic-title-container h3 {
   line-height: 1.3;
   color: rgb(var(--v-theme-on-surface));
+}
+
+.topic-title {
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.4 !important;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+.topic-description {
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.5 !important;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .topic-chips {
@@ -1288,6 +1333,15 @@ function closeTour() {
   .voting-summary .v-col {
     margin-bottom: 16px;
   }
+  
+  .topic-title {
+    font-size: 1.1rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .topic-description {
+    font-size: 0.9rem !important;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1302,6 +1356,26 @@ function closeTour() {
   .vote-btn-enhanced {
     width: 100%;
     min-width: unset;
+  }
+  
+  .topic-title {
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .topic-description {
+    font-size: 0.85rem !important;
+    line-height: 1.4 !important;
+  }
+  
+  .topic-card .v-card-title {
+    padding: 12px !important;
+    padding-bottom: 8px !important;
+  }
+  
+  .topic-card .v-card-text {
+    padding: 12px !important;
+    padding-top: 8px !important;
   }
 }
 </style>

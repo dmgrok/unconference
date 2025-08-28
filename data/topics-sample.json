@@ -4,36 +4,30 @@
     "title": "Copilot and MCP servers",
     "description": "MCP servers are changing the landscape of AI. How do we leverage them securely?",
     "createdBy": "darth.vader@starwars.com",
-    "votes": 1,
-    "voters": [
-      "organizer@example.com"
-    ],
-    "badges": 9,
+    "votes": 0,
+    "voters": [],
+    "badges": 11,
     "selectedForRound": true,
     "frozen": false,
-    "firstChoiceVoters": [
-      "organizer@example.com"
-    ],
+    "firstChoiceVoters": [],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 2,
-    "currentRound": 3
+    "totalPreferenceScore": 0,
+    "currentRound": 5
   },
   {
     "id": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
     "title": "GitHub Actions Hosted Runners optimization",
     "description": "Private networking and custom images are bringing new possibilities to GitHub Actions. How do we leverage them?",
     "createdBy": "storm.trooper@starwars.com",
-    "votes": 1,
+    "votes": 0,
     "voters": [],
-    "badges": 9,
+    "badges": 11,
     "frozen": false,
     "selectedForRound": true,
     "firstChoiceVoters": [],
-    "secondChoiceVoters": [
-      "organizer@example.com"
-    ],
-    "totalPreferenceScore": 1,
-    "currentRound": 3
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0,
+    "currentRound": 5
   },
   {
     "id": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
@@ -44,10 +38,11 @@
     "voters": [],
     "frozen": false,
     "selectedForRound": true,
-    "badges": 9,
+    "badges": 11,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 0
+    "totalPreferenceScore": 0,
+    "currentRound": 5
   },
   {
     "id": "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
@@ -57,11 +52,12 @@
     "votes": 0,
     "voters": [],
     "frozen": false,
-    "selectedForRound": false,
-    "badges": 7,
+    "selectedForRound": true,
+    "badges": 9,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 0
+    "totalPreferenceScore": 0,
+    "currentRound": 5
   },
   {
     "id": "c1256e92-7c82-49b4-9b06-2d7ee9d6ab87",
@@ -70,12 +66,13 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 7,
+    "badges": 9,
     "selectedForRound": true,
     "frozen": false,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 0
+    "totalPreferenceScore": 0,
+    "currentRound": 5
   },
   {
     "id": "6dd81849-2a8a-4d1e-adb5-044c433eb0e6",
@@ -84,8 +81,8 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 6,
-    "selectedForRound": true,
+    "badges": 7,
+    "selectedForRound": false,
     "frozen": false,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],

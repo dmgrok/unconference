@@ -49,6 +49,7 @@ export interface ActiveRound {
   startTime: Date
   duration: number  // minutes
   topicIds: string[]  // topic IDs
+  topicTitles?: string[]  // topic titles for display
   selectedTopics?: string[]  // topic IDs - legacy
   isActive: boolean
   groupAssignments?: GroupAssignment[]

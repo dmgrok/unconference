@@ -6,11 +6,12 @@ import type { User } from '~/types/user'
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   
-  // Verify admin role
-  if ((user as User).role !== 'Admin') {
+  // Verify admin or organizer role
+  const userRole = (user as any).Role || (user as any).role
+  if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'SuperAdmin') {
     throw createError({
       statusCode: 403,
-      message: 'Only administrators can end a round'
+      message: 'Only administrators and organizers can end a round'
     })
   }
 

@@ -5,11 +5,12 @@ import type { DiscussionTopic } from '~/types/topic'
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   
-  // Only admins can access voting stats
-  if ((user as any).role !== 'Admin') {
+  // Only admins and organizers can access voting stats
+  const userRole = (user as any).Role || (user as any).role
+  if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'SuperAdmin') {
     throw createError({
       statusCode: 403,
-      message: 'Access denied. Admin role required.'
+      message: 'Access denied. Admin or organizer role required.'
     })
   }
   

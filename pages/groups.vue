@@ -397,13 +397,19 @@ onMounted(() => {
           <div>
             <v-chip-group>
               <v-chip 
-                v-for="topicId in activeRound.selectedTopics" 
-                :key="topicId"
+                v-for="group in activeRound.groupAssignments" 
+                :key="group.topicId"
                 size="small"
                 color="primary"
                 variant="outlined"
               >
-                Topic {{ topicId }}
+                {{ group.topicTitle }}
+                <v-badge 
+                  v-if="group.participants.length > 0"
+                  :content="group.participants.length"
+                  color="success"
+                  inline
+                />
               </v-chip>
             </v-chip-group>
           </div>

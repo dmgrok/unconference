@@ -6,6 +6,7 @@ import type { User } from '~/types/user'
 import type { Room } from '~/types/room'
 
 // Function to automatically assign participants to groups based on their votes and assign rooms
+// Each participant can only attend ONE discussion group based on their preferences
 async function createGroupAssignments(topics: DiscussionTopic[], selectedTopicIds: string[]): Promise<GroupAssignment[]> {
   const selectedTopics = topics.filter(topic => selectedTopicIds.includes(topic.id))
   const groupAssignments: GroupAssignment[] = []
@@ -21,10 +22,8 @@ async function createGroupAssignments(topics: DiscussionTopic[], selectedTopicId
     logger.warn('No rooms configured, groups will be created without room assignments')
   }
   
-  // Create initial assignments based on first choices
+  // Create empty group assignments for each selected topic
   selectedTopics.forEach((topic, index) => {
-    const participants = [...(topic.firstChoiceVoters || [])]
-    
     // Assign room if available
     let roomAssignment = undefined
     if (availableRooms.length > index) {
@@ -38,55 +37,43 @@ async function createGroupAssignments(topics: DiscussionTopic[], selectedTopicId
     groupAssignments.push({
       topicId: topic.id,
       topicTitle: topic.title,
-      participants,
+      participants: [],
       roomAssignment
     })
   })
   
-  // Assign second choice voters to groups with fewer participants
-  selectedTopics.forEach(topic => {
-    const secondChoiceVoters = topic.secondChoiceVoters || []
-    
-    secondChoiceVoters.forEach(voterEmail => {
-      // Check if voter is already assigned (via first choice)
-      const alreadyAssigned = groupAssignments.some(group => 
-        group.participants.includes(voterEmail)
-      )
-      
-      if (!alreadyAssigned) {
-        // Find the group with the fewest participants
-        const sortedGroups = [...groupAssignments].sort((a, b) => 
-          a.participants.length - b.participants.length
-        )
-        
-        if (sortedGroups.length > 0) {
-          sortedGroups[0].participants.push(voterEmail)
-        }
-      }
-    })
-  })
-  
-  // Handle voters who didn't vote for any selected topics
-  const allVoters = new Set<string>()
-  topics.forEach(topic => {
-    topic.firstChoiceVoters?.forEach(email => allVoters.add(email))
-    topic.secondChoiceVoters?.forEach(email => allVoters.add(email))
-  })
-  
+  // Track assigned participants to ensure each person is only in one group
   const assignedVoters = new Set<string>()
-  groupAssignments.forEach(group => {
-    group.participants.forEach(email => assignedVoters.add(email))
-  })
   
-  const unassignedVoters = Array.from(allVoters).filter(email => !assignedVoters.has(email))
-  
-  // Distribute unassigned voters evenly
-  unassignedVoters.forEach((voterEmail, index) => {
-    if (groupAssignments.length > 0) {
-      const targetGroupIndex = index % groupAssignments.length
-      groupAssignments[targetGroupIndex].participants.push(voterEmail)
+  // Step 1: Assign participants to their first choice topics (if selected)
+  selectedTopics.forEach(topic => {
+    const assignment = groupAssignments.find(g => g.topicId === topic.id)
+    if (assignment && topic.firstChoiceVoters) {
+      topic.firstChoiceVoters.forEach(voterEmail => {
+        if (!assignedVoters.has(voterEmail)) {
+          assignment.participants.push(voterEmail)
+          assignedVoters.add(voterEmail)
+        }
+      })
     }
   })
+  
+  // Step 2: Assign participants to their second choice topics (if selected and not already assigned)
+  selectedTopics.forEach(topic => {
+    const assignment = groupAssignments.find(g => g.topicId === topic.id)
+    if (assignment && topic.secondChoiceVoters) {
+      topic.secondChoiceVoters.forEach(voterEmail => {
+        if (!assignedVoters.has(voterEmail)) {
+          assignment.participants.push(voterEmail)
+          assignedVoters.add(voterEmail)
+        }
+      })
+    }
+  })
+  
+  // Step 3: Participants whose neither first nor second choice was selected remain unassigned
+  // They can join any discussion group but are not automatically assigned to maintain the 
+  // "one participant, one group" principle
   
   return groupAssignments
 }
@@ -96,12 +83,12 @@ export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   const body = await readBody(event)
   
-  // Verify admin role
+  // Verify admin or organizer role
   const userRole = (user as any).Role || (user as any).role
-  if (userRole !== 'Admin') {
+  if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'SuperAdmin') {
     throw createError({
       statusCode: 403,
-      message: 'Only administrators can start a new round'
+      message: 'Only administrators and organizers can start a new round'
     })
   }
 
@@ -189,6 +176,7 @@ export default defineEventHandler(async (event) => {
       duration: roundDuration || 20,
       topicIds: selectedTopicIds,
       selectedTopics: selectedTopicIds,
+      topicTitles: selectedTopics.map(t => t.title), // Add topic titles
       isActive: true,
       groupAssignments: groupAssignments,
       votingDisabled: true,  // Disable voting during active rounds
