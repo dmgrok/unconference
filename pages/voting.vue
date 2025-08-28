@@ -29,7 +29,6 @@ const { shouldHideAdminFeatures, getEffectiveRole } = useViewerMode()
 const VOTE_LIMIT = computed(() => adminSettings.value.maxVotesPerTopic)
 const dialog = ref(false)
 const editDialog = ref(false)
-const newRoundConfirmDialog = ref(false)
 const freezeConfirmDialog = ref(false)
 const showOnboardingTour = ref(false)
 const tourStep = ref(0)
@@ -253,18 +252,6 @@ async function resetVotes() {
   }
 }
 
-async function startNewRound() {
-  try {
-    await $fetch('/api/topics/new-round', {
-      method: 'POST'
-    })
-    newRoundConfirmDialog.value = false
-    await Promise.all([fetchTopics(), loadActiveRound()])
-  } catch (error) {
-    console.error('Failed to start new round:', error)
-  }
-}
-
 async function freezeTopic() {
   if (!topicToFreeze.value) return
 
@@ -382,29 +369,29 @@ const placeholders = computed(() => Array(placeholderCount.value).fill(null))
 function getVoteStatus(topic: DiscussionTopic) {
   // Check if voting is disabled during active rounds
   if (isVotingDisabled.value) {
-    return { status: 'disabled', text: 'Voting Disabled', color: 'grey', variant: 'outlined' as const, disabled: true }
+    return { status: 'disabled', text: 'Voting Disabled', color: 'grey', variant: 'outlined' as const, disabled: true, icon: 'mdi-vote-off' }
   }
   
   if (userFirstChoice.value && userFirstChoice.value.id === topic.id) {
-    return { status: 'first', text: '1st Choice ⭐', color: 'warning', variant: 'elevated' as const }
+    return { status: 'first', text: '1st Choice', color: 'warning', variant: 'elevated' as const, icon: 'mdi-star' }
   }
   if (userSecondChoice.value && userSecondChoice.value.id === topic.id) {
-    return { status: 'second', text: '2nd Choice ⭐', color: 'info', variant: 'elevated' as const }
+    return { status: 'second', text: '2nd Choice', color: 'info', variant: 'elevated' as const, icon: 'mdi-star-half-full' }
   }
   if (topic.frozen) {
-    return { status: 'frozen', text: 'Topic Frozen', color: 'error', variant: 'outlined' as const, disabled: true }
+    return { status: 'frozen', text: 'Topic Frozen', color: 'error', variant: 'outlined' as const, disabled: true, icon: 'mdi-snowflake' }
   }
   if (topic.votes >= VOTE_LIMIT.value) {
-    return { status: 'full', text: `Full (${VOTE_LIMIT.value}/${VOTE_LIMIT.value})`, color: 'grey', variant: 'outlined' as const, disabled: true }
+    return { status: 'full', text: `Full (${VOTE_LIMIT.value}/${VOTE_LIMIT.value})`, color: 'grey', variant: 'outlined' as const, disabled: true, icon: 'mdi-block-helper' }
   }
   
   // Determine what happens if they vote
   if (!userFirstChoice.value) {
-    return { status: 'vote-first', text: 'Vote (1st Choice)', color: 'primary', variant: 'elevated' as const }
+    return { status: 'vote-first', text: 'Vote as 1st Choice', color: 'primary', variant: 'elevated' as const, icon: 'mdi-star' }
   } else if (!userSecondChoice.value) {
-    return { status: 'vote-second', text: 'Vote (2nd Choice)', color: 'secondary', variant: 'elevated' as const }
+    return { status: 'vote-second', text: 'Vote as 2nd Choice', color: 'secondary', variant: 'elevated' as const, icon: 'mdi-star-half-full' }
   } else {
-    return { status: 'vote-replace', text: 'Vote (Replace 1st)', color: 'primary', variant: 'outlined' as const }
+    return { status: 'vote-replace', text: 'Replace 1st Choice', color: 'primary', variant: 'outlined' as const, icon: 'mdi-swap-horizontal' }
   }
 }
 
@@ -508,17 +495,9 @@ function closeTour() {
           v-if="isAdmin"
           color="success"
           prepend-icon="mdi-cog"
-          :to="'/admin/round-management'"
+          :to="'/groups'"
         >
           Manage Rounds
-        </v-btn>
-        <v-btn
-          v-if="isAdmin && !activeRound?.isActive"
-          color="error"
-          prepend-icon="mdi-refresh"
-          @click="newRoundConfirmDialog = true"
-        >
-          Quick New Round
         </v-btn>
         <v-btn
           color="primary"
@@ -555,71 +534,145 @@ function closeTour() {
       <v-col>
         <v-card 
           elevation="4" 
-          :color="hasVotedPreferences ? 'primary' : 'grey-lighten-4'"
+          :color="hasVotedPreferences ? 'success' : 'surface-variant'"
           :variant="hasVotedPreferences ? 'elevated' : 'outlined'"
+          class="voting-status-card"
         >
-          <v-card-title class="text-center">
-            <v-icon :color="hasVotedPreferences ? 'white' : 'grey'" class="mr-2">
+          <v-card-title class="text-center py-3">
+            <v-icon 
+              :color="hasVotedPreferences ? 'white' : 'primary'" 
+              class="mr-2" 
+              size="default"
+            >
               {{ hasVotedPreferences ? 'mdi-check-circle' : 'mdi-vote' }}
             </v-icon>
-            <span :class="hasVotedPreferences ? 'text-white' : 'text-grey'">
+            <span 
+              :class="hasVotedPreferences ? 'text-white' : 'text-primary'" 
+              class="text-h6 font-weight-bold"
+            >
               {{ hasVotedPreferences ? 'Your Voting Preferences' : 'Ready to Vote' }}
             </span>
           </v-card-title>
           
-          <v-card-text class="text-center">
-            <div v-if="hasVotedPreferences" class="d-flex justify-center align-center flex-wrap gap-4">
-              <div v-if="userFirstChoice" class="d-flex flex-column align-center">
-                <v-chip
-                  color="warning"
-                  size="large"
-                  prepend-icon="mdi-star"
-                  class="mb-2"
-                >
-                  1st Choice
-                </v-chip>
-                <h3 class="text-white text-center">{{ userFirstChoice.title }}</h3>
-              </div>
-              
-              <v-divider v-if="userFirstChoice && userSecondChoice" vertical class="mx-4"></v-divider>
-              
-              <div v-if="userSecondChoice" class="d-flex flex-column align-center">
-                <v-chip
-                  color="info"
-                  size="large"
-                  prepend-icon="mdi-star-half-full"
-                  class="mb-2"
-                >
-                  2nd Choice
-                </v-chip>
-                <h3 class="text-white text-center">{{ userSecondChoice.title }}</h3>
-              </div>
+          <v-card-text class="text-center py-3">
+            <div v-if="hasVotedPreferences" class="voting-summary">
+              <v-row justify="center">
+                <v-col v-if="userFirstChoice" cols="12" sm="6" class="d-flex flex-column align-center">
+                  <v-chip
+                    color="warning"
+                    size="large"
+                    prepend-icon="mdi-star"
+                    class="mb-3 elevation-2"
+                    variant="elevated"
+                  >
+                    1st Choice
+                  </v-chip>
+                  <v-card 
+                    class="pa-3 mb-2 choice-card first-choice" 
+                    elevation="2"
+                    width="100%"
+                    max-width="320"
+                  >
+                    <h3 class="text-subtitle-1 text-center mb-2">{{ userFirstChoice.title }}</h3>
+                    <p class="text-body-2 text-center text-grey">{{ userFirstChoice.description }}</p>
+                  </v-card>
+                  <v-chip size="small" color="warning" variant="outlined">
+                    Worth 2 points
+                  </v-chip>
+                </v-col>
+                
+                <v-col v-if="userSecondChoice" cols="12" sm="6" class="d-flex flex-column align-center">
+                  <v-chip
+                    color="info"
+                    size="large"
+                    prepend-icon="mdi-star-half-full"
+                    class="mb-3 elevation-2"
+                    variant="elevated"
+                  >
+                    2nd Choice
+                  </v-chip>
+                  <v-card 
+                    class="pa-3 mb-2 choice-card second-choice" 
+                    elevation="2"
+                    width="100%"
+                    max-width="320"
+                  >
+                    <h3 class="text-subtitle-1 text-center mb-2">{{ userSecondChoice.title }}</h3>
+                    <p class="text-body-2 text-center text-grey">{{ userSecondChoice.description }}</p>
+                  </v-card>
+                  <v-chip size="small" color="info" variant="outlined">
+                    Worth 1 point
+                  </v-chip>
+                </v-col>
+              </v-row>
             </div>
             
-            <div v-else class="text-grey">
-              <p class="mb-2 text-center">
-                <strong>Direct Voting Instructions:</strong>
-              </p>
-              <ul class="text-left">
-                <li>🥇 <strong>First click</strong> = 1st Choice (2 points)</li>
-                <li>🥈 <strong>Second click</strong> = 2nd Choice (1 point)</li>
-                <li>🔄 <strong>Click again</strong> = Remove vote</li>
-                <li>📝 <strong>Third click</strong> = Replace 1st choice</li>
-              </ul>
-              <p class="text-center mt-3 text-caption">
-                Click on any topic below to start voting!
-              </p>
+            <div v-else class="text-grey voting-instructions">
+              <div class="instruction-card pa-6 ma-auto" style="max-width: 600px;">
+                <h3 class="text-h6 mb-4 text-center text-primary">
+                  <v-icon class="mr-2">mdi-information</v-icon>
+                  How to Vote
+                </h3>
+                <v-row class="instruction-steps">
+                  <v-col cols="12" sm="6" md="3" class="text-center">
+                    <v-avatar color="primary" size="48" class="mb-2">
+                      <span class="text-h6 font-weight-bold">1</span>
+                    </v-avatar>
+                    <div class="text-body-2">
+                      <strong>First click</strong><br>
+                      1st Choice (⭐⭐)<br>
+                      <span class="text-grey">2 points</span>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="3" class="text-center">
+                    <v-avatar color="secondary" size="48" class="mb-2">
+                      <span class="text-h6 font-weight-bold">2</span>
+                    </v-avatar>
+                    <div class="text-body-2">
+                      <strong>Second click</strong><br>
+                      2nd Choice (⭐)<br>
+                      <span class="text-grey">1 point</span>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="3" class="text-center">
+                    <v-avatar color="warning" size="48" class="mb-2">
+                      <span class="text-h6 font-weight-bold">3</span>
+                    </v-avatar>
+                    <div class="text-body-2">
+                      <strong>Third click</strong><br>
+                      Remove vote<br>
+                      <span class="text-grey">0 points</span>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="3" class="text-center">
+                    <v-avatar color="info" size="48" class="mb-2">
+                      <span class="text-h6 font-weight-bold">∞</span>
+                    </v-avatar>
+                    <div class="text-body-2">
+                      <strong>Keep voting</strong><br>
+                      Update choices<br>
+                      <span class="text-grey">Anytime</span>
+                    </div>
+                  </v-col>
+                </v-row>
+                <v-alert color="info" variant="tonal" class="mt-4 text-left">
+                  <v-icon class="mr-2">mdi-lightbulb</v-icon>
+                  <strong>Tip:</strong> You can change your votes anytime. Click on any topic below to start!
+                </v-alert>
+              </div>
             </div>
           </v-card-text>
           
-          <v-card-actions v-if="hasVotedPreferences" class="justify-center">
+          <v-card-actions v-if="hasVotedPreferences" class="justify-center py-3">
             <v-btn
-              color="warning"
+              color="white"
               variant="outlined"
               @click="resetVotes"
               prepend-icon="mdi-refresh"
+              size="default"
+              style="text-transform: none; letter-spacing: normal;"
             >
-              Reset Votes
+              Reset All Votes
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -637,118 +690,145 @@ function closeTour() {
         class="d-flex"
       >
         <v-card 
-          class="flex-grow-1"
+          class="flex-grow-1 topic-card"
           :class="{
             'border-warning border-lg': userFirstChoice && userFirstChoice.id === topic.id,
             'border-info border-lg': userSecondChoice && userSecondChoice.id === topic.id,
             'first-choice-glow': userFirstChoice && userFirstChoice.id === topic.id,
-            'second-choice-glow': userSecondChoice && userSecondChoice.id === topic.id
+            'second-choice-glow': userSecondChoice && userSecondChoice.id === topic.id,
+            'topic-card--frozen': topic.frozen,
+            'topic-card--selected': topic.selectedForRound
           }"
-          :elevation="(userFirstChoice && userFirstChoice.id === topic.id) || (userSecondChoice && userSecondChoice.id === topic.id) ? 8 : 2"
+          :elevation="(userFirstChoice && userFirstChoice.id === topic.id) || (userSecondChoice && userSecondChoice.id === topic.id) ? 12 : 3"
         >
-          <v-card-title class="d-flex align-center">
-            {{ topic.title }}
-            
-            <!-- User's Choice Indicators -->
-            <v-chip
-              v-if="userFirstChoice && userFirstChoice.id === topic.id"
-              size="small"
-              color="warning"
-              class="ml-2"
-              prepend-icon="mdi-star"
-              variant="elevated"
-            >
-              Your 1st Choice
-            </v-chip>
-            <v-chip
-              v-else-if="userSecondChoice && userSecondChoice.id === topic.id"
-              size="small"
-              color="info"
-              class="ml-2"
-              prepend-icon="mdi-star-half-full"
-              variant="elevated"
-            >
-              Your 2nd Choice
-            </v-chip>
-            
-            <!-- Other Status Chips -->
-            <v-chip
-              v-if="topic.badges > 0"
-              size="small"
-              color="success"
-              class="ml-2"
-              prepend-icon="mdi-medal"
-            >
-              {{ topic.badges }} Badge{{ topic.badges > 1 ? 's' : '' }}
-            </v-chip>
-            <v-chip
-              v-if="topic.selectedForRound"
-              size="small"
-              color="success"
-              class="ml-2"
-              prepend-icon="mdi-check-circle"
-            >
-              Selected for round
-            </v-chip>
-            <v-chip
-              v-if="topic.frozen"
-              size="small"
-              color="error"
-              class="ml-2"
-              prepend-icon="mdi-snowflake"
-            >
-              Frozen
-            </v-chip>
-          </v-card-title>
-          <v-card-text>
-            <p>{{ topic.description }}</p>
-            
-            <!-- Preference Voting Display -->
-            <div class="mt-3">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <span class="text-caption font-weight-bold">Preference Score: {{ topic.totalPreferenceScore || 0 }} points</span>
-                <span class="text-caption">{{ topic.votes || 0 }} total votes</span>
+          <!-- Topic Header -->
+          <v-card-title class="d-flex align-start justify-space-between pa-4 pb-2">
+            <div class="topic-title-container flex-grow-1">
+              <h3 class="text-h6 font-weight-bold mb-1">{{ topic.title }}</h3>
+              <div class="topic-chips d-flex flex-wrap gap-1">
+                <!-- User's Choice Indicators -->
+                <v-chip
+                  v-if="userFirstChoice && userFirstChoice.id === topic.id"
+                  size="small"
+                  color="warning"
+                  prepend-icon="mdi-star"
+                  variant="elevated"
+                  class="choice-indicator"
+                >
+                  Your 1st Choice
+                </v-chip>
+                <v-chip
+                  v-else-if="userSecondChoice && userSecondChoice.id === topic.id"
+                  size="small"
+                  color="info"
+                  prepend-icon="mdi-star-half-full"
+                  variant="elevated"
+                  class="choice-indicator"
+                >
+                  Your 2nd Choice
+                </v-chip>
+                
+                <!-- Status Chips -->
+                <v-chip
+                  v-if="topic.badges > 0"
+                  size="small"
+                  color="success"
+                  prepend-icon="mdi-medal"
+                  variant="tonal"
+                >
+                  {{ topic.badges }} Badge{{ topic.badges > 1 ? 's' : '' }}
+                </v-chip>
+                <v-chip
+                  v-if="topic.selectedForRound"
+                  size="small"
+                  color="success"
+                  prepend-icon="mdi-check-circle"
+                  variant="tonal"
+                >
+                  Selected for round
+                </v-chip>
+                <v-chip
+                  v-if="topic.frozen"
+                  size="small"
+                  color="error"
+                  prepend-icon="mdi-snowflake"
+                  variant="tonal"
+                >
+                  Frozen
+                </v-chip>
               </div>
-              <div class="d-flex align-center mt-2 gap-2">
-                <v-progress-linear
-                  :model-value="((topic.totalPreferenceScore || 0) / (VOTE_LIMIT * 2)) * 100"
-                  :color="topic.frozen ? 'error' : 'primary'"
-                  height="8"
-                  rounded
-                ></v-progress-linear>
-                <span class="text-caption">{{ topic.totalPreferenceScore || 0 }}/{{ VOTE_LIMIT * 2 }}</span>
+            </div>
+          </v-card-title>
+
+          <!-- Topic Description -->
+          <v-card-text class="px-4 py-2">
+            <p class="text-body-1 mb-3">{{ topic.description }}</p>
+            
+            <!-- Voting Score Display -->
+            <div class="voting-score-section">
+              <div class="d-flex align-center justify-space-between mb-3">
+                <div class="score-display">
+                  <v-chip
+                    :color="topic.frozen ? 'error' : 'primary'"
+                    size="large"
+                    prepend-icon="mdi-trophy"
+                    variant="elevated"
+                  >
+                    {{ topic.totalPreferenceScore || 0 }} points
+                  </v-chip>
+                </div>
+                <div class="vote-count text-caption text-grey">
+                  {{ topic.votes || 0 }} total votes
+                </div>
               </div>
               
-              <!-- Breakdown of votes -->
-              <div class="d-flex gap-4 mt-2">
-                <div class="text-caption">
-                  <v-icon size="small" color="primary">mdi-star</v-icon>
-                  1st choices: {{ topic.firstChoiceVoters?.length || 0 }} ({{ (topic.firstChoiceVoters?.length || 0) * 2 }} pts)
+              <!-- Progress Bar -->
+              <v-progress-linear
+                :model-value="Math.min(((topic.totalPreferenceScore || 0) / (VOTE_LIMIT * 2)) * 100, 100)"
+                :color="topic.frozen ? 'error' : 'primary'"
+                height="12"
+                rounded
+                class="mb-3"
+              >
+                <template v-slot:default="{ value }">
+                  <small class="text-white font-weight-bold">{{ Math.ceil(value) }}%</small>
+                </template>
+              </v-progress-linear>
+              
+              <!-- Vote Breakdown -->
+              <div class="d-flex justify-space-between">
+                <div class="vote-breakdown">
+                  <v-icon size="small" color="warning" class="mr-1">mdi-star</v-icon>
+                  <span class="text-caption">
+                    {{ topic.firstChoiceVoters?.length || 0 }} × 2pts = {{ (topic.firstChoiceVoters?.length || 0) * 2 }}
+                  </span>
                 </div>
-                <div class="text-caption">
-                  <v-icon size="small" color="secondary">mdi-star-half-full</v-icon>
-                  2nd choices: {{ topic.secondChoiceVoters?.length || 0 }} ({{ topic.secondChoiceVoters?.length || 0 }} pts)
+                <div class="vote-breakdown">
+                  <v-icon size="small" color="info" class="mr-1">mdi-star-half-full</v-icon>
+                  <span class="text-caption">
+                    {{ topic.secondChoiceVoters?.length || 0 }} × 1pt = {{ topic.secondChoiceVoters?.length || 0 }}
+                  </span>
                 </div>
               </div>
             </div>
             
             <!-- Voter Names Section (if enabled by admin) -->
-            <div v-if="adminSettings.showVoterNames && ((topic.firstChoiceVoters?.length || 0) + (topic.secondChoiceVoters?.length || 0) > 0)" class="mt-3">
-              <v-divider class="mb-2"></v-divider>
+            <div v-if="adminSettings.showVoterNames && ((topic.firstChoiceVoters?.length || 0) + (topic.secondChoiceVoters?.length || 0) > 0)" class="mt-4">
+              <v-divider class="mb-3"></v-divider>
               
               <!-- First Choice Voters -->
-              <div v-if="topic.firstChoiceVoters?.length" class="mb-2">
-                <div class="text-caption text-grey-darken-1 mb-1">
-                  <v-icon size="small" color="primary">mdi-star</v-icon>
-                  1st Choice Voters:
+              <div v-if="topic.firstChoiceVoters?.length" class="mb-3">
+                <div class="text-caption text-grey-darken-1 mb-2 d-flex align-center">
+                  <v-icon size="small" color="warning" class="mr-1">mdi-star</v-icon>
+                  <strong>1st Choice Voters:</strong>
                 </div>
                 <v-chip-group>
                   <v-chip
                     v-for="voterEmail in topic.firstChoiceVoters"
                     :key="`first-${voterEmail}`"
                     size="small"
-                    :color="voterEmail === (user as User)?.email ? 'primary' : 'default'"
-                    variant="outlined"
+                    :color="voterEmail === (user as User)?.email ? 'warning' : 'default'"
+                    :variant="voterEmail === (user as User)?.email ? 'elevated' : 'outlined'"
                     prepend-icon="mdi-star"
                   >
                     {{ voterEmail.includes('@unconference.guest') ? 
@@ -760,17 +840,17 @@ function closeTour() {
               
               <!-- Second Choice Voters -->
               <div v-if="topic.secondChoiceVoters?.length">
-                <div class="text-caption text-grey-darken-1 mb-1">
-                  <v-icon size="small" color="secondary">mdi-star-half-full</v-icon>
-                  2nd Choice Voters:
+                <div class="text-caption text-grey-darken-1 mb-2 d-flex align-center">
+                  <v-icon size="small" color="info" class="mr-1">mdi-star-half-full</v-icon>
+                  <strong>2nd Choice Voters:</strong>
                 </div>
                 <v-chip-group>
                   <v-chip
                     v-for="voterEmail in topic.secondChoiceVoters"
                     :key="`second-${voterEmail}`"
                     size="small"
-                    :color="voterEmail === (user as User)?.email ? 'secondary' : 'default'"
-                    variant="outlined"
+                    :color="voterEmail === (user as User)?.email ? 'info' : 'default'"
+                    :variant="voterEmail === (user as User)?.email ? 'elevated' : 'outlined'"
                     prepend-icon="mdi-star-half-full"
                   >
                     {{ voterEmail.includes('@unconference.guest') ? 
@@ -781,44 +861,60 @@ function closeTour() {
               </div>
             </div>
           </v-card-text>
-          <v-card-actions>
-            <v-btn
-              v-if="canEditTopic(topic)"
-              color="primary"
-              variant="text"
-              prepend-icon="mdi-pencil"
-              @click="startEdit(topic)"
-            >
-              Edit
-            </v-btn>
-            <v-btn
-              v-if="canEditTopic(topic)"
-              color="red"
-              variant="text"
-              prepend-icon="mdi-delete"
-              @click="deleteTopic(topic)"
-            >
-              Delete
-            </v-btn>
-            <v-btn
-              v-if="isAdmin && !topic.frozen"
-              color="error"
-              variant="text"
-              prepend-icon="mdi-snowflake"
-              @click="topicToFreeze = topic; freezeConfirmDialog = true"
-            >
-              Freeze
-            </v-btn>
-            <v-spacer />
-            <v-btn
-              :color="getVoteStatus(topic).color"
-              :variant="getVoteStatus(topic).variant"
-              :disabled="getVoteStatus(topic).disabled"
-              @click="voteForTopic(topic.id)"
-              class="vote-btn"
-            >
-              {{ getVoteStatus(topic).text }}
-            </v-btn>
+
+          <!-- Topic Actions -->
+          <v-card-actions class="px-4 pt-0 pb-4">
+            <div class="d-flex justify-space-between align-center w-100">
+              <!-- Edit/Delete Actions -->
+              <div class="topic-management-actions">
+                <v-btn
+                  v-if="canEditTopic(topic)"
+                  color="primary"
+                  variant="text"
+                  size="small"
+                  prepend-icon="mdi-pencil"
+                  @click="startEdit(topic)"
+                >
+                  Edit
+                </v-btn>
+                <v-btn
+                  v-if="canEditTopic(topic)"
+                  color="error"
+                  variant="text"
+                  size="small"
+                  prepend-icon="mdi-delete"
+                  @click="deleteTopic(topic)"
+                >
+                  Delete
+                </v-btn>
+                <v-btn
+                  v-if="isAdmin && !topic.frozen"
+                  color="error"
+                  variant="text"
+                  size="small"
+                  prepend-icon="mdi-snowflake"
+                  @click="topicToFreeze = topic; freezeConfirmDialog = true"
+                >
+                  Freeze
+                </v-btn>
+              </div>
+
+              <!-- Vote Button -->
+              <v-btn
+                :color="getVoteStatus(topic).color"
+                :variant="getVoteStatus(topic).variant"
+                :disabled="getVoteStatus(topic).disabled"
+                @click="voteForTopic(topic.id)"
+                class="vote-btn-enhanced"
+                size="large"
+                elevation="4"
+              >
+                <template v-slot:prepend>
+                  <v-icon>{{ getVoteStatus(topic).icon }}</v-icon>
+                </template>
+                {{ getVoteStatus(topic).text }}
+              </v-btn>
+            </div>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -883,34 +979,6 @@ function closeTour() {
             :disabled="!editedTopic.title || !editedTopic.description"
           >
             Save Changes
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- New Round Confirmation Dialog -->
-    <v-dialog v-model="newRoundConfirmDialog" max-width="400px">
-      <v-card>
-        <v-card-title>Quick Start New Round</v-card-title>
-        <v-card-text>
-          Are you sure you want to start a new round? This will:
-          <ul class="mt-2">
-            <li>Award badges to top 10 topics</li>
-            <li>Reset all vote counters</li>
-            <li>Allow users to vote again</li>
-          </ul>
-          <v-alert type="info" class="mt-3">
-            For advanced round management with topic selection, use the "Manage Rounds" button.
-          </v-alert>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn color="grey" @click="newRoundConfirmDialog = false">Cancel</v-btn>
-          <v-btn
-            color="error"
-            @click="startNewRound"
-          >
-            Start New Round
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1063,6 +1131,138 @@ function closeTour() {
 </template>
 
 <style scoped>
+/* Voting Status Card */
+.voting-status-card {
+  border-radius: 12px !important;
+}
+
+.voting-summary .choice-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.voting-summary .choice-card:hover {
+  transform: translateY(-1px);
+}
+
+.voting-summary .first-choice {
+  border: 1px solid rgb(var(--v-theme-warning));
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 193, 7, 0.03) 100%);
+}
+
+.voting-summary .second-choice {
+  border: 1px solid rgb(var(--v-theme-info));
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.08) 0%, rgba(33, 150, 243, 0.03) 100%);
+}
+
+.instruction-card {
+  background: linear-gradient(135deg, rgba(var(--v-theme-surface), 0.8) 0%, rgba(var(--v-theme-surface), 0.4) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(var(--v-theme-primary), 0.2);
+}
+
+.instruction-steps .v-avatar {
+  margin-bottom: 8px;
+}
+
+/* Topic Cards */
+.topic-card {
+  border-radius: 16px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, rgba(var(--v-theme-surface), 1) 0%, rgba(var(--v-theme-surface), 0.95) 100%);
+}
+
+.topic-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12) !important;
+}
+
+.topic-card--frozen {
+  opacity: 0.7;
+  background: linear-gradient(135deg, rgba(var(--v-theme-error), 0.05) 0%, rgba(var(--v-theme-surface), 0.95) 100%);
+}
+
+.topic-card--selected {
+  background: linear-gradient(135deg, rgba(var(--v-theme-success), 0.1) 0%, rgba(var(--v-theme-surface), 0.95) 100%);
+  border: 2px solid rgba(var(--v-theme-success), 0.3);
+}
+
+.topic-title-container h3 {
+  line-height: 1.3;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.topic-chips {
+  margin-top: 8px;
+}
+
+.choice-indicator {
+  font-weight: bold !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Voting Score Section */
+.voting-score-section {
+  background: rgba(var(--v-theme-primary), 0.03);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  border: 1px solid rgba(var(--v-theme-primary), 0.1);
+}
+
+.score-display .v-chip {
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+.vote-breakdown {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+/* Vote Button Enhanced */
+.vote-btn-enhanced {
+  min-width: 180px;
+  font-weight: bold;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px !important;
+}
+
+.vote-btn-enhanced:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+}
+
+.vote-btn-enhanced:active {
+  transform: translateY(0);
+}
+
+/* Topic Management Actions */
+.topic-management-actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* Enhanced glow effects */
+.first-choice-glow {
+  box-shadow: 0 0 32px rgba(255, 193, 7, 0.4), 0 8px 32px rgba(0,0,0,0.12) !important;
+  border-width: 3px !important;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(var(--v-theme-surface), 0.95) 100%) !important;
+}
+
+.second-choice-glow {
+  box-shadow: 0 0 32px rgba(33, 150, 243, 0.4), 0 8px 32px rgba(0,0,0,0.12) !important;
+  border-width: 3px !important;
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.08) 0%, rgba(var(--v-theme-surface), 0.95) 100%) !important;
+}
+
+.border-lg {
+  border-width: 3px !important;
+}
+
+/* Legacy vote button (fallback) */
 .vote-btn {
   min-width: 140px;
   font-weight: bold;
@@ -1073,17 +1273,35 @@ function closeTour() {
   transform: scale(1.05);
 }
 
-.first-choice-glow {
-  box-shadow: 0 0 20px rgba(255, 193, 7, 0.5) !important;
-  border-width: 3px !important;
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .topic-management-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .vote-btn-enhanced {
+    min-width: 140px;
+    font-size: 0.875rem;
+  }
+  
+  .voting-summary .v-col {
+    margin-bottom: 16px;
+  }
 }
 
-.second-choice-glow {
-  box-shadow: 0 0 20px rgba(33, 150, 243, 0.5) !important;
-  border-width: 3px !important;
-}
-
-.border-lg {
-  border-width: 3px !important;
+@media (max-width: 600px) {
+  .instruction-steps .v-col {
+    margin-bottom: 16px;
+  }
+  
+  .score-display .v-chip {
+    font-size: 0.75rem;
+  }
+  
+  .vote-btn-enhanced {
+    width: 100%;
+    min-width: unset;
+  }
 }
 </style>

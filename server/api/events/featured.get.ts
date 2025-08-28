@@ -29,28 +29,10 @@ export default defineEventHandler(async (event) => {
       // No memberships file
     }
 
-    // Filter to show only active or upcoming public events
-    const featuredEvents = events
-      .filter((e: any) => e.isActive || new Date(e.startDate) > new Date())
-      .filter((e: any) => e.isPublic !== false) // Show public events
-      .slice(0, 6) // Limit to 6 featured events
-      .map((event: any) => {
-        // Get participant count
-        const eventMemberships = memberships.filter((m: any) => m.eventId === event.id)
-        
-        return {
-          id: event.id,
-          code: event.code,
-          name: event.name,
-          description: event.description || 'Join this exciting unconference event',
-          location: event.location || 'Online',
-          startDate: event.startDate,
-          endDate: event.endDate,
-          isActive: event.isActive,
-          participantCount: eventMemberships.length,
-          imageUrl: event.imageUrl
-        }
-      })
+    // By default, events are private and only accessible by invitation
+    // Featured events section is removed from the public landing page
+    // All events require invitation codes to access
+    const featuredEvents: any[] = []
 
     return {
       success: true,

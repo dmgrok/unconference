@@ -47,7 +47,7 @@ const quickActions = [
     subtitle: 'Begin discussions with selected topics',
     icon: 'mdi-play-circle',
     color: 'success',
-    to: '/admin/round-management',
+    to: '/groups',
     action: 'start-round'
   },
   {
@@ -350,7 +350,7 @@ onMounted(() => {
                 Start new rounds, select topics, manage timing and participant assignments.
               </v-card-text>
               <v-card-actions>
-                <v-btn color="primary" to="/admin/round-management">Manage Rounds</v-btn>
+                <v-btn color="primary" to="/groups">Manage Rounds</v-btn>
               </v-card-actions>
             </v-card>
           </v-col>

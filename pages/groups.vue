@@ -1,22 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import type { User } from '~/types/user'
+import type { RoundHistory, ActiveRound } from '~/types/topic'
 
 interface GroupAssignment {
   topicId: string
   topicTitle: string
   participants: string[]  // participant emails
   roomAssignment?: string
-}
-
-interface ActiveRound {
-  roundNumber: number
-  startTime: string
-  duration: number
-  selectedTopics: string[]
-  isActive: boolean
-  groupAssignments: GroupAssignment[]
-  votingDisabled: boolean
 }
 
 interface TopicSelection {
@@ -32,14 +23,22 @@ const { user } = useUserSession()
 const { settings: adminSettings, loadSettings } = useAdminSettings()
 const groups = ref<GroupAssignment[]>([])
 const activeRound = ref<ActiveRound | null>(null)
+const roundHistory = ref<RoundHistory[]>([])
 const loading = ref(true)
 const error = ref('')
 
 // Topic selection for organizers
 const topicSelections = ref<TopicSelection[]>([])
 const newRoundDialog = ref(false)
+const roundHistoryDialog = ref(false)
+const quickRoundDialog = ref(false)
 const roundDuration = ref(20)
 const startingRound = ref(false)
+const extendingRound = ref(false)
+
+// Timer states for active round
+const timeRemaining = ref(0)
+const timerInterval = ref<NodeJS.Timeout | null>(null)
 
 const userEmail = computed(() => (user.value as User)?.email || '')
 
@@ -72,9 +71,10 @@ async function loadGroups() {
     
     if (response?.isActive && response.groupAssignments) {
       groups.value = response.groupAssignments
+      startTimer()
     } else {
       groups.value = []
-      // Don't set error for no active round - this is a normal state
+      stopTimer()
     }
   } catch (err: any) {
     // Only set error for actual API failures, not missing active rounds
@@ -89,6 +89,51 @@ async function loadGroups() {
   } finally {
     loading.value = false
   }
+}
+
+async function loadRoundHistory() {
+  try {
+    const data = await $fetch('/api/admin/round-history') as RoundHistory[]
+    roundHistory.value = data
+  } catch (error) {
+    console.error('Failed to load round history:', error)
+  }
+}
+
+function startTimer() {
+  if (!activeRound.value?.isActive) return
+  
+  const startTime = new Date(activeRound.value.startTime)
+  const duration = activeRound.value.duration * 60 * 1000 // Convert to milliseconds
+  
+  const updateTimer = () => {
+    const now = new Date()
+    const elapsed = now.getTime() - startTime.getTime()
+    const remaining = Math.max(0, duration - elapsed)
+    
+    timeRemaining.value = Math.floor(remaining / 1000) // Convert to seconds
+    
+    if (remaining <= 0) {
+      clearInterval(timerInterval.value!)
+      activeRound.value!.isActive = false
+    }
+  }
+  
+  updateTimer()
+  timerInterval.value = setInterval(updateTimer, 1000)
+}
+
+function stopTimer() {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+    timerInterval.value = null
+  }
+}
+
+function formatTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
 function formatDate(dateString: string): string {
@@ -142,10 +187,75 @@ async function startNewRound() {
   }
 }
 
+async function startQuickRound() {
+  try {
+    startingRound.value = true
+    await $fetch('/api/topics/new-round', {
+      method: 'POST'
+    })
+    quickRoundDialog.value = false
+    await loadGroups()
+    alert('Quick round started with top voted topics!')
+  } catch (error) {
+    console.error('Failed to start quick round:', error)
+    alert('Failed to start quick round. Please try again.')
+  } finally {
+    startingRound.value = false
+  }
+}
+
+async function endCurrentRound() {
+  const confirmed = confirm('Are you sure you want to end the current round early?')
+  if (!confirmed) return
+  
+  try {
+    loading.value = true
+    await $fetch('/api/admin/end-round', { method: 'POST' })
+    await loadGroups()
+    stopTimer()
+    alert('Round ended successfully!')
+  } catch (error) {
+    console.error('Failed to end round:', error)
+    alert('Failed to end round')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function extendCurrentRound() {
+  const confirmed = confirm('Extend the current round by 5 minutes?')
+  if (!confirmed) return
+  
+  try {
+    extendingRound.value = true
+    const response = await $fetch('/api/admin/extend-round', { 
+      method: 'POST',
+      body: { extensionMinutes: 5 }
+    })
+    
+    // Update active round duration
+    if (activeRound.value) {
+      activeRound.value.duration = response.newDuration
+    }
+    
+    alert(`Round extended by 5 minutes. New duration: ${response.newDuration} minutes.`)
+  } catch (error) {
+    console.error('Failed to extend round:', error)
+    alert('Failed to extend round')
+  } finally {
+    extendingRound.value = false
+  }
+}
+
 async function openNewRoundDialog() {
   newRoundDialog.value = true
   await loadTopicSelections()
   roundDuration.value = adminSettings.value.roundDurationMinutes
+}
+
+async function openRoundHistoryDialog() {
+  roundHistoryDialog.value = true
+  await loadRoundHistory()
 }
 
 onMounted(() => {
@@ -158,22 +268,75 @@ onMounted(() => {
   <v-container>
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold">Discussion Groups</h1>
+        <h1 class="text-h4 font-weight-bold">Discussion Groups & Round Management</h1>
         <p class="text-body-1 text-grey-darken-1 mt-2">
-          View current round group assignments and room locations
+          Manage rounds, select topics, and view current group assignments
         </p>
       </div>
       
-      <div class="d-flex gap-2">
-        <v-btn
-          v-if="isOrganizer"
-          color="info"
-          prepend-icon="mdi-home-city"
-          variant="outlined"
-          to="/admin/rooms"
-        >
-          Configure Rooms
-        </v-btn>
+      <div class="d-flex gap-2 flex-wrap">
+        <!-- For Organizers - Round Management Actions -->
+        <template v-if="isOrganizer">
+          <!-- Active Round Controls -->
+          <template v-if="activeRound?.isActive">
+            <v-btn
+              color="warning"
+              prepend-icon="mdi-timer-plus"
+              variant="outlined"
+              :loading="extendingRound"
+              @click="extendCurrentRound"
+            >
+              Extend Round
+            </v-btn>
+            <v-btn
+              color="error"
+              prepend-icon="mdi-stop-circle"
+              variant="outlined"
+              @click="endCurrentRound"
+            >
+              End Round
+            </v-btn>
+          </template>
+          
+          <!-- No Active Round Controls -->
+          <template v-else>
+            <v-btn
+              color="secondary"
+              prepend-icon="mdi-lightning-bolt"
+              variant="outlined"
+              @click="quickRoundDialog = true"
+            >
+              Quick Round
+            </v-btn>
+            <v-btn
+              color="success"
+              prepend-icon="mdi-play-circle"
+              @click="openNewRoundDialog"
+            >
+              Start Custom Round
+            </v-btn>
+          </template>
+          
+          <!-- Always Available Actions -->
+          <v-btn
+            color="info"
+            prepend-icon="mdi-history"
+            variant="outlined"
+            @click="openRoundHistoryDialog"
+          >
+            Round History
+          </v-btn>
+          <v-btn
+            color="info"
+            prepend-icon="mdi-home-city"
+            variant="outlined"
+            to="/admin/rooms"
+          >
+            Configure Rooms
+          </v-btn>
+        </template>
+        
+        <!-- For all users -->
         <v-btn
           color="primary"
           prepend-icon="mdi-refresh"
@@ -181,14 +344,6 @@ onMounted(() => {
           @click="loadGroups"
         >
           Refresh
-        </v-btn>
-        <v-btn
-          v-if="isOrganizer && !activeRound?.isActive"
-          color="success"
-          prepend-icon="mdi-play-circle"
-          @click="openNewRoundDialog"
-        >
-          Start New Round
         </v-btn>
       </div>
     </div>
@@ -210,6 +365,73 @@ onMounted(() => {
       <v-alert-title>Error Loading Groups</v-alert-title>
       <div>{{ error }}</div>
     </v-alert>
+
+    <!-- Round Status Card -->
+    <v-card v-else-if="activeRound?.isActive" class="mb-6" elevation="4">
+      <v-card-title class="d-flex align-center justify-space-between">
+        <div class="d-flex align-center">
+          <v-icon color="success" class="mr-3" size="large">mdi-play-circle</v-icon>
+          <div>
+            <h3>Round {{ activeRound.roundNumber }} Active</h3>
+            <p class="text-caption text-grey mb-0">
+              Started: {{ new Date(activeRound.startTime).toLocaleString() }}
+            </p>
+          </div>
+        </div>
+        
+        <div class="text-center">
+          <v-chip 
+            :color="timeRemaining > 300 ? 'success' : timeRemaining > 60 ? 'warning' : 'error'"
+            size="large"
+            prepend-icon="mdi-timer"
+          >
+            {{ formatTime(timeRemaining) }} remaining
+          </v-chip>
+          <br>
+          <small class="text-grey">{{ activeRound.duration }} min total</small>
+        </div>
+      </v-card-title>
+      
+      <v-card-text>
+        <div class="d-flex align-center justify-space-between">
+          <div>
+            <v-chip-group>
+              <v-chip 
+                v-for="topicId in activeRound.selectedTopics" 
+                :key="topicId"
+                size="small"
+                color="primary"
+                variant="outlined"
+              >
+                Topic {{ topicId }}
+              </v-chip>
+            </v-chip-group>
+          </div>
+          
+          <div v-if="isOrganizer" class="d-flex gap-2">
+            <v-btn
+              color="warning"
+              size="small"
+              prepend-icon="mdi-timer-plus"
+              variant="outlined"
+              :loading="extendingRound"
+              @click="extendCurrentRound"
+            >
+              +5min
+            </v-btn>
+            <v-btn
+              color="error"
+              size="small"
+              prepend-icon="mdi-stop"
+              variant="outlined"
+              @click="endCurrentRound"
+            >
+              End
+            </v-btn>
+          </div>
+        </div>
+      </v-card-text>
+    </v-card>
 
     <!-- No Active Round -->
     <v-card v-else-if="!activeRound?.isActive" class="text-center py-8" variant="outlined">
@@ -258,20 +480,6 @@ onMounted(() => {
             Organizer Hub
           </v-btn>
         </div>
-      </v-card-text>
-    </v-card>
-
-    <!-- Active Round Info -->
-    <v-card v-else-if="activeRound?.isActive" color="success" variant="elevated" class="mb-6">
-      <v-card-title class="text-white">
-        <v-icon class="mr-2">mdi-account-group</v-icon>
-        Round {{ activeRound.roundNumber }} - Group Assignments
-      </v-card-title>
-      <v-card-text class="text-white">
-        <p>Discussion groups have been automatically created based on voting preferences.</p>
-        <p class="text-caption mt-2">
-          Started: {{ formatDate(activeRound.startTime) }} | Duration: {{ activeRound.duration }} minutes
-        </p>
       </v-card-text>
     </v-card>
 
@@ -511,6 +719,122 @@ onMounted(() => {
           >
             Start Round
           </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Quick Round Dialog -->
+    <v-dialog v-model="quickRoundDialog" max-width="500px">
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon class="mr-2" color="warning">mdi-lightning-bolt</v-icon>
+          Quick Round Start
+        </v-card-title>
+        
+        <v-card-text>
+          <v-alert type="info" variant="tonal" class="mb-4">
+            <v-alert-title>Quick Round Features</v-alert-title>
+            <ul class="mt-2">
+              <li>Automatically selects top voted topics</li>
+              <li>Awards badges to current top 10 topics</li>
+              <li>Resets all voting counters</li>
+              <li>Creates balanced discussion groups</li>
+            </ul>
+          </v-alert>
+          
+          <p>Are you sure you want to start a quick round with the highest voted topics?</p>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="grey" @click="quickRoundDialog = false">Cancel</v-btn>
+          <v-btn
+            color="warning"
+            @click="startQuickRound"
+            :loading="startingRound"
+          >
+            Start Quick Round
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Round History Dialog -->
+    <v-dialog v-model="roundHistoryDialog" max-width="800px">
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon class="mr-2">mdi-history</v-icon>
+          Round History
+        </v-card-title>
+        
+        <v-card-text>
+          <div v-if="roundHistory.length === 0" class="text-center py-8">
+            <v-icon size="64" color="grey">mdi-history</v-icon>
+            <p class="text-h6 mt-4 text-grey">No rounds completed yet</p>
+            <p class="text-body-2 text-grey">Round history will appear here after completing discussions</p>
+          </div>
+          
+          <v-timeline v-else align="start" side="end">
+            <v-timeline-item
+              v-for="round in roundHistory"
+              :key="round.id"
+              :dot-color="(round.roundNumber || 0) % 2 === 0 ? 'primary' : 'secondary'"
+              size="small"
+            >
+              <template #icon>
+                <v-icon size="small">mdi-flag-checkered</v-icon>
+              </template>
+              
+              <v-card elevation="2" class="mb-2">
+                <v-card-title class="pb-2">
+                  <div class="d-flex justify-space-between align-center w-100">
+                    <span>Round {{ round.roundNumber || 'N/A' }}</span>
+                    <v-chip size="small" color="success">
+                      {{ round.selectedTopics?.length || round.topicIds?.length || 0 }} topics
+                    </v-chip>
+                  </div>
+                </v-card-title>
+                
+                <v-card-text class="pt-0">
+                  <p class="text-caption text-grey mb-2">
+                    {{ new Date(round.startTime).toLocaleString() }} - {{ round.duration }} minutes
+                  </p>
+                  
+                  <div class="selected-topics">
+                    <strong>Topics Discussed:</strong>
+                    <v-chip-group class="mt-1">
+                      <v-chip
+                        v-for="(topic, idx) in (round.selectedTopics || [])"
+                        :key="topic.topicId || idx"
+                        size="small"
+                        variant="outlined"
+                      >
+                        {{ topic.title }}
+                      </v-chip>
+                      <v-chip
+                        v-if="!round.selectedTopics && round.topicTitles"
+                        v-for="(title, idx) in round.topicTitles"
+                        :key="idx"
+                        size="small"
+                        variant="outlined"
+                      >
+                        {{ title }}
+                      </v-chip>
+                    </v-chip-group>
+                  </div>
+                  
+                  <div v-if="round.participantCount" class="mt-3">
+                    <strong>Participants:</strong> {{ round.participantCount }}
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-timeline-item>
+          </v-timeline>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="primary" @click="roundHistoryDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

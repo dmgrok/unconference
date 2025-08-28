@@ -3,21 +3,8 @@ definePageMeta({
   layout: 'public'
 })
 
-interface FeaturedEvent {
-  id: string
-  code: string
-  name: string
-  description: string
-  location: string
-  startDate: string
-  endDate: string
-  isActive: boolean
-  participantCount: number
-  imageUrl?: string
-}
-
 // Data
-const featuredEvents = ref<FeaturedEvent[]>([])
+const router = useRouter()
 
 const processSteps = [
   {
@@ -67,38 +54,10 @@ const joinMethods = [
   }
 ]
 
-// Methods
-async function loadFeaturedEvents() {
-  try {
-    const response = await $fetch('/api/events/featured') as any
-    featuredEvents.value = response.events || []
-  } catch (error) {
-    console.error('Failed to load featured events:', error)
-    // Provide fallback data
-    featuredEvents.value = []
-  }
-}
-
-function formatEventDate(startDate: string, endDate: string) {
-  const start = new Date(startDate)
-  const end = new Date(endDate)
-  
-  if (start.toDateString() === end.toDateString()) {
-    return start.toLocaleDateString()
-  }
-  
-  return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`
-}
-
-function shareEvent(event: FeaturedEvent) {
+function shareEvent(event: any) {
   // Implement sharing functionality
   console.log('Sharing event:', event)
 }
-
-// Load featured events on mount
-onMounted(() => {
-  loadFeaturedEvents()
-})
 </script>
 
 <template>
@@ -149,85 +108,7 @@ onMounted(() => {
       </v-container>
     </section>
 
-    <!-- Featured Events Section -->
-    <section v-if="featuredEvents.length > 0" class="featured-section">
-      <v-container class="py-12">
-        <div class="section-header">
-          <h2 class="section-title">Featured Events</h2>
-          <p class="section-subtitle">
-            Discover and join exciting unconference events happening now
-          </p>
-        </div>
-        
-        <v-row class="event-grid">
-          <v-col
-            v-for="event in featuredEvents"
-            :key="event.id"
-            cols="12"
-            md="6"
-            lg="4"
-          >
-            <v-card 
-              elevation="4" 
-              class="event-card h-100"
-              :class="{ 'event-card--active': event.isActive }"
-            >
-              <v-img
-                :src="event.imageUrl || '/default-event-image.jpg'"
-                height="200"
-                cover
-                class="event-image"
-              >
-                <div class="event-status">
-                  <v-chip
-                    :color="event.isActive ? 'success' : 'warning'"
-                    size="small"
-                    class="event-chip"
-                  >
-                    {{ event.isActive ? 'Live Now' : 'Upcoming' }}
-                  </v-chip>
-                </div>
-              </v-img>
-              
-              <v-card-title class="event-title">{{ event.name }}</v-card-title>
-              
-              <v-card-text class="event-content">
-                <p class="event-description">{{ event.description }}</p>
-                
-                <div class="event-meta">
-                  <div class="meta-item">
-                    <v-icon size="small">mdi-calendar</v-icon>
-                    <span>{{ formatEventDate(event.startDate, event.endDate) }}</span>
-                  </div>
-                  
-                  <div class="meta-item">
-                    <v-icon size="small">mdi-map-marker</v-icon>
-                    <span>{{ event.location }}</span>
-                  </div>
-                  
-                  <div class="meta-item">
-                    <v-icon size="small">mdi-account-group</v-icon>
-                    <span>{{ event.participantCount }} participants</span>
-                  </div>
-                </div>
-              </v-card-text>
-              
-              <v-card-actions class="event-actions">
-                <v-btn
-                  :color="event.isActive ? 'success' : 'primary'"
-                  :prepend-icon="event.isActive ? 'mdi-play' : 'mdi-clock'"
-                  :to="`/quick-join?code=${event.code}`"
-                  variant="flat"
-                  block
-                >
-                  {{ event.isActive ? 'Join Now' : 'Learn More' }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-    </section>
+
 
     <!-- How it Works Section -->
     <section class="how-it-works-section">

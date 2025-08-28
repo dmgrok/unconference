@@ -58,7 +58,7 @@
     {
       icon: 'mdi-timer',
       title: 'Round Management',
-      to: '/admin/round-management',
+      to: '/groups',
       adminOnly: true,
       organizerAccess: true
     },
@@ -148,6 +148,16 @@
           @click.stop="toggleDrawer"
           class="nav-icon-modern"
         />
+        
+        <!-- Logo and App Title (moved from sidebar) -->
+        <div class="header-logo d-flex align-center ml-4">
+          <v-icon size="32" color="primary">mdi-forum</v-icon>
+          <div class="header-logo-text ml-3">
+            <h3 class="app-title-modern">Unconference</h3>
+            <p class="user-role-text">{{ globalRole === 'SuperAdmin' ? 'Super Admin' : (userRole || 'Participant') }}</p>
+          </div>
+        </div>
+        
         <v-spacer></v-spacer>
         
         <!-- Viewer Mode Toggle -->
@@ -189,18 +199,6 @@
       class="nav-drawer-modern"
       width="280"
     >
-      <div class="nav-header">
-        <div class="nav-logo">
-          <v-icon size="32" color="primary">mdi-forum</v-icon>
-          <div class="nav-logo-text">
-            <h3>Unconference</h3>
-            <p>{{ globalRole === 'SuperAdmin' ? 'Super Admin' : (userRole || 'Participant') }}</p>
-          </div>
-        </div>
-      </div>
-      
-      <v-divider class="nav-divider" />
-      
       <v-list class="nav-list">
         <v-list-item
           v-for="(item, i) in filteredNavItems"
@@ -249,6 +247,30 @@
   transform: scale(1.05);
 }
 
+/* Header Logo Styles */
+.header-logo {
+  display: flex;
+  align-items: center;
+}
+
+.header-logo-text h3 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin: 0;
+  background: linear-gradient(135deg, #1E293B 0%, #6366F1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.user-role-text {
+  font-size: 0.85rem;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
 .app-title-modern {
   font-weight: 800;
   font-size: 1.4rem;
@@ -291,39 +313,6 @@
   background: linear-gradient(135deg, #FFFFFF 0%, #FEFEFE 100%) !important;
   border-right: 1px solid rgba(148, 163, 184, 0.1);
   box-shadow: 4px 0 20px rgba(0,0,0,0.08);
-}
-
-.nav-header {
-  padding: 2rem 1.5rem 1rem;
-}
-
-.nav-logo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.nav-logo-text h3 {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #1E293B;
-  margin: 0;
-  background: linear-gradient(135deg, #1E293B 0%, #6366F1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.nav-logo-text p {
-  font-size: 0.85rem;
-  color: #64748B;
-  margin: 0;
-  font-weight: 500;
-}
-
-.nav-divider {
-  margin: 0 1rem;
-  border-color: rgba(148, 163, 184, 0.2);
 }
 
 .nav-list {
