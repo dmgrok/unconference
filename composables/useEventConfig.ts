@@ -1,6 +1,6 @@
 // Global event configuration composable
 const eventConfig = reactive({
-  title: 'Unconference 2025',
+  name: 'Tech Innovation Unconference 2024', // Specific event name
   description: 'Join us for two days of collaborative discussions and knowledge sharing!',
   dates: 'May 21st - 22nd, 2025',
   location: 'Paris'

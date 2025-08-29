@@ -5,6 +5,20 @@ definePageMeta({
 
 // Data
 const router = useRouter()
+const eventCode = ref('')
+const { siteConfig } = useSiteConfig()
+
+// SEO Meta tags
+useSeoMeta({
+  title: `${siteConfig.title} - ${siteConfig.tagline}`,
+  description: siteConfig.description,
+  ogTitle: `${siteConfig.title} - ${siteConfig.tagline}`,
+  ogDescription: siteConfig.description,
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: `${siteConfig.title} - ${siteConfig.tagline}`,
+  twitterDescription: siteConfig.description
+})
 
 const processSteps = [
   {
@@ -164,6 +178,12 @@ function joinEvent(event: any) {
   }
 }
 
+function quickJoinWithCode() {
+  if (eventCode.value && eventCode.value.length >= 3) {
+    navigateTo(`/quick-join?code=${eventCode.value}`)
+  }
+}
+
 function shareEvent(event: any) {
   // Implement sharing functionality
   console.log('Sharing event:', event)
@@ -177,13 +197,14 @@ function shareEvent(event: any) {
       <v-container class="py-16">
         <v-row align="center" justify="center">
           <v-col cols="12" lg="10" xl="8" class="text-center">
-            <div class="hero-content">
-              <h1 class="hero-title mb-6">
-                Shape Your Own Conference
+            <div class="hero-content" role="main">
+              <h1 class="hero-title mb-6" id="main-heading">
+                {{ siteConfig.tagline }}
               </h1>
-              <p class="hero-subtitle mb-8">
-                Join collaborative discussions where <em>you</em> decide the agenda. 
-                Propose topics, vote on interests, and engage in meaningful conversations.
+              <p class="hero-subtitle mb-8" aria-describedby="main-heading">
+                {{ siteConfig.description }}
+                <br>
+                <strong>Try our demo</strong> to see how it works, or <strong>join an active event</strong> right now.
               </p>
               
               <div class="hero-actions mb-8">
@@ -191,12 +212,12 @@ function shareEvent(event: any) {
                   <v-btn
                     color="primary"
                     size="x-large"
-                    prepend-icon="mdi-plus"
-                    to="/register"
+                    prepend-icon="mdi-play"
+                    @click="joinEvent(demoEvent)"
                     class="hero-btn-primary"
                     elevation="8"
                   >
-                    Create Event
+                    Try Demo
                   </v-btn>
                   
                   <v-btn
@@ -213,29 +234,54 @@ function shareEvent(event: any) {
                 
                 <div class="action-row secondary-actions mt-4">
                   <v-btn
-                    variant="outlined"
+                    variant="text"
                     size="large"
-                    prepend-icon="mdi-login"
-                    to="/login"
-                    class="hero-btn-outline"
+                    prepend-icon="mdi-plus"
+                    to="/register"
+                    class="hero-btn-text"
                   >
-                    Sign In
+                    Create Event
                   </v-btn>
                   
                   <v-btn
                     variant="text"
                     size="large"
-                    prepend-icon="mdi-information"
-                    href="#how-it-works"
+                    prepend-icon="mdi-login"
+                    to="/login"
                     class="hero-btn-text"
                   >
-                    Learn More
+                    Sign In
                   </v-btn>
                 </div>
               </div>
               
+              <div class="quick-join-section mt-8 mb-6">
+                <p class="quick-join-label">Have an event code? Join instantly:</p>
+                <v-form class="quick-join-form" @submit.prevent="quickJoinWithCode">
+                  <div class="input-group">
+                    <v-text-field
+                      v-model="eventCode"
+                      placeholder="Enter event code (e.g., DEMO2024)"
+                      variant="outlined"
+                      class="event-code-input"
+                      density="comfortable"
+                      hide-details
+                    />
+                    <v-btn
+                      type="submit"
+                      color="success"
+                      size="large"
+                      class="join-btn"
+                      :disabled="!eventCode || eventCode.length < 3"
+                    >
+                      Join
+                    </v-btn>
+                  </div>
+                </v-form>
+              </div>
+              
               <p class="hero-note">
-                Enter your event code to participate in any unconference worldwide
+                Or explore without commitment - try our interactive demo below
               </p>
             </div>
           </v-col>
@@ -484,49 +530,6 @@ function shareEvent(event: any) {
         </div>
       </v-container>
     </section>
-
-    <!-- Call to Action -->
-    <section class="cta-section">
-      <v-container class="py-16">
-        <v-card class="cta-card" elevation="12">
-          <v-card-text class="cta-content">
-            <h2 class="cta-title">Ready to Shape Your Conference?</h2>
-            <p class="cta-subtitle">
-              Join thousands of participants in meaningful discussions worldwide
-            </p>
-            
-            <div class="cta-actions">
-              <v-btn
-                color="white"
-                size="x-large"
-                prepend-icon="mdi-ticket-confirmation"
-                to="/quick-join"
-                class="cta-btn-primary"
-                elevation="4"
-              >
-                <span class="primary--text">Join an Event</span>
-              </v-btn>
-              
-              <v-btn
-                variant="outlined"
-                color="white"
-                size="large"
-                prepend-icon="mdi-plus"
-                to="/events"
-                class="cta-btn-secondary"
-              >
-                Create Event
-              </v-btn>
-            </div>
-            
-            <p class="cta-note">
-              Already participating? 
-              <a href="/login" class="cta-link">Sign In Here</a>
-            </p>
-          </v-card-text>
-        </v-card>
-      </v-container>
-    </section>
   </div>
 </template>
 
@@ -692,6 +695,55 @@ function shareEvent(event: any) {
   color: rgba(255,255,255,0.85);
   font-size: 1rem;
   text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.quick-join-section {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.quick-join-label {
+  color: rgba(255,255,255,0.9);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.quick-join-form {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.input-group {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.event-code-input {
+  flex: 1;
+}
+
+.event-code-input :deep(.v-field) {
+  background: rgba(255,255,255,0.95);
+  border-radius: 12px;
+}
+
+.event-code-input :deep(.v-field__input) {
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.join-btn {
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: none;
+  border-radius: 12px;
+  min-width: 100px;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
 }
 
 /* Section Headers */
@@ -1604,6 +1656,21 @@ html {
   .hero-btn-primary,
   .hero-btn-secondary {
     min-width: 280px;
+    min-height: 48px;
+  }
+  
+  .quick-join-form {
+    padding: 1.25rem;
+  }
+  
+  .input-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .join-btn {
+    width: 100%;
+    min-height: 48px;
   }
   
   .testimonial-content {
