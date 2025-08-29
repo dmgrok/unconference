@@ -9,7 +9,7 @@
     "lastLoginAt": "2024-08-27T08:00:00.000Z"
   },
   {
-    "id": "admin-001", 
+    "id": "admin-001",
     "name": "Darth Vader",
     "email": "darth.vader@starwars.com",
     "globalRole": "User",
@@ -19,7 +19,7 @@
   },
   {
     "id": "organizer-001",
-    "name": "Luke Skywalker", 
+    "name": "Luke Skywalker",
     "email": "organizer@example.com",
     "globalRole": "User",
     "isActive": true,
@@ -29,10 +29,30 @@
   {
     "id": "user-001",
     "name": "Storm Trooper",
-    "email": "storm.trooper@starwars.com", 
+    "email": "storm.trooper@starwars.com",
     "globalRole": "User",
     "isActive": true,
     "createdAt": "2024-01-01T00:00:00.000Z",
     "lastLoginAt": "2024-08-26T20:00:00.000Z"
+  },
+  {
+    "id": "user_1756470301651_1vutc7ijc",
+    "name": "david",
+    "email": "davidgraca@gmail.com",
+    "globalRole": "User",
+    "isGuest": false,
+    "createdAt": "2025-08-29T12:25:01.651Z",
+    "lastLoginAt": "2025-08-29T12:25:01.651Z",
+    "isActive": true
+  },
+  {
+    "id": "user_1756472349161_2smd5k1nw",
+    "name": "dfsdf",
+    "email": "sdfsd@qsdqs.com",
+    "globalRole": "User",
+    "isGuest": false,
+    "createdAt": "2025-08-29T12:59:09.161Z",
+    "lastLoginAt": "2025-08-29T12:59:09.161Z",
+    "isActive": true
   }
 ]

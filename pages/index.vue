@@ -69,14 +69,14 @@ const joinMethods = [
 ]
 
 const demoEvent = {
-  id: 'demo-2024',
-  title: 'Tech Innovation Unconference 2024',
-  description: 'Experience how unconferences work with our interactive demo event. Join discussions on AI, Web3, and sustainable tech.',
-  time: 'Live Demo - Try Anytime',
+  id: 'demo-organizer-2024',
+  title: 'Try Organizing an Unconference',
+  description: 'Experience the full organizer workflow: set up your event, invite participants, facilitate session planning, and manage collaborative agenda-building.',
+  time: 'Interactive Demo - Start Anytime',
   participants: 127,
-  location: 'Virtual & Global',
+  location: 'Organizer Dashboard',
   status: 'demo',
-  statusText: 'Try Demo',
+  statusText: 'Start Demo',
   statusIcon: 'mdi-play-circle'
 }
 
@@ -172,7 +172,7 @@ const faqs = [
 
 function joinEvent(event: any) {
   if (event.status === 'demo') {
-    navigateTo('/demo-admin')
+    navigateTo('/organizer')
   } else {
     navigateTo('/quick-join')
   }
@@ -204,7 +204,7 @@ function shareEvent(event: any) {
               <p class="hero-subtitle mb-8" aria-describedby="main-heading">
                 {{ siteConfig.description }}
                 <br>
-                <strong>Try our demo</strong> to see how it works, or <strong>join an active event</strong> right now.
+                <strong>Try organizing your own</strong> to see how it works, or <strong>join an active event</strong> right now.
               </p>
               
               <div class="hero-actions mb-8">
@@ -217,7 +217,7 @@ function shareEvent(event: any) {
                     class="hero-btn-primary"
                     elevation="8"
                   >
-                    Try Demo
+                    Try Organizing
                   </v-btn>
                   
                   <v-btn
@@ -281,7 +281,7 @@ function shareEvent(event: any) {
               </div>
               
               <p class="hero-note">
-                Or explore without commitment - try our interactive demo below
+                Or explore without commitment - try our interactive organizer demo below
               </p>
             </div>
           </v-col>

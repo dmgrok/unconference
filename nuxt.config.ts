@@ -17,7 +17,7 @@ export default defineNuxtConfig({
   hooks: {
     'pages:extend' (pages: NuxtPage[]) {
       function setMiddleware (pages: NuxtPage[]) {
-        const publicPages = ['index', 'login', 'register', 'test-admin', 'demo-admin', 'super-admin-guide', 'quick-join']
+        const publicPages = ['index', 'login', 'register', 'test-admin', 'demo-admin', 'organizer', 'super-admin-guide', 'quick-join']
         const adminPages = ['admin', 'settings'] // Add admin-only pages here
         
         for (const page of pages) {
@@ -66,7 +66,7 @@ export default defineNuxtConfig({
     usersFilePath: process.env.NUXT_USERS_FILE_PATH,
     public: {
       devMode: process.env.APP_ENV === 'development',
-      authUrl: process.env.NUXT_AUTH_GITHUB === 'true' ?  '/auth/github' : '/login',
+      authUrl: '/login', // Force to use /login instead of /auth/github
       maxVotesPerTopic: parseInt(process.env.NUXT_MAX_VOTES_PER_TOPIC || '12'),
       topTopicsCount: parseInt(process.env.NUXT_TOP_TOPICS_COUNT || '10')
     }

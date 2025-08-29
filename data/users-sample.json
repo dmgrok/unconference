@@ -25,7 +25,29 @@
     "Firstname": "Storm",
     "Lastname": "Trooper",
     "Email": "storm.trooper@starwars.com",
-    "Password": "UserPassword123", 
+    "Password": "UserPassword123",
     "Role": "User"
+  },
+  {
+    "id": "user_1756470301651_1vutc7ijc",
+    "Email": "davidgraca@gmail.com",
+    "Password": "Euvi1gato",
+    "Firstname": "david",
+    "Lastname": "",
+    "Role": "User",
+    "GlobalRole": "User",
+    "CreatedAt": "2025-08-29T12:25:01.651Z",
+    "IsActive": true
+  },
+  {
+    "id": "user_1756472349161_2smd5k1nw",
+    "Email": "sdfsd@qsdqs.com",
+    "Password": "AZERTY123",
+    "Firstname": "dfsdf",
+    "Lastname": "",
+    "Role": "User",
+    "GlobalRole": "User",
+    "CreatedAt": "2025-08-29T12:59:09.161Z",
+    "IsActive": true
   }
 ]

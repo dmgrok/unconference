@@ -1,7 +1,41 @@
 <template>
-  <div class="d-flex flex-column min-height-screen">
-    <!-- App Header -->
-    <UnconferenceHeader />
+  <v-app>
+    <!-- Main App Header -->
+    <v-app-bar :elevation="2" color="surface" height="70">
+      <v-container class="d-flex align-center">
+        <div class="d-flex align-items-center">
+          <v-btn
+            variant="text"
+            :to="loggedIn ? '/voting' : '/'"
+            class="header-logo"
+          >
+            <v-icon class="mr-2" size="28">mdi-forum</v-icon>
+            <span class="logo-text">Unconference Platform</span>
+          </v-btn>
+        </div>
+
+        <v-spacer />
+
+        <div class="header-actions" v-if="loggedIn">
+          <v-btn variant="text" to="/events" prepend-icon="mdi-calendar-multiple">
+            My Events
+          </v-btn>
+          
+          <v-menu>
+            <template #activator="{ props }">
+              <v-btn variant="text" v-bind="props" prepend-icon="mdi-account">
+                {{ user?.name || user?.email }}
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item @click="logout" prepend-icon="mdi-logout">
+                <v-list-item-title>Sign Out</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </div>
+      </v-container>
+    </v-app-bar>
     
     <!-- Event Selection Bar (if user has multiple events) -->
     <v-app-bar v-if="userEvents.length > 1" color="surface-variant" dense>
@@ -50,7 +84,7 @@
     <v-main class="flex-grow-1">
       <slot />
     </v-main>
-  </div>
+  </v-app>
 </template>
 
 <script setup lang="ts">
@@ -61,9 +95,15 @@ interface Event {
   isActive: boolean
 }
 
-const { user } = useUserSession()
+const { user, loggedIn, clear: clearSession } = useUserSession()
 const route = useRoute()
 const router = useRouter()
+
+// Logout function
+async function logout() {
+  await clearSession()
+  await navigateTo('/')
+}
 
 // Get user's events on client side
 const userEvents = ref<Event[]>([])

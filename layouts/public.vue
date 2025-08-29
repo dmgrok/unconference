@@ -4,7 +4,8 @@ import { ref } from 'vue'
 const runtimeConfig = useRuntimeConfig()
 const { user, clear: clearSession, openInPopup } = useUserSession()
 
-const authUrl = ref('/auth/github')
+// Use type assertion to access authUrl property
+const authUrl = ref((runtimeConfig.public as any).authUrl || '/login')
 const drawer = ref(false)
 
 // Debug drawer state
@@ -15,7 +16,7 @@ watch(drawer, (newVal) => {
 // Navigation items for different user states
 const publicNavItems = [
   { title: 'How It Works', href: '#how-it-works', icon: 'mdi-help-circle' },
-  { title: 'Demo', to: '/demo-admin', icon: 'mdi-play-circle' },
+  { title: 'Demo', to: '/organizer', icon: 'mdi-play-circle' },
   { title: 'Browse Events', to: '/events', icon: 'mdi-calendar-multiple' }
 ]
 

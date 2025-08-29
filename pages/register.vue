@@ -15,7 +15,7 @@
             v-model="registrationData.name"
             label="Full Name *"
             prepend-inner-icon="mdi-account"
-            :rules="[v => !!v || 'Name is required', v => v.length >= 2 || 'Name must be at least 2 characters']"
+            :rules="nameRules"
             required
             variant="outlined"
             class="mb-3"
@@ -26,10 +26,7 @@
             label="Email Address *"
             type="email"
             prepend-inner-icon="mdi-email"
-            :rules="[
-              v => !!v || 'Email is required',
-              v => /.+@.+\..+/.test(v) || 'Valid email required'
-            ]"
+            :rules="emailRules"
             required
             variant="outlined"
             class="mb-3"
@@ -40,10 +37,7 @@
             label="Password *"
             type="password"
             prepend-inner-icon="mdi-lock"
-            :rules="[
-              v => !!v || 'Password is required',
-              v => v.length >= 8 || 'Password must be at least 8 characters'
-            ]"
+            :rules="passwordRules"
             required
             variant="outlined"
             class="mb-3"
@@ -54,10 +48,7 @@
             label="Confirm Password *"
             type="password"
             prepend-inner-icon="mdi-lock-check"
-            :rules="[
-              v => !!v || 'Please confirm your password',
-              v => v === registrationData.password || 'Passwords do not match'
-            ]"
+            :rules="confirmPasswordRules"
             required
             variant="outlined"
             class="mb-4"
@@ -70,6 +61,15 @@
             class="mb-4"
           >
             {{ registrationError }}
+          </v-alert>
+
+          <v-alert
+            v-if="registrationSuccess"
+            type="success"
+            variant="tonal"
+            class="mb-4"
+          >
+            {{ registrationSuccess }}
           </v-alert>
 
           <v-btn
@@ -131,9 +131,40 @@ const confirmPassword = ref('')
 const formValid = ref(false)
 const registering = ref(false)
 const registrationError = ref('')
+const registrationSuccess = ref('')
 
 // Form reference
 const form = ref()
+
+// Validation rules (defined once to avoid recreation)
+const emailRules = [
+  (v: string) => !!v || 'Email is required',
+  (v: string) => {
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return pattern.test(v) || 'Valid email required'
+  }
+]
+
+const passwordRules = [
+  (v: string) => !!v || 'Password is required',
+  (v: string) => v.length >= 8 || 'Password must be at least 8 characters'
+]
+
+const nameRules = [
+  (v: string) => !!v || 'Name is required',
+  (v: string) => v.length >= 2 || 'Name must be at least 2 characters'
+]
+
+const confirmPasswordRules = [
+  (v: string) => !!v || 'Please confirm your password',
+  (v: string) => v === registrationData.password || 'Passwords do not match'
+]
+
+// Add error handling for reactivity issues
+onErrorCaptured((error) => {
+  console.error('Component error:', error)
+  return false
+})
 
 // Registration function
 async function register() {
@@ -141,6 +172,7 @@ async function register() {
 
   registering.value = true
   registrationError.value = ''
+  registrationSuccess.value = ''
 
   try {
     const response = await $fetch('/api/auth/register', {
@@ -149,29 +181,43 @@ async function register() {
     }) as any
 
     if (response.success) {
-      // Refresh the session and redirect
+      // Show success message
+      registrationSuccess.value = `Account created successfully! Welcome, ${response.user.name}. Redirecting...`
+      
+      // Refresh the session to make sure it's properly established
       await refreshSession()
       
-      // Show success message briefly
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Wait longer to ensure session is established and show success message
+      await new Promise(resolve => setTimeout(resolve, 3000))
       
-      // Redirect to events page or voting
-      await navigateTo('/events')
+      // Try to redirect to voting page first (which uses default layout), 
+      // and fallback to home if that fails
+      try {
+        await navigateTo('/voting')
+      } catch (error) {
+        console.warn('Failed to redirect to /voting, redirecting to home:', error)
+        await navigateTo('/')
+      }
+    } else {
+      registrationError.value = response.message || 'Registration failed. Please try again.'
     }
   } catch (error: any) {
     console.error('Registration failed:', error)
-    registrationError.value = error.data?.message || 'Registration failed. Please try again.'
+    registrationError.value = error.data?.message || error.message || 'Registration failed. Please try again.'
   } finally {
     registering.value = false
   }
 }
 
-// Clear error when user starts typing
-watch(() => registrationData.email, () => {
+// Clear error and success messages when user starts typing in any field
+watch(() => [registrationData.email, registrationData.name, registrationData.password, confirmPassword.value], () => {
   if (registrationError.value) {
     registrationError.value = ''
   }
-})
+  if (registrationSuccess.value) {
+    registrationSuccess.value = ''
+  }
+}, { flush: 'post' })
 </script>
 
 <style scoped>
