@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
     } else {
       return {
         hasAssignment: false,
-        message: 'You are not assigned to any group for this round. You can join any discussion.',
+        message: 'Neither of your voted topics was selected for this round. You can join any discussion group that interests you.',
         roundInfo: {
           roundNumber: activeRound.roundNumber,
           startTime: activeRound.startTime,

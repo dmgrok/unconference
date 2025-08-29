@@ -1,66 +1,26 @@
 {
-  "id": "quick-active-round-5",
-  "roundNumber": 5,
-  "startTime": "2025-08-28T20:50:16.463Z",
+  "id": "active-round-9",
+  "roundNumber": 9,
+  "startTime": "2025-08-28T22:20:29.753Z",
   "duration": 20,
   "topicIds": [
-    "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
-    "d130774e-f7fe-420e-ac83-061585fff93f",
-    "4aa0a820-347c-49d5-84d9-9e582ef2c965",
-    "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
-    "c1256e92-7c82-49b4-9b06-2d7ee9d6ab87"
-  ],
-  "topicTitles": [
-    "GitHub Actions Hosted Runners optimization",
-    "Copilot and MCP servers",
-    "TDO for IT",
-    "Accessibility",
-    "Learning"
+    "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
   ],
   "selectedTopics": [
-    "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
-    "d130774e-f7fe-420e-ac83-061585fff93f",
-    "4aa0a820-347c-49d5-84d9-9e582ef2c965",
-    "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
-    "c1256e92-7c82-49b4-9b06-2d7ee9d6ab87"
+    "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
+  ],
+  "topicTitles": [
+    "GitHub Actions Hosted Runners optimization"
   ],
   "isActive": false,
   "groupAssignments": [
     {
-      "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
-      "topicTitle": "Copilot and MCP servers",
-      "participants": [
-        "darth.vader@starwars.com"
-      ],
-      "roomAssignment": "Conference Room A"
-    },
-    {
       "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
       "topicTitle": "GitHub Actions Hosted Runners optimization",
       "participants": [
-        "storm.trooper@starwars.com"
-      ],
-      "roomAssignment": "Conference Room B"
-    },
-    {
-      "topicId": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
-      "topicTitle": "TDO for IT",
-      "participants": [
         "organizer@example.com"
       ],
-      "roomAssignment": "Collaboration Space"
-    },
-    {
-      "topicId": "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
-      "topicTitle": "Accessibility",
-      "participants": [],
-      "roomAssignment": "Small Meeting Room"
-    },
-    {
-      "topicId": "c1256e92-7c82-49b4-9b06-2d7ee9d6ab87",
-      "topicTitle": "Learning",
-      "participants": [],
-      "roomAssignment": "Conference Room A"
+      "roomAssignment": "Conference Room A (First Floor, East Wing)"
     }
   ],
   "votingDisabled": false,

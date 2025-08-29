@@ -60,8 +60,9 @@ The Round Management System provides comprehensive control over discussion round
    - Visual progress indicators
 
 2. **Topic Assignment**
-   - Automatic assignment based on voting preferences
-   - Clear indication if no assignment (can join any discussion)
+   - Automatic assignment based on voting preferences (one participant, one group)
+   - Priority: 1st choice → 2nd choice → unassigned (can join any discussion)
+   - Clear indication if no assignment when neither voted topic is selected
    - Integration with room assignments for location
 
 3. **Between Rounds**
@@ -80,7 +81,10 @@ The Round Management System provides comprehensive control over discussion round
 1. Topics are sorted by preference score (weighted voting)
 2. Frozen topics are excluded from selection
 3. Admins can manually select up to the configured maximum
-4. Participants from unselected topics are redistributed
+4. **New Assignment Logic**: Each participant is assigned to only ONE group:
+   - If their 1st choice topic is selected → assigned to that group
+   - Else if their 2nd choice topic is selected → assigned to that group  
+   - Else → no specific assignment (can join any discussion group)
 
 ## API Endpoints
 

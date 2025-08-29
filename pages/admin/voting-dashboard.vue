@@ -34,6 +34,15 @@ const newRoundDialog = ref(false)
 const roundDuration = ref(20)
 const startingRound = ref(false)
 const topicSelections = ref<any[]>([])
+const participantDetailsDialog = ref(false)
+const selectedGroupForDetails = ref<any>(null)
+
+// Active round management
+const activeRound = ref<any>(null)
+const timeRemaining = ref(0)
+const timerInterval = ref<NodeJS.Timeout | null>(null)
+const users = ref<any[]>([]) // Store user data for participant name formatting
+const endedRounds = ref<Set<string>>(new Set()) // Track which rounds have ended
 
 interface TopicSelection {
   topicId: string
@@ -62,6 +71,40 @@ const playVoteSound = () => {
     
     oscillator.start(audioContext.currentTime)
     oscillator.stop(audioContext.currentTime + 0.1)
+  } catch (error) {
+    // Silently fail if audio context is not available
+    console.log('Audio not available')
+  }
+}
+
+// Sound for round ending (using Web Audio API)
+const playRoundEndSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    
+    // Create a more prominent sound for round ending
+    const oscillator1 = audioContext.createOscillator()
+    const oscillator2 = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    
+    oscillator1.connect(gainNode)
+    oscillator2.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    
+    // Two-tone chime
+    oscillator1.frequency.setValueAtTime(800, audioContext.currentTime)
+    oscillator2.frequency.setValueAtTime(600, audioContext.currentTime)
+    
+    oscillator1.frequency.setValueAtTime(1000, audioContext.currentTime + 0.3)
+    oscillator2.frequency.setValueAtTime(750, audioContext.currentTime + 0.3)
+    
+    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6)
+    
+    oscillator1.start(audioContext.currentTime)
+    oscillator1.stop(audioContext.currentTime + 0.6)
+    oscillator2.start(audioContext.currentTime)
+    oscillator2.stop(audioContext.currentTime + 0.6)
   } catch (error) {
     // Silently fail if audio context is not available
     console.log('Audio not available')
@@ -255,7 +298,10 @@ function toggleFullscreen() {
 }
 
 function startAutoRefresh() {
-  refreshInterval.value = setInterval(fetchTopics, 2000) // Refresh every 2 seconds
+  refreshInterval.value = setInterval(() => {
+    fetchTopics()
+    loadActiveRound()
+  }, 2000) // Refresh every 2 seconds
 }
 
 function stopAutoRefresh() {
@@ -263,6 +309,137 @@ function stopAutoRefresh() {
     clearInterval(refreshInterval.value)
     refreshInterval.value = null
   }
+}
+
+// Active round management functions
+async function loadActiveRound() {
+  try {
+    const data = await $fetch('/api/active-round')
+    activeRound.value = data
+    
+    if (activeRound.value) {
+      // Check if this round has been marked as ended
+      if (endedRounds.value.has(activeRound.value.id)) {
+        activeRound.value.hasEnded = true
+      }
+      
+      // Check if round has naturally expired (server-side logic marks it as inactive)
+      if (!activeRound.value.isActive && !activeRound.value.hasEnded) {
+        const startTime = new Date(activeRound.value.startTime)
+        const now = new Date()
+        const elapsedMinutes = (now.getTime() - startTime.getTime()) / (1000 * 60)
+        
+        if (elapsedMinutes >= activeRound.value.duration) {
+          activeRound.value.hasEnded = true
+          endedRounds.value.add(activeRound.value.id)
+        }
+      }
+      
+      if (activeRound.value.isActive && !activeRound.value.hasEnded) {
+        startTimer()
+        // Clean up old ended rounds when a new active round starts
+        endedRounds.value.clear()
+      } else {
+        stopTimer()
+      }
+    } else {
+      stopTimer()
+    }
+  } catch (error) {
+    console.error('Failed to load active round:', error)
+  }
+}
+
+function startTimer() {
+  if (!activeRound.value) return
+  
+  const startTime = new Date(activeRound.value.startTime)
+  const duration = activeRound.value.duration * 60 * 1000 // Convert to milliseconds
+  
+  const updateTimer = () => {
+    const now = new Date()
+    const elapsed = now.getTime() - startTime.getTime()
+    const remaining = Math.max(0, duration - elapsed)
+    
+    timeRemaining.value = Math.floor(remaining / 1000) // Convert to seconds
+    
+    if (remaining <= 0 && activeRound.value!.isActive) {
+      // Round just ended - play sound and mark as ended but keep displaying
+      playRoundEndSound()
+      activeRound.value!.isActive = false
+      activeRound.value!.hasEnded = true
+      endedRounds.value.add(activeRound.value!.id) // Track this round as ended
+      // Keep the timer running to show 00:00
+    }
+  }
+  
+  updateTimer()
+  timerInterval.value = setInterval(updateTimer, 1000)
+}
+
+function stopTimer() {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+    timerInterval.value = null
+  }
+}
+
+function formatTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+}
+
+// Helper function for participant count
+const getTotalParticipants = (groupAssignments: any[]) => {
+  return groupAssignments.reduce((sum: number, group: any) => sum + group.participants.length, 0)
+}
+
+// Load user data for participant name formatting
+async function loadUsers() {
+  try {
+    // For now, we'll populate users data when we get the active round that has participants
+    // This will be loaded server-side in the group assignments API
+    users.value = []
+  } catch (error) {
+    console.error('Failed to load users data:', error)
+    users.value = []
+  }
+}
+
+// Helper function to get participant details (name, not role)
+const getParticipantDetails = (participantEmail: string) => {
+  const userDetail = users.value.find((u: any) => 
+    u.Email?.toLowerCase() === participantEmail.toLowerCase()
+  )
+  
+  if (userDetail) {
+    return {
+      name: `${userDetail.Firstname || ''} ${userDetail.Lastname || ''}`.trim(),
+      email: userDetail.Email,
+      role: userDetail.Role
+    }
+  }
+  
+  if (participantEmail.includes('@unconference.guest')) {
+    return {
+      name: `Guest ${participantEmail.split('_')[1]?.substring(0, 4).toUpperCase() || 'User'}`,
+      email: participantEmail,
+      role: 'Guest'
+    }
+  }
+  
+  return {
+    name: participantEmail.split('@')[0] || participantEmail,
+    email: participantEmail,
+    role: 'User'
+  }
+}
+
+// Format participant name for display
+const formatParticipantName = (participantEmail: string) => {
+  const details = getParticipantDetails(participantEmail)
+  return details.name || details.email.split('@')[0]
 }
 
 async function loadTopicSelections() {
@@ -308,7 +485,7 @@ async function startNewRound() {
     }) as { roundNumber: number; selectedTopics: any[]; message: string }
     
     newRoundDialog.value = false
-    await fetchTopics()
+    await Promise.all([fetchTopics(), loadActiveRound()])
     
     // Show success message
     alert(`Round ${result.roundNumber} started successfully with ${selectedTopics.value.length} topics!`)
@@ -326,10 +503,17 @@ async function openNewRoundDialog() {
   roundDuration.value = 20
 }
 
+function showParticipantDetailsDialog(group: any) {
+  selectedGroupForDetails.value = group
+  participantDetailsDialog.value = true
+}
+
 onMounted(() => {
   fetchTopics()
   fetchRoomAssignments()
   generateQRCodeForDashboard()
+  loadActiveRound()
+  loadUsers()
   startAutoRefresh()
   
   // Listen for fullscreen changes
@@ -340,6 +524,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopAutoRefresh()
+  stopTimer()
 })
 </script>
 
@@ -457,6 +642,149 @@ onUnmounted(() => {
               {{ isFullscreen ? 'EXIT FULLSCREEN' : 'FULLSCREEN' }}
             </v-btn>
           </div>
+        </v-col>
+      </v-row>
+
+      <!-- Active Round Display -->
+      <v-row v-if="activeRound && (activeRound.isActive || activeRound.hasEnded)" class="mb-6">
+        <v-col cols="12">
+          <v-card :color="activeRound.hasEnded ? 'error' : 'success'" class="pixel-main-card" elevation="8">
+            <v-card-title class="text-center text-white text-h4 py-4">
+              <v-icon size="large" class="mr-3">{{ activeRound.hasEnded ? 'mdi-timer-off' : 'mdi-timer' }}</v-icon>
+              ROUND {{ activeRound.roundNumber }} {{ activeRound.hasEnded ? 'ENDED' : 'ACTIVE' }}
+            </v-card-title>
+            <v-card-text class="text-white">
+              <!-- Timer Display -->
+              <div class="text-center mb-6">
+                <div class="timer-display text-h2 font-weight-black mb-2" style="font-family: 'Courier New', monospace;">
+                  {{ formatTime(timeRemaining) }}
+                </div>
+                <v-progress-linear
+                  :model-value="activeRound.hasEnded ? 0 : (timeRemaining / (activeRound.duration * 60)) * 100"
+                  :color="activeRound.hasEnded ? 'red' : 'white'"
+                  height="8"
+                  rounded
+                  class="mx-auto"
+                  style="max-width: 400px;"
+                ></v-progress-linear>
+                <div class="text-body-1 mt-2">
+                  {{ activeRound.hasEnded ? 'Round completed' : `${activeRound.duration} minutes total` }}
+                </div>
+              </div>
+
+              <!-- Discussion Groups Grid -->
+              <div v-if="activeRound.groupAssignments?.length" class="discussion-groups">
+                <h3 class="text-center text-h5 mb-4">
+                  {{ activeRound.hasEnded ? 'FINAL DISCUSSION GROUPS' : 'ACTIVE DISCUSSION GROUPS' }}
+                </h3>
+                <v-row justify="center">
+                  <v-col
+                    v-for="(group, index) in activeRound.groupAssignments"
+                    :key="group.topicId"
+                    cols="12"
+                    sm="6"
+                    md="4"
+                    lg="3"
+                  >
+                    <v-card 
+                      class="group-card h-100 text-center"
+                      color="rgba(255,255,255,0.1)"
+                      variant="outlined"
+                    >
+                      <v-card-title class="text-body-1 pa-3 white--text">
+                        <div class="group-letter text-h4 mb-2" :style="{ color: pixelColors[index % pixelColors.length] }">
+                          {{ String.fromCharCode(65 + index) }}
+                        </div>
+                        <div class="group-title text-wrap text-white">{{ group.topicTitle }}</div>
+                      </v-card-title>
+                      <v-card-text class="text-white pa-3">
+                        <div class="group-stats mb-3">
+                          <v-chip 
+                            :color="pixelColors[index % pixelColors.length]" 
+                            size="small" 
+                            class="mb-2"
+                            prepend-icon="mdi-account-group"
+                          >
+                            {{ group.participants.length }} participants
+                          </v-chip>
+                        </div>
+                        <div v-if="group.roomAssignment" class="room-assignment">
+                          <v-icon size="small" class="mr-1">mdi-map-marker</v-icon>
+                          <span class="text-caption">{{ group.roomAssignment }}</span>
+                        </div>
+                        <!-- Participant List for smaller groups -->
+                        <div v-if="group.participants.length <= 8 && group.participants.length > 0" class="participant-list mt-2">
+                          <div class="text-caption mb-1">Participants:</div>
+                          <div class="participants-chips">
+                            <v-chip
+                              v-for="participant in (group.participantDetails || group.participants)"
+                              :key="typeof participant === 'string' ? participant : participant.email"
+                              size="x-small"
+                              class="ma-1"
+                              style="font-size: 9px;"
+                            >
+                              {{ typeof participant === 'string' ? formatParticipantName(participant) : participant.name }}
+                            </v-chip>
+                          </div>
+                        </div>
+                        <!-- Show participant count for larger groups -->
+                        <div v-else-if="group.participants.length > 8" class="participant-list mt-2">
+                          <div class="text-caption mb-1">{{ group.participants.length }} participants assigned</div>
+                          <v-btn
+                            size="x-small"
+                            color="primary"
+                            variant="outlined"
+                            @click="showParticipantDetailsDialog(group)"
+                          >
+                            View All Participants
+                          </v-btn>
+                        </div>
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+                </v-row>
+                
+                <!-- Total Stats -->
+                <div class="text-center mt-4">
+                  <v-chip 
+                    color="white" 
+                    :text-color="activeRound.hasEnded ? 'error' : 'success'" 
+                    size="large" 
+                    prepend-icon="mdi-account-multiple"
+                    class="mx-2"
+                  >
+                    Total: {{ getTotalParticipants(activeRound.groupAssignments) }} Participants
+                  </v-chip>
+                  <v-chip 
+                    color="white" 
+                    :text-color="activeRound.hasEnded ? 'error' : 'success'" 
+                    size="large" 
+                    prepend-icon="mdi-forum"
+                    class="mx-2"
+                  >
+                    {{ activeRound.groupAssignments.length }} Discussion Groups
+                  </v-chip>
+                  
+                  <!-- Round Ended Message -->
+                  <div v-if="activeRound.hasEnded" class="mt-4">
+                    <v-alert
+                      color="warning"
+                      variant="elevated"
+                      class="mx-auto"
+                      style="max-width: 600px;"
+                      prominent
+                    >
+                      <template #prepend>
+                        <v-icon size="large">mdi-timer-off</v-icon>
+                      </template>
+                      <v-alert-title class="text-h6">Discussion Round Complete</v-alert-title>
+                      <div>Thank you for participating! Please wrap up your discussions and return to the main area.</div>
+                    </v-alert>
+                  </div>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
         </v-col>
       </v-row>
 
@@ -695,6 +1023,58 @@ onUnmounted(() => {
             @click="startNewRound"
           >
             Start Round
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Participant Details Dialog -->
+    <v-dialog v-model="participantDetailsDialog" max-width="600px">
+      <v-card v-if="selectedGroupForDetails">
+        <v-card-title class="d-flex align-center">
+          <v-icon class="mr-2">mdi-account-group</v-icon>
+          Group Participants: {{ selectedGroupForDetails.topicTitle }}
+        </v-card-title>
+        
+        <v-card-text>
+          <div class="mb-3">
+            <v-chip 
+              color="primary" 
+              variant="elevated" 
+              prepend-icon="mdi-account-multiple"
+              class="mr-2"
+            >
+              {{ selectedGroupForDetails.participants.length }} Total Participants
+            </v-chip>
+            <v-chip 
+              v-if="selectedGroupForDetails.roomAssignment"
+              color="info" 
+              variant="outlined" 
+              prepend-icon="mdi-map-marker"
+            >
+              {{ selectedGroupForDetails.roomAssignment }}
+            </v-chip>
+          </div>
+          
+          <h4 class="mb-3">All Participants:</h4>
+          <div class="participants-grid">
+            <v-chip
+              v-for="participant in selectedGroupForDetails.participants"
+              :key="participant"
+              class="ma-1"
+              color="primary"
+              variant="outlined"
+              prepend-icon="mdi-account"
+            >
+              {{ formatParticipantName(participant) }}
+            </v-chip>
+          </div>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="participantDetailsDialog = false">
+            Close
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1455,6 +1835,66 @@ onUnmounted(() => {
 @media (min-width: 1800px) {
   .room-assignments-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Active Round Styles */
+.timer-display {
+  text-shadow: 
+    2px 2px 0px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(255, 255, 255, 0.3);
+  letter-spacing: 4px;
+}
+
+.discussion-groups {
+  animation: slideInUp 0.5s ease-out;
+}
+
+.group-card {
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.group-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 8px 25px rgba(0, 255, 255, 0.2);
+}
+
+.group-letter {
+  font-family: 'Press Start 2P', monospace;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.7);
+}
+
+.group-title {
+  font-size: 0.9rem !important;
+  line-height: 1.2 !important;
+  font-family: 'Roboto', sans-serif !important;
+  color: white !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 500 !important;
+}
+
+.participant-list {
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+.participants-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  justify-content: center;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

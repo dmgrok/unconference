@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useDisplay } from 'vuetify'
 import type { User } from '~/types/user'
 import type { DiscussionTopic, ActiveRound } from '~/types/topic'
@@ -79,6 +79,10 @@ const isVotingDisabled = computed(() => {
 
 const canEditTopic = (topic: DiscussionTopic) => {
   return isAdmin.value || topic.createdBy === (user.value as User)?.email
+}
+
+const canDeleteTopic = (topic: DiscussionTopic) => {
+  return isAdmin.value // Only admins/organizers can delete topics
 }
 
 const topicRules = {
@@ -313,6 +317,16 @@ onMounted(async () => {
   await loadSettings()
   await Promise.all([fetchTopics(), loadActiveRound()])
   
+  // Set up polling for active round updates every 5 seconds
+  const pollInterval = setInterval(async () => {
+    await loadActiveRound()
+    // Also refresh topics to get updated voting status
+    await fetchTopics()
+  }, 5000)
+  
+  // Store interval reference for cleanup
+  ;(window as any).__votingPollInterval = pollInterval
+  
   // Check if user is new and should see onboarding
   const hasSeenTour = localStorage.getItem('unconference-tour-seen')
   if (!hasSeenTour && topics.value.length > 0) {
@@ -320,9 +334,14 @@ onMounted(async () => {
   }
 })
 
-// Cleanup timer on unmount
+// Cleanup timer and polling on unmount
 onBeforeUnmount(() => {
   stopTimer()
+  
+  // Clear polling interval
+  if ((window as any).__votingPollInterval) {
+    clearInterval((window as any).__votingPollInterval)
+  }
 })
 
 const data = ref([
@@ -483,6 +502,89 @@ function closeTour() {
             >
               View All Groups
             </v-btn>
+          </v-card-text>
+        </v-card>
+        
+        <!-- Active Discussion Groups Overview -->
+        <v-card v-if="activeRound?.isActive && activeRound?.groupAssignments?.length" class="mb-4">
+          <v-card-title class="d-flex align-center">
+            <v-icon class="mr-2">mdi-forum</v-icon>
+            Active Discussion Groups
+          </v-card-title>
+          <v-card-text>
+            <div class="mb-3">
+              <v-chip 
+                color="success" 
+                variant="flat" 
+                prepend-icon="mdi-clock"
+                class="mr-2"
+              >
+                {{ formatTime(timeRemaining) }} remaining
+              </v-chip>
+              <v-chip 
+                color="info" 
+                variant="outlined" 
+                prepend-icon="mdi-account-group"
+              >
+                {{ activeRound.groupAssignments.reduce((sum, group) => sum + group.participants.length, 0) }} participants
+              </v-chip>
+            </div>
+            
+            <v-row>
+              <v-col
+                v-for="group in activeRound.groupAssignments"
+                :key="group.topicId"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-card 
+                  variant="outlined" 
+                  :color="userAssignment?.hasAssignment && userAssignment.assignment?.topicId === group.topicId ? 'primary' : 'default'"
+                  class="h-100"
+                >
+                  <v-card-title class="text-body-1 pa-3">
+                    <div class="d-flex align-center">
+                      <v-icon 
+                        :color="userAssignment?.hasAssignment && userAssignment.assignment?.topicId === group.topicId ? 'primary' : 'default'" 
+                        class="mr-2"
+                        size="small"
+                      >
+                        {{ userAssignment?.hasAssignment && userAssignment.assignment?.topicId === group.topicId ? 'mdi-account-check' : 'mdi-chat' }}
+                      </v-icon>
+                      <span class="text-truncate">{{ group.topicTitle }}</span>
+                    </div>
+                  </v-card-title>
+                  <v-card-text class="pa-3 pt-0">
+                    <div class="d-flex align-center mb-2">
+                      <v-icon size="small" class="mr-1">mdi-account-group</v-icon>
+                      <span class="text-caption">{{ group.participants.length }} participants</span>
+                    </div>
+                    <div v-if="group.roomAssignment" class="d-flex align-center">
+                      <v-icon size="small" class="mr-1">mdi-map-marker</v-icon>
+                      <span class="text-caption">{{ group.roomAssignment }}</span>
+                    </div>
+                    <div v-if="userAssignment?.hasAssignment && userAssignment.assignment?.topicId === group.topicId" class="mt-2">
+                      <v-chip size="small" color="primary" variant="flat">
+                        Your Group
+                      </v-chip>
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+            
+            <div class="mt-3 text-center">
+              <v-btn 
+                color="primary" 
+                variant="outlined" 
+                size="small" 
+                prepend-icon="mdi-account-group"
+                to="/groups"
+              >
+                View Detailed Group Information
+              </v-btn>
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -879,7 +981,7 @@ function closeTour() {
                   Edit
                 </v-btn>
                 <v-btn
-                  v-if="canEditTopic(topic)"
+                  v-if="canDeleteTopic(topic)"
                   color="error"
                   variant="text"
                   size="small"

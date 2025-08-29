@@ -33,14 +33,14 @@ export default defineEventHandler(async (event) => {
 
     const topic = topics[topicIndex]
 
-    // Check permissions: Admin can delete any topic, users can only delete their own
-    const isAdmin = (user as any).role === 'Admin'
-    const isAuthor = topic.createdBy === (user as any).email
+    // Check permissions: Only Admin/Organizer can delete topics
+    const userRole = (user as any).Role || (user as any).role
+    const isAdminOrOrganizer = ['Admin', 'Organizer'].includes(userRole)
 
-    if (!isAdmin && !isAuthor) {
+    if (!isAdminOrOrganizer) {
       throw createError({
         statusCode: 403,
-        statusMessage: 'You do not have permission to delete this topic'
+        statusMessage: 'Only organizers and administrators can delete topics'
       })
     }
 

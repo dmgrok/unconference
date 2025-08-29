@@ -167,5 +167,125 @@
       }
     ],
     "totalParticipants": 3
+  },
+  {
+    "id": "round-6",
+    "roundNumber": 6,
+    "timestamp": "2025-08-28T21:00:26.523Z",
+    "startTime": "2025-08-28T21:00:26.523Z",
+    "duration": 20,
+    "topicIds": [
+      "d130774e-f7fe-420e-ac83-061585fff93f",
+      "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
+    ],
+    "topicTitles": [
+      "Copilot and MCP servers",
+      "GitHub Actions Hosted Runners optimization"
+    ],
+    "participantCount": 1,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "organizer@example.com"
+        ],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      },
+      {
+        "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+        "title": "GitHub Actions Hosted Runners optimization",
+        "participantCount": 0,
+        "finalScore": 1,
+        "assignedParticipants": [],
+        "roomAssignment": "Conference Room B (First Floor, West Wing)"
+      }
+    ],
+    "totalParticipants": 1
+  },
+  {
+    "id": "round-7",
+    "roundNumber": 7,
+    "timestamp": "2025-08-28T21:22:57.419Z",
+    "startTime": "2025-08-28T21:22:57.419Z",
+    "duration": 1,
+    "topicIds": [
+      "d130774e-f7fe-420e-ac83-061585fff93f"
+    ],
+    "topicTitles": [
+      "Copilot and MCP servers"
+    ],
+    "participantCount": 0,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 0,
+        "finalScore": 0,
+        "assignedParticipants": [],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      }
+    ],
+    "totalParticipants": 0
+  },
+  {
+    "id": "round-8",
+    "roundNumber": 8,
+    "timestamp": "2025-08-28T21:48:08.360Z",
+    "startTime": "2025-08-28T21:48:08.360Z",
+    "duration": 1,
+    "topicIds": [
+      "d130774e-f7fe-420e-ac83-061585fff93f"
+    ],
+    "topicTitles": [
+      "Copilot and MCP servers"
+    ],
+    "participantCount": 1,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "organizer@example.com"
+        ],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      }
+    ],
+    "totalParticipants": 1
+  },
+  {
+    "id": "round-9",
+    "roundNumber": 9,
+    "timestamp": "2025-08-28T22:20:29.752Z",
+    "startTime": "2025-08-28T22:20:29.752Z",
+    "duration": 20,
+    "topicIds": [
+      "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
+    ],
+    "topicTitles": [
+      "GitHub Actions Hosted Runners optimization"
+    ],
+    "participantCount": 1,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+        "title": "GitHub Actions Hosted Runners optimization",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "organizer@example.com"
+        ],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      }
+    ],
+    "totalParticipants": 1
   }
 ]

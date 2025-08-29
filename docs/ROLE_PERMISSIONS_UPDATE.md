@@ -1,7 +1,44 @@
 # Role Permissions Update
 
 ## Summary
-Updated admin API endpoints to allow both Admin and Organizer roles, plus Super Admin global role, improving the user experience for organizers managing events.
+Updated admin API endpoints to allow both Admin and Organizer roles, plus Super Admin global role, improving the user experience for organizers managing events. Also updated topic management permissions to improve content moderation.
+
+## Latest Changes (Topic Management)
+
+### Topic Deletion Restrictions
+**Changed Permission Model**: Only organizers and administrators can delete topics, regardless of who created them.
+
+#### Before
+- Users could delete topics they created
+- Admins could delete any topic
+
+#### After  
+- Only Admin/Organizer roles can delete any topic
+- Regular users cannot delete topics (even their own)
+- Users can still edit topics they created
+
+### Enhanced Group Participant Viewing
+**Improved Group Details**: Added detailed participant viewing in both voting dashboard and groups page.
+
+#### New Features
+- **Voting Dashboard**: "View All Participants" button for groups with >8 members
+- **Groups Page**: Enhanced participant display with "View All" functionality
+- **Participant Details Dialog**: Shows full participant list with proper name formatting
+- **Guest User Handling**: Better display of guest user names
+
+#### Implementation Details
+```typescript
+// New deletion permission check
+const userRole = (user as any).Role || (user as any).role
+const isAdminOrOrganizer = ['Admin', 'Organizer'].includes(userRole)
+
+if (!isAdminOrOrganizer) {
+  throw createError({
+    statusCode: 403,
+    statusMessage: 'Only organizers and administrators can delete topics'
+  })
+}
+```
 
 ## Changes Made
 

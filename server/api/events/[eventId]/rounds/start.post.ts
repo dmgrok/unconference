@@ -5,42 +5,53 @@ import { requireEventPermission } from "../../../../utils/authService"
 import type { DiscussionTopic, RoundHistory, ActiveRound, GroupAssignment } from '~/types/topic'
 
 // Function to automatically assign participants to groups based on their votes
+// Each participant can only attend ONE discussion group based on their preferences
 function createGroupAssignments(topics: DiscussionTopic[], selectedTopicIds: string[]): GroupAssignment[] {
   const selectedTopics = topics.filter(topic => selectedTopicIds.includes(topic.id))
   const groupAssignments: GroupAssignment[] = []
   
-  // Create initial assignments based on first choices
+  // Create empty assignments for each selected topic
   selectedTopics.forEach(topic => {
     groupAssignments.push({
       topicId: topic.id,
       topicTitle: topic.title,
-      participants: [...(topic.firstChoiceVoters || [])],
+      participants: [],
       roomAssignment: undefined // Will be assigned separately
     })
   })
   
-  // Assign second choice voters to groups with fewer participants
+  // Track assigned participants to ensure each person is only in one group
+  const assignedVoters = new Set<string>()
+  
+  // Step 1: Assign participants to their first choice topics (if selected)
   selectedTopics.forEach(topic => {
-    const secondChoiceVoters = topic.secondChoiceVoters || []
-    
-    secondChoiceVoters.forEach(voterEmail => {
-      // Check if voter is already assigned (via first choice)
-      const alreadyAssigned = groupAssignments.some(group => 
-        group.participants.includes(voterEmail)
-      )
-      
-      if (!alreadyAssigned) {
-        // Find the group with the fewest participants
-        const sortedGroups = [...groupAssignments].sort((a, b) => 
-          a.participants.length - b.participants.length
-        )
-        
-        if (sortedGroups.length > 0) {
-          sortedGroups[0].participants.push(voterEmail)
+    const assignment = groupAssignments.find(g => g.topicId === topic.id)
+    if (assignment && topic.firstChoiceVoters) {
+      topic.firstChoiceVoters.forEach(voterEmail => {
+        if (!assignedVoters.has(voterEmail)) {
+          assignment.participants.push(voterEmail)
+          assignedVoters.add(voterEmail)
         }
-      }
-    })
+      })
+    }
   })
+  
+  // Step 2: Assign participants to their second choice topics (if selected and not already assigned)
+  selectedTopics.forEach(topic => {
+    const assignment = groupAssignments.find(g => g.topicId === topic.id)
+    if (assignment && topic.secondChoiceVoters) {
+      topic.secondChoiceVoters.forEach(voterEmail => {
+        if (!assignedVoters.has(voterEmail)) {
+          assignment.participants.push(voterEmail)
+          assignedVoters.add(voterEmail)
+        }
+      })
+    }
+  })
+  
+  // Step 3: Participants whose neither first nor second choice was selected remain unassigned
+  // They can join any discussion group but are not automatically assigned to maintain the 
+  // "one participant, one group" principle
   
   return groupAssignments
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import type { User } from '~/types/user'
 import type { RoundHistory, ActiveRound } from '~/types/topic'
 
@@ -35,6 +35,8 @@ const quickRoundDialog = ref(false)
 const roundDuration = ref(20)
 const startingRound = ref(false)
 const extendingRound = ref(false)
+const allParticipantsDialog = ref(false)
+const selectedGroupForParticipants = ref<GroupAssignment | null>(null)
 
 // Timer states for active round
 const timeRemaining = ref(0)
@@ -258,9 +260,41 @@ async function openRoundHistoryDialog() {
   await loadRoundHistory()
 }
 
+function showAllParticipants(group: GroupAssignment) {
+  selectedGroupForParticipants.value = group
+  allParticipantsDialog.value = true
+}
+
+function formatParticipantName(participantEmail: string) {
+  if (participantEmail.includes('@unconference.guest')) {
+    return `Guest ${participantEmail.split('_')[1]?.substring(0, 6).toUpperCase() || 'User'}`
+  }
+  return participantEmail.split('@')[0] || participantEmail
+}
+
 onMounted(() => {
   loadSettings()
   loadGroups()
+  
+  // Set up polling for group updates every 5 seconds
+  const pollInterval = setInterval(async () => {
+    await loadGroups()
+  }, 5000)
+  
+  // Store interval reference for cleanup
+  ;(window as any).__groupsPollInterval = pollInterval
+})
+
+// Cleanup polling on unmount
+onBeforeUnmount(() => {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+  }
+  
+  // Clear polling interval
+  if ((window as any).__groupsPollInterval) {
+    clearInterval((window as any).__groupsPollInterval)
+  }
 })
 </script>
 
@@ -513,7 +547,7 @@ onMounted(() => {
     <!-- No Assignment -->
     <v-alert v-else-if="activeRound?.isActive" type="info" prominent class="mb-6">
       <v-alert-title>No Group Assignment</v-alert-title>
-      <div>You're not assigned to a specific group for this round. You can join any available discussion.</div>
+      <div>Neither of your voted topics was selected for this round. You can join any available discussion group.</div>
     </v-alert>
 
     <!-- All Groups -->
@@ -564,20 +598,39 @@ onMounted(() => {
 
               <!-- Participants -->
               <div class="mb-3">
-                <div class="d-flex align-center mb-2">
-                  <v-icon class="mr-1">mdi-account-group</v-icon>
-                  <span class="font-weight-medium">{{ group.participants.length }} participants</span>
+                <div class="d-flex align-center justify-space-between mb-2">
+                  <div class="d-flex align-center">
+                    <v-icon class="mr-1">mdi-account-group</v-icon>
+                    <span class="font-weight-medium">{{ group.participants.length }} participants</span>
+                  </div>
+                  <v-btn
+                    v-if="group.participants.length > 6"
+                    size="small"
+                    color="info"
+                    variant="outlined"
+                    @click="showAllParticipants(group)"
+                  >
+                    View All
+                  </v-btn>
                 </div>
                 
                 <div class="d-flex flex-wrap gap-1">
                   <v-chip
-                    v-for="participant in group.participants"
+                    v-for="participant in group.participants.slice(0, 6)"
                     :key="participant"
                     size="small"
                     :color="participant === userEmail ? 'primary' : 'grey-lighten-1'"
                     :text-color="participant === userEmail ? 'white' : 'black'"
                   >
-                    {{ participant === userEmail ? 'You' : participant.split('@')[0] }}
+                    {{ participant === userEmail ? 'You' : formatParticipantName(participant) }}
+                  </v-chip>
+                  <v-chip
+                    v-if="group.participants.length > 6"
+                    size="small"
+                    color="grey-lighten-2"
+                    variant="outlined"
+                  >
+                    +{{ group.participants.length - 6 }} more
                   </v-chip>
                 </div>
               </div>
@@ -841,6 +894,60 @@ onMounted(() => {
         <v-card-actions>
           <v-spacer />
           <v-btn color="primary" @click="roundHistoryDialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- All Participants Dialog -->
+    <v-dialog v-model="allParticipantsDialog" max-width="600px">
+      <v-card v-if="selectedGroupForParticipants">
+        <v-card-title class="d-flex align-center">
+          <v-icon class="mr-2">mdi-account-group</v-icon>
+          All Participants in Group {{ selectedGroupForParticipants ? groups.findIndex(g => g.topicId === selectedGroupForParticipants!.topicId) + 1 : '' }}
+        </v-card-title>
+        
+        <v-card-text>
+          <div class="mb-4">
+            <h3 class="text-h6 mb-2">{{ selectedGroupForParticipants.topicTitle }}</h3>
+            <div class="d-flex gap-2 mb-3">
+              <v-chip 
+                color="primary" 
+                variant="elevated" 
+                prepend-icon="mdi-account-multiple"
+              >
+                {{ selectedGroupForParticipants.participants.length }} Total Participants
+              </v-chip>
+              <v-chip 
+                v-if="selectedGroupForParticipants.roomAssignment"
+                color="info" 
+                variant="outlined" 
+                prepend-icon="mdi-map-marker"
+              >
+                {{ selectedGroupForParticipants.roomAssignment }}
+              </v-chip>
+            </div>
+          </div>
+          
+          <h4 class="mb-3">Participants:</h4>
+          <div class="participants-grid">
+            <v-chip
+              v-for="participant in selectedGroupForParticipants.participants"
+              :key="participant"
+              :color="participant === userEmail ? 'primary' : 'grey-lighten-1'"
+              :text-color="participant === userEmail ? 'white' : 'black'"
+              class="ma-1"
+              prepend-icon="mdi-account"
+            >
+              {{ participant === userEmail ? 'You' : formatParticipantName(participant) }}
+            </v-chip>
+          </div>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="allParticipantsDialog = false">
+            Close
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -156,7 +156,7 @@ onMounted(() => {
     <!-- No Assignment -->
     <v-alert v-else-if="activeRound?.isActive" type="info" prominent class="mb-6">
       <v-alert-title>No Group Assignment</v-alert-title>
-      <div>You're not assigned to a specific group for this round. You can join any available discussion.</div>
+      <div>Neither of your voted topics was selected for this round. You can join any available discussion group.</div>
     </v-alert>
 
     <!-- All Groups -->

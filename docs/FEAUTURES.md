@@ -8,8 +8,8 @@ This document provides a comprehensive overview of all features available in the
 - **Topic Creation**: Users can propose discussion topics with title and description
 - **Preference Voting**: Weighted voting system (1st choice = 2 points, 2nd choice = 1 point)
 - **Direct Voting**: Simple click-to-vote interface on dashboard
-- **Topic Editing**: Users can edit their own topics; admins can edit any topic
-- **Topic Deletion**: Users can delete their own topics; admins can delete any topic (with restrictions)
+- **Topic Editing**: Users can edit their own topics; organizers/admins can edit any topic
+- **Topic Deletion**: Only organizers and administrators can delete topics (improved content moderation)
 - **Topic Freezing**: Admins can freeze topics to prevent new votes
 - **Badge System**: Popular topics earn badges based on voting performance
 - **Smart Restrictions**: Topics cannot be deleted if frozen or active in a round
@@ -23,6 +23,15 @@ This document provides a comprehensive overview of all features available in the
 - **Round History**: Complete tracking of past rounds with analytics
 - **Visual Progress**: Progress bars and status indicators for active rounds
 - **Vote Visualization**: Progress bars showing relative topic popularity in selection interface
+
+### Group & Participant Management
+- **Group Overview**: Visual display of all discussion groups with participant counts
+- **Detailed Participant Lists**: View all participants in each discussion group
+- **Smart Participant Display**: Shows preview (6 participants) with "View All" option for larger groups
+- **Participant Details Dialog**: Modal interface showing full participant lists with room assignments
+- **Name Formatting**: Improved display of guest users and regular participants
+- **Current User Highlighting**: Clear indication of user's own group assignment
+- **Room Assignment Display**: Clear indication of physical discussion locations
 
 ### User Authentication & Roles
 - **GitHub OAuth**: Secure authentication via GitHub accounts
