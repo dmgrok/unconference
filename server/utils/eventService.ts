@@ -107,6 +107,50 @@ export class EventService {
     }
   }
 
+  async getPlatformUsers(): Promise<User[]> {
+    try {
+      const usersPath = join(this.platformBasePath, 'users.json')
+      const usersData = await fs.readFile(usersPath, 'utf-8')
+      return JSON.parse(usersData) as User[]
+    } catch (error) {
+      logger.error('Error getting platform users:', error)
+      return []
+    }
+  }
+
+  async getEventOrganizers(eventId: string): Promise<Array<User & { isPrimary?: boolean }>> {
+    try {
+      const membershipsPath = join(this.platformBasePath, 'memberships.json')
+      const membershipsData = await fs.readFile(membershipsPath, 'utf-8')
+      const memberships = JSON.parse(membershipsData) as UserEventRole[]
+      
+      const organizerMemberships = memberships.filter(m => 
+        m.eventId === eventId && m.role === 'Organizer'
+      )
+      
+      const users = await this.getPlatformUsers()
+      const organizers = organizerMemberships.map(membership => {
+        const user = users.find(u => u.id === membership.userId)
+        if (!user) return null
+        
+        // Check if this is the primary organizer (event creator)
+        const event = this.getEvent(eventId)
+        const isPrimary = event ? (user.id === (event as any).organizerId) : false
+        
+        return {
+          ...user,
+          isPrimary,
+          joinedAt: membership.joinedAt
+        }
+      }).filter(Boolean)
+      
+      return organizers as Array<User & { isPrimary?: boolean }>
+    } catch (error) {
+      logger.error('Error getting event organizers:', error)
+      return []
+    }
+  }
+
   async addEventMembership(eventId: string, userId: string, role: 'Organizer' | 'Moderator' | 'Participant'): Promise<void> {
     try {
       const membershipsPath = join(this.platformBasePath, 'memberships.json')

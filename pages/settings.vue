@@ -82,6 +82,15 @@ const isAdmin = computed(() => (user.value as any)?.Role === 'Admin' || (user.va
 const isOrganizer = computed(() => (user.value as any)?.Role === 'Organizer' || (user.value as any)?.role === 'Organizer')
 const hasEventAccess = computed(() => isAdmin.value || isOrganizer.value)
 
+// Event and user context for organizer management
+const { currentEventId } = useEventContext()
+const currentUserId = computed(() => (user.value as any)?.id || (user.value as any)?.email)
+const userRole = computed(() => {
+  if (isAdmin.value) return 'Admin'
+  if (isOrganizer.value) return 'Organizer'
+  return 'Participant'
+})
+
 // Theme options
 const themeOptions = [
   { title: 'Light', value: 'light' },
@@ -595,7 +604,55 @@ definePageMeta({
               </v-alert>
             </v-col>
           </v-row>
+        </v-card-text>
+      </v-card>
+
+      <!-- Organizer Management Section (Visible to organizers) -->
+      <v-card v-if="hasEventAccess" class="mb-6">
+        <v-card-title class="d-flex align-center">
+          <v-icon class="mr-2">mdi-account-group</v-icon>
+          Event Organizers
+          <v-chip class="ml-2" color="primary" size="small">
+            Manage Access
+          </v-chip>
+        </v-card-title>
+        <v-card-text>
+          <p class="text-body-2 text-grey-darken-1 mb-4">
+            Manage who can organize this event. Organizers have full control over event settings, rooms, topics, and rounds.
+          </p>
           
+          <OrganizerManagement
+            :event-id="currentEventId"
+            :user-role="userRole"
+            :current-user-id="currentUserId"
+          />
+        </v-card-text>
+      </v-card>
+
+      <!-- Event Information Section -->
+      <v-card v-if="hasEventAccess" class="mb-6">
+        <v-card-title class="d-flex align-center">
+          <v-icon class="mr-2">mdi-information</v-icon>
+          Event Information
+          <v-spacer></v-spacer>
+          <v-chip 
+            v-if="eventInfoSaving" 
+            color="primary" 
+            size="small"
+            prepend-icon="mdi-loading mdi-spin"
+          >
+            Auto-saving...
+          </v-chip>
+          <v-chip 
+            v-else
+            color="success" 
+            size="small"
+            prepend-icon="mdi-check"
+          >
+            Auto-save enabled
+          </v-chip>
+        </v-card-title>
+        <v-card-text>
           <!-- Event Information Section -->
           <v-divider class="my-6"></v-divider>
           <div class="mb-4 d-flex align-center">
