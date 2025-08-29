@@ -77,26 +77,51 @@ function shareEvent(event: any) {
               </p>
               
               <div class="hero-actions mb-8">
-                <v-btn
-                  color="primary"
-                  size="x-large"
-                  prepend-icon="mdi-ticket-confirmation"
-                  to="/quick-join"
-                  class="hero-btn-primary"
-                  elevation="8"
-                >
-                  Join an Event
-                </v-btn>
+                <div class="action-row primary-actions">
+                  <v-btn
+                    color="primary"
+                    size="x-large"
+                    prepend-icon="mdi-plus"
+                    to="/register"
+                    class="hero-btn-primary"
+                    elevation="8"
+                  >
+                    Create Event
+                  </v-btn>
+                  
+                  <v-btn
+                    color="secondary"
+                    size="x-large"
+                    prepend-icon="mdi-ticket-confirmation"
+                    to="/quick-join"
+                    class="hero-btn-secondary"
+                    elevation="6"
+                  >
+                    Join Event
+                  </v-btn>
+                </div>
                 
-                <v-btn
-                  variant="outlined"
-                  size="large"
-                  prepend-icon="mdi-login"
-                  to="/login"
-                  class="hero-btn-secondary"
-                >
-                  Sign In
-                </v-btn>
+                <div class="action-row secondary-actions mt-4">
+                  <v-btn
+                    variant="outlined"
+                    size="large"
+                    prepend-icon="mdi-login"
+                    to="/login"
+                    class="hero-btn-outline"
+                  >
+                    Sign In
+                  </v-btn>
+                  
+                  <v-btn
+                    variant="text"
+                    size="large"
+                    prepend-icon="mdi-information"
+                    href="#how-it-works"
+                    class="hero-btn-text"
+                  >
+                    Learn More
+                  </v-btn>
+                </div>
               </div>
               
               <p class="hero-note">
@@ -111,7 +136,7 @@ function shareEvent(event: any) {
 
 
     <!-- How it Works Section -->
-    <section class="how-it-works-section">
+    <section id="how-it-works" class="how-it-works-section">
       <v-container class="py-16">
         <div class="section-header">
           <div class="section-icon">
@@ -286,11 +311,22 @@ function shareEvent(event: any) {
 }
 
 .hero-actions {
+  margin-bottom: 2rem;
+}
+
+.action-row {
   display: flex;
   gap: 1.5rem;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 2rem;
+}
+
+.primary-actions .v-btn {
+  min-width: 180px;
+}
+
+.secondary-actions .v-btn {
+  min-width: 140px;
 }
 
 .hero-btn-primary {
@@ -312,6 +348,24 @@ function shareEvent(event: any) {
 }
 
 .hero-btn-secondary {
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  padding: 16px 32px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+  color: white !important;
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(139, 92, 246, 0.4);
+}
+
+.hero-btn-outline {
   color: white;
   border: 2px solid rgba(255,255,255,0.3);
   font-weight: 500;
@@ -322,6 +376,24 @@ function shareEvent(event: any) {
   backdrop-filter: blur(10px);
   background: rgba(255,255,255,0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-btn-outline:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.5);
+  transform: translateY(-1px);
+}
+
+.hero-btn-text {
+  color: rgba(255,255,255,0.9);
+  font-weight: 500;
+  text-transform: none;
+  transition: all 0.3s ease;
+}
+
+.hero-btn-text:hover {
+  color: white;
+  background: rgba(255,255,255,0.1);
 }
 
 .hero-btn-secondary:hover {

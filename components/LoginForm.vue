@@ -325,6 +325,19 @@
                             <v-icon start>mdi-login</v-icon>
                             Sign In
                         </v-btn>
+                        
+                        <!-- Register Link -->
+                        <div class="text-center mt-4">
+                            <p class="text-body-2 mb-2">Don't have an account?</p>
+                            <v-btn
+                                variant="outlined"
+                                color="secondary"
+                                to="/register"
+                                prepend-icon="mdi-account-plus"
+                            >
+                                Create Account
+                            </v-btn>
+                        </div>
                     </v-form>
                 </div>
 

@@ -1,11 +1,17 @@
 <script setup lang="ts">
 const { eventConfig } = useEventConfig()
-const { user, loggedIn } = useUserSession()
+const { user, loggedIn, clear: clearSession } = useUserSession()
 
 const isOrganizer = computed(() => {
   const userRole = (user.value as any)?.Role || (user.value as any)?.role
   return ['Admin', 'Organizer'].includes(userRole)
 })
+
+// Logout function
+async function logout() {
+  await clearSession()
+  await navigateTo('/login')
+}
 </script>
 
 <template>
@@ -34,6 +40,15 @@ const isOrganizer = computed(() => {
 
         <div class="header-actions">
           <template v-if="loggedIn">
+            <!-- Logged-in User Actions -->
+            <v-btn
+              variant="text"
+              to="/events"
+              prepend-icon="mdi-calendar-multiple"
+            >
+              My Events
+            </v-btn>
+            
             <v-btn
               variant="text"
               to="/voting"
@@ -51,17 +66,55 @@ const isOrganizer = computed(() => {
               Organizer Hub
             </v-btn>
             
-            <v-btn
-              variant="outlined"
-              color="error"
-              @click="$router.push('/login')"
-              prepend-icon="mdi-logout"
-            >
-              Logout
-            </v-btn>
+            <!-- User Menu -->
+            <v-menu>
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  variant="text"
+                  prepend-icon="mdi-account-circle"
+                >
+                  {{ (user as any)?.name?.split(' ')[0] || 'User' }}
+                  <v-icon end>mdi-chevron-down</v-icon>
+                </v-btn>
+              </template>
+              
+              <v-list>
+                <v-list-item to="/settings" prepend-icon="mdi-cog">
+                  <v-list-item-title>Settings</v-list-item-title>
+                </v-list-item>
+                
+                <v-list-item 
+                  v-if="(user as any)?.globalRole === 'SuperAdmin'"
+                  to="/super-admin/dashboard" 
+                  prepend-icon="mdi-shield-crown"
+                >
+                  <v-list-item-title>Super Admin</v-list-item-title>
+                </v-list-item>
+                
+                <v-divider />
+                
+                <v-list-item 
+                  @click="logout"
+                  prepend-icon="mdi-logout"
+                  class="text-error"
+                >
+                  <v-list-item-title>Sign Out</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </template>
           
           <template v-else>
+            <!-- Non-authenticated User Actions -->
+            <v-btn
+              variant="text"
+              to="/quick-join"
+              prepend-icon="mdi-ticket-confirmation"
+            >
+              Join Event
+            </v-btn>
+            
             <v-btn
               variant="text"
               to="/login"
@@ -72,10 +125,19 @@ const isOrganizer = computed(() => {
             
             <v-btn
               color="primary"
-              to="/quick-join"
-              prepend-icon="mdi-ticket-confirmation"
+              to="/register"
+              prepend-icon="mdi-account-plus"
             >
-              Join Event
+              Create Account
+            </v-btn>
+            
+            <v-btn
+              color="secondary"
+              variant="outlined"
+              to="/events"
+              prepend-icon="mdi-plus"
+            >
+              Create Event
             </v-btn>
           </template>
         </div>
