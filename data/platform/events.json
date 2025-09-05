@@ -22,9 +22,10 @@
     "location": "Tech Hub Downtown",
     "startDate": "2024-09-15T09:00:00.000Z",
     "endDate": "2024-09-15T17:00:00.000Z",
-    "isActive": false,
+    "isActive": true,
     "createdAt": "2024-08-15T14:00:00.000Z",
-    "updatedAt": "2024-08-25T16:00:00.000Z"
+    "updatedAt": "2024-08-25T16:00:00.000Z",
+    "reactivatedAt": "2025-09-05T16:43:46.473Z"
   },
   {
     "id": "event-003",

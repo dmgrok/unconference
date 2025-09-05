@@ -354,8 +354,8 @@ async function deleteEvent(event: Event) {
 }
 
 function navigateToEvent(event: Event) {
-  // Navigate to the event's organizer dashboard
-  window.open(`/events/${event.id}/organizer`, '_blank')
+  // Navigate to the detailed event view for super admins
+  navigateTo(`/super-admin/events/${event.id}`)
 }
 
 function formatDate(dateString: string) {
