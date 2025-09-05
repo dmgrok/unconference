@@ -89,4 +89,28 @@ export default defineNuxtConfig({
       allowedHosts: ['localhost', '.ngrok.dev'] 
     }
   },
+  nitro: {
+    experimental: {
+      wasm: true
+    }
+  },
+  // Security configuration
+  ssr: true,
+  // Add security headers via routeRules
+  routeRules: {
+    // Global security headers
+    '/**': {
+      headers: {
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'X-XSS-Protection': '1; mode=block',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+      }
+    },
+    // API rate limiting will be handled by middleware
+    '/api/**': {
+      cors: true
+    }
+  }
 })

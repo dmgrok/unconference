@@ -2,6 +2,7 @@ import { promises as fs } from 'fs'
 import { join } from 'path'
 import logger from '../../../../utils/logger'
 import { getAdminSettings } from '../../../../utils/adminSettings'
+import { monitoringService } from '../../../utils/monitoringService'
 import type { DiscussionTopic } from '~/types/topic'
 import type { User } from '~/types/user'
 
@@ -11,6 +12,11 @@ export default defineEventHandler(async (event) => {
   const maxVotesPerTopic = adminSettings.maxVotesPerTopic
   const { user } = await requireUserSession(event)
   const topicId = getRouterParam(event, 'id')
+  
+  // Track request completion for monitoring
+  const onRequestEnd = (statusCode: number, error?: string) => {
+    monitoringService.trackRequestEnd(event, statusCode, error)
+  }
   
   const topicsPath = join(process.cwd(), config.topicsFilePath)
   
@@ -63,11 +69,20 @@ export default defineEventHandler(async (event) => {
     // Write back to file
     await fs.writeFile(topicsPath, JSON.stringify(topics, null, 2))
     
+    // Track successful vote for monitoring
+    const userId = (user as User).email || (user as any).id || 'unknown'
+    monitoringService.trackUserActivity(userId, 'vote_topic', event, topicId)
+    onRequestEnd(200)
+    
     return topic
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if (error.statusCode) {
+      onRequestEnd(error.statusCode, error.statusMessage)
+      throw error
+    }
     
     logger.error('Error voting for topic:', error)
+    onRequestEnd(500, 'Failed to vote for topic')
     throw createError({
       statusCode: 500,
       message: 'Failed to vote for topic'
