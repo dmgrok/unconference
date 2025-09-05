@@ -236,6 +236,7 @@ interface Event {
 }
 
 const { user } = useUserSession()
+const route = useRoute()
 
 // Check if user is super admin
 const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
@@ -353,9 +354,19 @@ async function deleteEvent(event: Event) {
   }
 }
 
-function navigateToEvent(event: Event) {
-  // Navigate to the detailed event view for super admins
-  navigateTo(`/super-admin/events/${event.id}`)
+async function navigateToEvent(event: Event) {
+  console.log('Navigating to event:', event.id)
+  
+  try {
+    // Close current dialog
+    detailsDialog.value = false
+    
+    // Navigate with query parameter to show event details
+    await navigateTo(`/super-admin/events?eventId=${event.id}`)
+  } catch (error) {
+    console.error('Navigation failed:', error)
+    alert('Failed to navigate to event details: ' + error)
+  }
 }
 
 function formatDate(dateString: string) {
@@ -366,7 +377,16 @@ function formatDateTime(dateString: string) {
   return new Date(dateString).toLocaleString()
 }
 
-onMounted(() => {
-  loadEvents()
+onMounted(async () => {
+  await loadEvents()
+  
+  // Check if eventId is in query parameters
+  const eventId = route.query.eventId as string
+  if (eventId) {
+    const event = events.value.find(e => e.id === eventId)
+    if (event) {
+      viewEvent(event)
+    }
+  }
 })
 </script>
