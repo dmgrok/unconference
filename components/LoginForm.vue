@@ -1,6 +1,9 @@
 <script setup lang="ts">
+    import { nextTick } from 'vue'
+    
     const runtimeConfig = useRuntimeConfig()
     const devMode = ref(true); // Enable dev mode for guest features
+    const route = useRoute()
 
     const { loggedIn, user, fetch: refreshSession } = useUserSession()
     const credentials = reactive({
@@ -15,6 +18,8 @@
     })
     
     const loginError = ref(false)
+    const loginLoading = ref(false)
+    const guestLoading = ref(false)
     const formValid = ref(false)
     const guestFormValid = ref(false)
     const isGuestMode = ref(false)
@@ -37,6 +42,13 @@
             } catch (e) {
                 localStorage.removeItem('unconference-guest')
             }
+        }
+        
+        // Check for event code in URL parameters
+        const urlEventCode = route.query.code as string || route.query.eventCode as string
+        if (urlEventCode) {
+            guestForm.eventCode = urlEventCode.toUpperCase()
+            isGuestMode.value = true // Switch to guest mode if event code provided
         }
     })
 
@@ -61,17 +73,36 @@
     }
 
     async function login() {
-        useFetch('/api/auth/login', {
-            method: 'POST',
-            body: credentials
-        }).then(async () => {
-            // Refresh the session on client-side and redirect to the voting page
-            await refreshSession()
-            await navigateTo('/voting')
-        }).catch((error) => {
-            loginError.value = true
-            console.error('Login failed', error)
-        })
+        if (loginLoading.value) return
+        
+        loginLoading.value = true
+        loginError.value = false
+        
+        try {
+            const eventCode = guestForm.eventCode || (route.query.code as string) || (route.query.eventCode as string)
+            const redirectTo = route.query.redirect as string
+            
+            const response = await $fetch('/api/auth/login', {
+                method: 'POST',
+                body: {
+                    ...credentials,
+                    eventCode: eventCode?.toUpperCase(),
+                    redirectTo
+                }
+            }).then(async () => {
+                // Refresh the session on client-side
+                await refreshSession()
+                
+                // Use smart routing to determine where to go
+                const routingResponse = await $fetch('/api/auth/post-login-redirect') as { redirect: string, reason: string }
+                await navigateTo(routingResponse.redirect)
+            }).catch((error) => {
+                loginError.value = true
+                throw error
+            })
+        } finally {
+            loginLoading.value = false
+        }
     }
 
     async function guestJoin() {
@@ -116,24 +147,32 @@
         credentials.email = testCredentials.superAdmin.email
         credentials.password = testCredentials.superAdmin.password
         loginError.value = false
+        // Auto-login for convenience
+        nextTick(() => login())
     }
 
     function fillAdminCredentials() {
         credentials.email = testCredentials.admin.email
         credentials.password = testCredentials.admin.password
         loginError.value = false
+        // Auto-login for convenience
+        nextTick(() => login())
     }
 
     function fillUserCredentials() {
         credentials.email = testCredentials.user.email
         credentials.password = testCredentials.user.password
         loginError.value = false
+        // Auto-login for convenience
+        nextTick(() => login())
     }
 
     function fillOrganizerCredentials() {
         credentials.email = testCredentials.organizer.email
         credentials.password = testCredentials.organizer.password
         loginError.value = false
+        // Auto-login for convenience
+        nextTick(() => login())
     }
     
     function switchToGuest() {
@@ -144,6 +183,52 @@
     function switchToLogin() {
         isGuestMode.value = false
         loginError.value = false
+    }
+
+    async function signInWithGoogle() {
+        try {
+            const eventCode = guestForm.eventCode || (route.query.code as string) || (route.query.eventCode as string)
+            const redirectTo = route.query.redirect as string
+            
+            // Build OAuth URL with state parameters for event context
+            let oauthUrl = '/api/auth/google'
+            
+            if (eventCode || redirectTo) {
+                const params = new URLSearchParams()
+                if (eventCode) params.set('state', eventCode.toUpperCase())
+                if (redirectTo) params.set('redirect_uri', redirectTo)
+                oauthUrl += '?' + params.toString()
+            }
+            
+            // Redirect to Google OAuth
+            await navigateTo(oauthUrl, { external: true })
+        } catch (error) {
+            console.error('Google OAuth error:', error)
+            loginError.value = true
+        }
+    }
+
+    async function signInWithGitHub() {
+        try {
+            const eventCode = guestForm.eventCode || (route.query.code as string) || (route.query.eventCode as string)
+            const redirectTo = route.query.redirect as string
+            
+            // Build OAuth URL with state parameters for event context
+            let oauthUrl = '/api/auth/github'
+            
+            if (eventCode || redirectTo) {
+                const params = new URLSearchParams()
+                if (eventCode) params.set('state', eventCode.toUpperCase())
+                if (redirectTo) params.set('redirect_uri', redirectTo)
+                oauthUrl += '?' + params.toString()
+            }
+            
+            // Redirect to GitHub OAuth
+            await navigateTo(oauthUrl, { external: true })
+        } catch (error) {
+            console.error('GitHub OAuth error:', error)
+            loginError.value = true
+        }
     }
 </script>
 
@@ -186,12 +271,15 @@
                             @click="switchToLogin"
                             elevation="2"
                         >
-                            <div class="method-icon github-icon">
-                                <v-icon size="40">mdi-github</v-icon>
+                            <div class="method-icon oauth-icon">
+                                <div class="oauth-icons">
+                                    <v-icon size="24" color="#4285F4">mdi-google</v-icon>
+                                    <v-icon size="24">mdi-github</v-icon>
+                                </div>
                             </div>
-                            <h3 class="method-title">GitHub Account</h3>
+                            <h3 class="method-title">OAuth Login</h3>
                             <p class="method-description">
-                                Full features, edit topics, admin access
+                                Google, GitHub, or email/password
                             </p>
                         </v-card>
                         
@@ -268,6 +356,8 @@
                             <div class="test-buttons">
                                 <v-btn
                                     @click="fillSuperAdminCredentials"
+                                    :disabled="loginLoading"
+                                    :loading="loginLoading"
                                     variant="outlined"
                                     color="error"
                                     size="small"
@@ -279,6 +369,8 @@
                                 </v-btn>
                                 <v-btn
                                     @click="fillAdminCredentials"
+                                    :disabled="loginLoading"
+                                    :loading="loginLoading"
                                     variant="outlined"
                                     color="primary"
                                     size="small"
@@ -290,6 +382,8 @@
                                 </v-btn>
                                 <v-btn
                                     @click="fillOrganizerCredentials"
+                                    :disabled="loginLoading"
+                                    :loading="loginLoading"
                                     variant="outlined"
                                     color="info"
                                     size="small"
@@ -301,6 +395,8 @@
                                 </v-btn>
                                 <v-btn
                                     @click="fillUserCredentials"
+                                    :disabled="loginLoading"
+                                    :loading="loginLoading"
                                     variant="outlined"
                                     color="secondary"
                                     size="small"
@@ -315,7 +411,8 @@
                         </div>
 
                         <v-btn 
-                            :disabled="!formValid" 
+                            :disabled="!formValid || loginLoading" 
+                            :loading="loginLoading"
                             type="submit" 
                             data-testid="login-submit-button"
                             color="primary" 
@@ -325,6 +422,43 @@
                             <v-icon start>mdi-login</v-icon>
                             Sign In
                         </v-btn>
+
+                        <!-- OAuth Section -->
+                        <div class="oauth-section">
+                            <v-divider class="my-4">
+                                <template #default>
+                                    <span class="oauth-divider-text">Or sign in with</span>
+                                </template>
+                            </v-divider>
+                            
+                            <div class="oauth-buttons">
+                                <v-btn
+                                    @click="signInWithGoogle"
+                                    :disabled="loginLoading"
+                                    variant="outlined"
+                                    color="primary"
+                                    size="large"
+                                    class="oauth-btn google-btn"
+                                    data-testid="google-login-button"
+                                >
+                                    <v-icon start color="#4285F4">mdi-google</v-icon>
+                                    Google
+                                </v-btn>
+                                
+                                <v-btn
+                                    @click="signInWithGitHub"
+                                    :disabled="loginLoading"
+                                    variant="outlined"
+                                    color="primary"
+                                    size="large"
+                                    class="oauth-btn github-btn"
+                                    data-testid="github-login-button"
+                                >
+                                    <v-icon start>mdi-github</v-icon>
+                                    GitHub
+                                </v-btn>
+                            </div>
+                        </div>
                         
                         <!-- Register Link -->
                         <div class="text-center mt-4">
@@ -836,6 +970,65 @@
   margin-top: 0.5rem;
 }
 
+/* OAuth Styles */
+.oauth-section {
+  margin-top: 1.5rem;
+}
+
+.oauth-divider-text {
+  font-size: 0.875rem;
+  color: #64748B;
+  padding: 0 1rem;
+}
+
+.oauth-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.oauth-btn {
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 12px 16px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.oauth-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.google-btn {
+  border-color: #4285F4 !important;
+}
+
+.google-btn:hover {
+  background-color: rgba(66, 133, 244, 0.04);
+}
+
+.github-btn {
+  border-color: #24292e !important;
+}
+
+.github-btn:hover {
+  background-color: rgba(36, 41, 46, 0.04);
+}
+
+.oauth-icons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.oauth-icon .oauth-icons {
+  margin-bottom: 8px;
+}
+
 /* Message Styles */
 .message-section {
   margin-top: 1.5rem;
@@ -879,6 +1072,11 @@
     flex-direction: column;
   }
   
+  .oauth-buttons {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
   .avatar-grid {
     max-height: 80px;
   }
@@ -916,6 +1114,23 @@
 }
 
 .v-theme--dark .preview-code {
+  color: #CBD5E1;
+}
+
+.v-theme--dark .oauth-btn {
+  background-color: rgba(51, 65, 85, 0.6);
+  color: #F1F5F9;
+}
+
+.v-theme--dark .google-btn:hover {
+  background-color: rgba(66, 133, 244, 0.1);
+}
+
+.v-theme--dark .github-btn:hover {
+  background-color: rgba(240, 246, 252, 0.1);
+}
+
+.v-theme--dark .oauth-divider-text {
   color: #CBD5E1;
 }
 </style>

@@ -49,5 +49,27 @@
     "GlobalRole": "User",
     "CreatedAt": "2025-08-29T12:59:09.161Z",
     "IsActive": true
+  },
+  {
+    "id": "user_1756478224156_qdq461j05",
+    "Email": "qsdqs@dsqs.Com",
+    "Password": "1234567890",
+    "Firstname": "qsd",
+    "Lastname": "",
+    "Role": "User",
+    "GlobalRole": "User",
+    "CreatedAt": "2025-08-29T14:37:04.156Z",
+    "IsActive": true
+  },
+  {
+    "id": "user_1757011243208_1kwkrqgbr",
+    "Email": "business.evaluator@test.com",
+    "Password": "TestPassword123!",
+    "Firstname": "Business",
+    "Lastname": "Evaluator",
+    "Role": "User",
+    "GlobalRole": "User",
+    "CreatedAt": "2025-09-04T18:40:43.208Z",
+    "IsActive": true
   }
 ]

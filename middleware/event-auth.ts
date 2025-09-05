@@ -16,7 +16,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     
     // redirect the user to the login screen if they're not authenticated
     if (!loggedIn.value) {
-        return navigateTo('/login')
+        // Preserve event code if present in URL
+        const eventCode = to.query.code as string || to.query.eventCode as string
+        const redirectUrl = eventCode ? `/login?code=${eventCode}` : '/login'
+        return navigateTo(redirectUrl)
     }
 
     const currentUser = user.value as User

@@ -38,14 +38,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Application Structure
 - **Pages**: Dashboard, settings with automatic authentication middleware
-- **Authentication**: GitHub OAuth integration with role-based access (Admin vs User)
+- **Authentication**: Multi-provider OAuth integration (Google, GitHub) with role-based access (Admin vs User)
 - **Middleware**: Automatic authentication enforcement for non-public pages
 - **File-based data storage**: JSON files for topics and users (configurable via env vars)
 
 ### Environment Configuration
 Critical environment variables:
 - `NUXT_TOPICS_FILE_PATH` / `NUXT_USERS_FILE_PATH` - Data file locations
-- `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - OAuth configuration
+- `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth configuration
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth configuration
 - `NUXT_MAX_VOTES_PER_TOPIC` - Voting limits (default: 12)
 - `APP_ENV` - Controls dev mode and logging levels
 

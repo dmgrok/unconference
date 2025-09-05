@@ -6,6 +6,8 @@ import type { User } from '~/types/user'
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const { user } = await requireUserSession(event)
+  const query = getQuery(event)
+  const eventId = query.eventId as string
   
   // Verify admin or organizer role
   const userRole = (user as any).Role || (user as any).role
@@ -16,7 +18,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const roundHistoryPath = join(process.cwd(), 'data', 'round-history.json')
+  // Use event-specific data if eventId provided, otherwise fall back to global data
+  const roundHistoryPath = eventId 
+    ? join(process.cwd(), 'data', 'events', eventId, 'round-history.json')
+    : join(process.cwd(), 'data', 'round-history.json')
   
   try {
     // Check if round history file exists

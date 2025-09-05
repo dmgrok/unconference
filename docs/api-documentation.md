@@ -331,14 +331,30 @@ Create or update rooms.
 
 ## Authentication API
 
+### GET /api/auth/google
+Initiate Google OAuth flow.
+
+**Query Parameters:**
+- `state` (optional): Event code for context preservation
+- `redirect_uri` (optional): Custom redirect after login
+
+### GET /api/auth/github  
+Initiate GitHub OAuth flow.
+
+**Query Parameters:**
+- `state` (optional): Event code for context preservation
+- `redirect_uri` (optional): Custom redirect after login
+
 ### POST /api/auth/login
-Authenticate user with GitHub.
+Authenticate user with email/password.
 
 **Request Body:**
 ```json
 {
-  "code": "github_oauth_code",
-  "state": "oauth_state"
+  "email": "user@example.com",
+  "password": "password123",
+  "eventCode": "EVENT2024",
+  "redirectTo": "/dashboard"
 }
 ```
 

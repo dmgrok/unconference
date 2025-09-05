@@ -8,11 +8,13 @@ const bodySchema = z.object({
   password: z.string().min(8),
   name: z.string().min(2),
   firstName: z.string().min(1).optional(),
-  lastName: z.string().min(1).optional()
+  lastName: z.string().min(1).optional(),
+  eventCode: z.string().optional(),
+  redirectTo: z.string().optional()
 })
 
 export default defineEventHandler(async (event) => {
-  const { email, password, name, firstName, lastName } = await readValidatedBody(event, bodySchema.parse)
+  const { email, password, name, firstName, lastName, eventCode, redirectTo } = await readValidatedBody(event, bodySchema.parse)
   const config = useRuntimeConfig()
   const usersFilePath = join(process.cwd(), config.usersFilePath)
   const platformUsersPath = join(process.cwd(), 'data', 'platform', 'users.json')
@@ -102,7 +104,9 @@ export default defineEventHandler(async (event) => {
         name: name,
         email: email,
         role: 'User',
-        globalRole: 'User'
+        globalRole: 'User',
+        pendingEventCode: eventCode,
+        pendingRedirect: redirectTo
       }
     })
 

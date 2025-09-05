@@ -180,7 +180,7 @@ function joinEvent(event: any) {
 
 function quickJoinWithCode() {
   if (eventCode.value && eventCode.value.length >= 3) {
-    navigateTo(`/quick-join?code=${eventCode.value}`)
+    navigateTo(`/join/${eventCode.value}`)
   }
 }
 

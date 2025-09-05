@@ -4,7 +4,20 @@ import type { ActiveRound } from '~/types/topic'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
-  const activeRoundPath = join(process.cwd(), 'data', 'active-round.json')
+  const query = getQuery(event)
+  const eventId = query.eventId as string
+  
+  // If no eventId provided, try to get it from user's current context or default to legacy
+  let actualEventId = eventId
+  if (!actualEventId) {
+    // For backward compatibility, fall back to global data
+    actualEventId = 'default-event'
+  }
+  
+  const activeRoundPath = eventId 
+    ? join(process.cwd(), 'data', 'events', eventId, 'active-round.json')
+    : join(process.cwd(), 'data', 'active-round.json')
+  
   const usersPath = join(process.cwd(), config.usersFilePath)
   
   try {

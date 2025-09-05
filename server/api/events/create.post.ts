@@ -1,28 +1,27 @@
 import { z } from 'zod'
 import logger from '../../../utils/logger'
-import { eventService } from "../../../utils/eventService"
+import { eventService } from '../../../utils/eventService'
 
 const createEventSchema = z.object({
-  name: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
-  location: z.string().max(200).optional(),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  name: z.string().min(3, 'Event name must be at least 3 characters'),
+  description: z.string().optional(),
+  location: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
   settings: z.object({
-    maxVotesPerTopic: z.number().min(1).max(50).optional(),
-    topTopicsCount: z.number().min(1).max(20).optional(),
-    showVoterNames: z.boolean().optional(),
+    allowGuestAccess: z.boolean().optional(),
+    maxVotesPerTopic: z.number().optional(),
+    topTopicsCount: z.number().optional(),
     allowTopicSubmission: z.boolean().optional(),
     autoStartNewRound: z.boolean().optional(),
-    allowGuestAccess: z.boolean().optional(),
-    maxParticipants: z.number().min(1).optional()
+    showVoterNames: z.boolean().optional(),
+    maxParticipants: z.number().optional()
   }).optional()
 })
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   
-  // Only authenticated users can create events
   if (!user) {
     throw createError({
       statusCode: 401,
@@ -30,24 +29,34 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const body = await readValidatedBody(event, createEventSchema.parse)
-  
   try {
+    const body = await readValidatedBody(event, createEventSchema.parse)
+    
     const userId = (user as any).id || (user as any).email
+    
+    // Create the event using the event service
     const newEvent = await eventService.createEvent(userId, {
-      ...body,
+      name: body.name,
+      description: body.description,
+      location: body.location,
       startDate: body.startDate ? new Date(body.startDate) : undefined,
-      endDate: body.endDate ? new Date(body.endDate) : undefined
+      endDate: body.endDate ? new Date(body.endDate) : undefined,
+      settings: body.settings // The eventService will merge with defaults
     })
     
-    logger.info(`Event created: ${newEvent.name} (${newEvent.id}) by user ${userId}`)
+    logger.info(`Event created successfully: ${newEvent.name} (${newEvent.id}) by user ${userId}`)
     
     return {
       success: true,
-      event: newEvent,
-      message: 'Event created successfully'
+      message: 'Event created successfully',
+      event: newEvent
     }
-  } catch (error) {
+  } catch (error: any) {
+    // If it's already a validation or server error, re-throw it
+    if (error.statusCode) {
+      throw error
+    }
+    
     logger.error('Error creating event:', error)
     throw createError({
       statusCode: 500,
