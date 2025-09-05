@@ -18,7 +18,7 @@ A modern, feature-rich web application for managing unconference events with adv
 
 ### 👥 **User & Admin Experience**
 - **Role-Based Access**: Admin and user roles with appropriate permissions
-- **GitHub OAuth**: Secure authentication with GitHub accounts
+- **Multi-Provider OAuth**: Secure authentication with Google, GitHub, or email/password
 - **Guest Support**: Quick anonymous access for events
 - **Mobile Responsive**: Full functionality on all devices
 
@@ -33,7 +33,7 @@ A modern, feature-rich web application for managing unconference events with adv
 ### Prerequisites
 - Node.js 18+ 
 - npm or pnpm
-- GitHub OAuth App (for authentication)
+- OAuth Apps (Google and/or GitHub for authentication)
 
 ### Installation
 

@@ -7,14 +7,17 @@ import type { Room } from '~/types/room'
 
 // Function to automatically assign participants to groups based on their votes and assign rooms
 // Each participant can only attend ONE discussion group based on their preferences
-async function createGroupAssignments(topics: DiscussionTopic[], selectedTopicIds: string[]): Promise<GroupAssignment[]> {
+async function createGroupAssignments(topics: DiscussionTopic[], selectedTopicIds: string[], eventId?: string): Promise<GroupAssignment[]> {
   const selectedTopics = topics.filter(topic => selectedTopicIds.includes(topic.id))
   const groupAssignments: GroupAssignment[] = []
   
   // Load available rooms
   let availableRooms: Room[] = []
   try {
-    const roomsPath = join(process.cwd(), 'data', 'rooms.json')
+    // Use event-specific rooms if eventId provided
+    const roomsPath = eventId 
+      ? join(process.cwd(), 'data', 'events', eventId, 'rooms.json')
+      : join(process.cwd(), 'data', 'rooms.json')
     const roomsData = await fs.readFile(roomsPath, 'utf-8')
     const allRooms = JSON.parse(roomsData) as Room[]
     availableRooms = allRooms.filter(room => room.available)
@@ -82,6 +85,8 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const { user } = await requireUserSession(event)
   const body = await readBody(event)
+  const query = getQuery(event)
+  const eventId = query.eventId as string
   
   // Verify admin or organizer role
   const userRole = (user as any).Role || (user as any).role
@@ -101,9 +106,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const topicsPath = join(process.cwd(), config.topicsFilePath)
-  const roundHistoryPath = join(process.cwd(), 'data', 'round-history.json')
-  const activeRoundPath = join(process.cwd(), 'data', 'active-round.json')
+  // Use event-specific data if eventId provided, otherwise fall back to global data
+  const topicsPath = eventId 
+    ? join(process.cwd(), 'data', 'events', eventId, 'topics.json')
+    : join(process.cwd(), config.topicsFilePath)
+  const roundHistoryPath = eventId
+    ? join(process.cwd(), 'data', 'events', eventId, 'round-history.json')
+    : join(process.cwd(), 'data', 'round-history.json')
+  const activeRoundPath = eventId
+    ? join(process.cwd(), 'data', 'events', eventId, 'active-round.json')
+    : join(process.cwd(), 'data', 'active-round.json')
   
   try {
     // Read existing topics
@@ -139,7 +151,7 @@ export default defineEventHandler(async (event) => {
     
     // Save round history
     const selectedTopics = topics.filter(topic => selectedTopicIds.includes(topic.id))
-    const groupAssignments = await createGroupAssignments(topics, selectedTopicIds)
+    const groupAssignments = await createGroupAssignments(topics, selectedTopicIds, eventId)
     
     const newRoundHistory: RoundHistory = {
       id: `round-${nextRoundNumber}`,

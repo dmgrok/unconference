@@ -75,15 +75,27 @@ export class EventService {
       const membershipsData = await fs.readFile(membershipsPath, 'utf-8')
       const memberships = JSON.parse(membershipsData) as UserEventRole[]
       
-      const userEventIds = memberships
-        .filter(m => m.userId === userId && m.role !== 'Guest')
-        .map(m => m.eventId)
+      const userMemberships = memberships.filter(m => m.userId === userId && m.role !== 'Guest')
 
       const eventsPath = join(this.platformBasePath, 'events.json')
       const eventsData = await fs.readFile(eventsPath, 'utf-8')
       const events = JSON.parse(eventsData) as Event[]
       
-      return events.filter(e => userEventIds.includes(e.id))
+      // Join events with membership data
+      const userEvents = events
+        .filter(e => userMemberships.some(m => m.eventId === e.id))
+        .map(event => {
+          const membership = userMemberships.find(m => m.eventId === event.id)
+          return {
+            ...event,
+            role: membership?.role,
+            joinedAt: membership?.joinedAt,
+            // Add participant count by counting memberships
+            participantCount: memberships.filter(m => m.eventId === event.id).length
+          }
+        })
+      
+      return userEvents
     } catch (error) {
       logger.error('Error getting user events:', error)
       return []

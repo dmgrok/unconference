@@ -6,14 +6,26 @@
         <p class="text-body-1 mt-2">Manage your unconference events</p>
       </div>
       
-      <v-btn 
-        color="primary" 
-        size="large" 
-        @click="showCreateDialog = true"
-        prepend-icon="mdi-plus"
-      >
-        Create Event
-      </v-btn>
+      <div class="d-flex gap-3">
+        <v-btn 
+          color="secondary" 
+          size="large" 
+          @click="showJoinDialog = true"
+          prepend-icon="mdi-account-plus"
+          variant="outlined"
+        >
+          Join Event
+        </v-btn>
+        
+        <v-btn 
+          color="primary" 
+          size="large" 
+          @click="showCreateDialog = true"
+          prepend-icon="mdi-plus"
+        >
+          Create Event
+        </v-btn>
+      </div>
     </div>
 
     <!-- Events Grid -->
@@ -28,13 +40,22 @@
         <v-card class="h-100" elevation="2">
           <v-card-title class="d-flex justify-space-between">
             <span class="text-truncate">{{ event.name }}</span>
-            <v-chip
-              :color="event.isActive ? 'success' : 'warning'"
-              size="small"
-              variant="tonal"
-            >
-              {{ event.isActive ? 'Active' : 'Inactive' }}
-            </v-chip>
+            <div class="d-flex gap-1">
+              <v-chip
+                :color="event.isActive ? 'success' : 'warning'"
+                size="small"
+                variant="tonal"
+              >
+                {{ event.isActive ? 'Active' : 'Inactive' }}
+              </v-chip>
+              <v-chip
+                :color="getRoleColor(event.role)"
+                size="small"
+                variant="outlined"
+              >
+                {{ event.role }}
+              </v-chip>
+            </div>
           </v-card-title>
           
           <v-card-subtitle>
@@ -68,24 +89,56 @@
           
           <v-card-actions>
             <v-btn 
-              :to="`/dashboard?eventId=${event.id}`"
+              :to="`/voting?eventId=${event.id}`"
               color="primary"
-              variant="tonal"
+              variant="flat"
               size="small"
+              prepend-icon="mdi-play"
+              :disabled="!event.isActive"
             >
-              Manage
+              {{ event.isActive ? 'Enter Event' : 'Event Closed' }}
             </v-btn>
             
             <v-btn 
-              :to="`/events/${event.id}/settings`"
+              v-if="event.role === 'Organizer'"
+              :to="`/organizer?eventId=${event.id}`"
               color="secondary"
-              variant="text"
+              variant="tonal"
               size="small"
+              prepend-icon="mdi-cog"
             >
-              Settings
+              Manage
+            </v-btn>
+
+            <!-- Event Status Controls for Organizers -->
+            <v-btn
+              v-if="event.role === 'Organizer'"
+              :color="event.isActive ? 'warning' : 'success'"
+              :variant="event.isActive ? 'outlined' : 'flat'"
+              size="small"
+              :prepend-icon="event.isActive ? 'mdi-pause' : 'mdi-play'"
+              @click="toggleEventStatus(event)"
+              :loading="event._statusLoading"
+            >
+              {{ event.isActive ? 'Close' : 'Start' }}
             </v-btn>
             
             <v-spacer />
+
+            <!-- Join Date Info -->
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-chip
+                  v-bind="props"
+                  size="small"
+                  variant="text"
+                  prepend-icon="mdi-calendar-clock"
+                >
+                  {{ formatJoinDate(event.joinedAt) }}
+                </v-chip>
+              </template>
+              <span>Joined: {{ formatDateTime(event.joinedAt) }}</span>
+            </v-tooltip>
             
             <v-btn
               icon="mdi-share-variant"
@@ -102,14 +155,26 @@
     <v-card v-else class="text-center pa-8">
       <v-icon size="64" color="grey-lighten-1">mdi-calendar-plus</v-icon>
       <h3 class="text-h6 mt-4 mb-2">No Events Yet</h3>
-      <p class="text-body-2 mb-4">Create your first unconference event to get started</p>
-      <v-btn 
-        color="primary" 
-        @click="showCreateDialog = true"
-        prepend-icon="mdi-plus"
-      >
-        Create Your First Event
-      </v-btn>
+      <p class="text-body-2 mb-4">Create your first unconference event or join an existing one</p>
+      
+      <div class="d-flex justify-center gap-3 flex-wrap">
+        <v-btn 
+          color="secondary" 
+          @click="showJoinDialog = true"
+          prepend-icon="mdi-account-plus"
+          variant="outlined"
+        >
+          Join Event
+        </v-btn>
+        
+        <v-btn 
+          color="primary" 
+          @click="showCreateDialog = true"
+          prepend-icon="mdi-plus"
+        >
+          Create Event
+        </v-btn>
+      </div>
     </v-card>
 
     <!-- Create Event Dialog -->
@@ -178,6 +243,47 @@
       </v-card>
     </v-dialog>
 
+    <!-- Join Event Dialog -->
+    <v-dialog v-model="showJoinDialog" max-width="500">
+      <v-card>
+        <v-card-title>Join Event</v-card-title>
+        
+        <v-card-text>
+          <v-form ref="joinForm" v-model="joinFormValid">
+            <v-text-field
+              v-model="joinEvent.eventCode"
+              label="Event Code *"
+              :rules="[v => !!v || 'Event code is required', v => v.length >= 4 || 'Event code must be at least 4 characters']"
+              hint="Enter the event code provided by the organizer"
+              persistent-hint
+              required
+              variant="outlined"
+              prepend-inner-icon="mdi-ticket-confirmation"
+              @keyup.enter="joinEventByCode"
+            />
+            
+            <v-alert type="info" class="mt-4" variant="tonal">
+              <v-alert-title>Need an event code?</v-alert-title>
+              <p class="text-body-2">Ask the event organizer for the unique event code to join their unconference.</p>
+            </v-alert>
+          </v-form>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-spacer />
+          <v-btn @click="showJoinDialog = false; resetJoinForm()">Cancel</v-btn>
+          <v-btn 
+            color="primary" 
+            :disabled="!joinFormValid"
+            :loading="joining"
+            @click="joinEventByCode"
+          >
+            Join Event
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Share Dialog -->
     <v-dialog v-model="showShareDialog" max-width="500">
       <v-card v-if="selectedEvent">
@@ -223,15 +329,21 @@ interface Event {
   endDate: string
   isActive: boolean
   participantCount?: number
+  role?: string
+  joinedAt?: string
+  _statusLoading?: boolean
 }
 
 // Data
 const events = ref<Event[]>([])
 const showCreateDialog = ref(false)
+const showJoinDialog = ref(false)
 const showShareDialog = ref(false)
 const selectedEvent = ref<Event | null>(null)
 const formValid = ref(false)
+const joinFormValid = ref(false)
 const creating = ref(false)
+const joining = ref(false)
 
 const newEvent = ref({
   name: '',
@@ -240,6 +352,10 @@ const newEvent = ref({
   startDate: '',
   endDate: '',
   allowGuestAccess: true
+})
+
+const joinEvent = ref({
+  eventCode: ''
 })
 
 // Load events
@@ -283,6 +399,21 @@ async function createEvent() {
   }
 }
 
+// Join event by code
+async function joinEventByCode() {
+  if (!joinFormValid.value) return
+
+  joining.value = true
+  try {
+    // Use the direct join route
+    await navigateTo(`/join/${joinEvent.value.eventCode.toUpperCase()}`)
+  } catch (error) {
+    console.error('Failed to join event:', error)
+  } finally {
+    joining.value = false
+  }
+}
+
 // Share event
 function shareEvent(event: Event) {
   selectedEvent.value = event
@@ -299,6 +430,76 @@ async function copyToClipboard(text: string) {
   }
 }
 
+// Get role color
+function getRoleColor(role?: string) {
+  switch (role) {
+    case 'Organizer':
+      return 'primary'
+    case 'Moderator':
+      return 'info'
+    case 'Participant':
+      return 'success'
+    case 'Guest':
+      return 'warning'
+    default:
+      return 'grey'
+  }
+}
+
+// Toggle event status (for organizers)
+async function toggleEventStatus(event: Event) {
+  if (!event.role || event.role !== 'Organizer') return
+  
+  const action = event.isActive ? 'close' : 'activate'
+  const actionText = event.isActive ? 'close' : 'start'
+  
+  const confirmed = confirm(`Are you sure you want to ${actionText} this event?`)
+  if (!confirmed) return
+
+  // Set loading state
+  event._statusLoading = true
+
+  try {
+    const response = await $fetch(`/api/events/${event.id}/${action}`, {
+      method: 'POST'
+    }) as any
+    
+    if (response.success) {
+      // Update local event status
+      event.isActive = !event.isActive
+      
+      // Show success message
+      console.log(`Event ${actionText}ed successfully`)
+    }
+  } catch (error: any) {
+    console.error(`Failed to ${actionText} event:`, error)
+    alert(`Failed to ${actionText} event: ${error.data?.message || 'Unknown error'}`)
+  } finally {
+    event._statusLoading = false
+  }
+}
+
+// Format join date (relative)
+function formatJoinDate(dateString?: string) {
+  if (!dateString) return 'Unknown'
+  
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays}d ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
+  return formatDate(dateString)
+}
+
+// Format date and time
+function formatDateTime(dateString?: string) {
+  if (!dateString) return 'Unknown'
+  return new Date(dateString).toLocaleString()
+}
+
 // Format date
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString()
@@ -313,6 +514,13 @@ function resetForm() {
     startDate: '',
     endDate: '',
     allowGuestAccess: true
+  }
+}
+
+// Reset join form
+function resetJoinForm() {
+  joinEvent.value = {
+    eventCode: ''
   }
 }
 

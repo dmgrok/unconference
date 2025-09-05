@@ -314,6 +314,39 @@ async function deleteTopic(topic: DiscussionTopic) {
 
 // Fetch topics when component mounts
 onMounted(async () => {
+  // Handle auto-join if eventId is provided in URL
+  const route = useRoute()
+  const eventId = route.query.eventId as string
+  const autoJoin = route.query.autoJoin === 'true'
+  
+  if (eventId && autoJoin) {
+    try {
+      // Try to join the event
+      const { user } = useUserSession()
+      const userId = (user.value as any)?.id || (user.value as any)?.email
+      
+      if (userId) {
+        // Check if user is already a member
+        const membershipResponse = await $fetch(`/api/events/${eventId}/my-role`)
+        
+        if (!membershipResponse.role) {
+          // Add user as participant
+          await $fetch(`/api/events/${eventId}/join`, {
+            method: 'POST'
+          })
+        }
+        
+        // Update session with current event
+        await $fetch('/api/auth/set-current-event', {
+          method: 'POST',
+          body: { eventId }
+        })
+      }
+    } catch (error) {
+      console.warn('Failed to auto-join event:', error)
+    }
+  }
+  
   await loadSettings()
   await Promise.all([fetchTopics(), loadActiveRound()])
   

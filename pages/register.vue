@@ -119,6 +119,7 @@ definePageMeta({
 })
 
 const { fetch: refreshSession } = useUserSession()
+const route = useRoute()
 
 // Form data
 const registrationData = reactive({
@@ -175,9 +176,16 @@ async function register() {
   registrationSuccess.value = ''
 
   try {
+    const eventCode = (route.query.code as string) || (route.query.eventCode as string)
+    const redirectTo = route.query.redirect as string
+    
     const response = await $fetch('/api/auth/register', {
       method: 'POST',
-      body: registrationData
+      body: {
+        ...registrationData,
+        eventCode: eventCode?.toUpperCase(),
+        redirectTo
+      }
     }) as any
 
     if (response.success) {
@@ -190,13 +198,13 @@ async function register() {
       // Wait longer to ensure session is established and show success message
       await new Promise(resolve => setTimeout(resolve, 3000))
       
-      // Try to redirect to voting page first (which uses default layout), 
-      // and fallback to home if that fails
+      // Use smart routing to determine where to go
       try {
-        await navigateTo('/voting')
+        const routingResponse = await $fetch('/api/auth/post-login-redirect') as { redirect: string, reason: string }
+        await navigateTo(routingResponse.redirect)
       } catch (error) {
-        console.warn('Failed to redirect to /voting, redirecting to home:', error)
-        await navigateTo('/')
+        console.warn('Failed to get smart redirect, falling back:', error)
+        await navigateTo('/voting')
       }
     } else {
       registrationError.value = response.message || 'Registration failed. Please try again.'

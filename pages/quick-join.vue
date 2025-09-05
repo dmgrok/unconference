@@ -18,9 +18,15 @@ onMounted(() => {
     eventCode.value = code.toUpperCase()
   }
   
-  // If user is already logged in, redirect to voting page
+  // If user is already logged in, redirect to the event join flow
   if (loggedIn.value) {
-    router.push('/voting')
+    if (eventCode.value) {
+      // Redirect to direct join with event code
+      router.push(`/join/${eventCode.value}`)
+    } else {
+      // Redirect to events page
+      router.push('/events')
+    }
   }
 })
 

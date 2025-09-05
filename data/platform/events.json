@@ -7,13 +7,13 @@
     "organizerId": "organizer-001",
     "location": "Conference Center A",
     "startDate": "2024-08-27T09:00:00.000Z",
-    "endDate": "2024-08-27T18:00:00.000Z", 
+    "endDate": "2024-08-27T18:00:00.000Z",
     "isActive": true,
     "createdAt": "2024-08-20T10:00:00.000Z",
     "updatedAt": "2024-08-27T08:00:00.000Z"
   },
   {
-    "id": "event-002", 
+    "id": "event-002",
     "code": "TECH25",
     "name": "Tech Innovation Unconference 2025",
     "description": "Discussing the future of technology",
@@ -22,7 +22,7 @@
     "startDate": "2024-09-15T09:00:00.000Z",
     "endDate": "2024-09-15T17:00:00.000Z",
     "isActive": false,
-    "createdAt": "2024-08-15T14:00:00.000Z", 
+    "createdAt": "2024-08-15T14:00:00.000Z",
     "updatedAt": "2024-08-25T16:00:00.000Z"
   },
   {
@@ -37,5 +37,26 @@
     "isActive": true,
     "createdAt": "2024-08-01T09:00:00.000Z",
     "updatedAt": "2024-08-20T11:00:00.000Z"
+  },
+  {
+    "id": "evt_1757011282276_vv5f7sk2y",
+    "code": "Q5TPCQ",
+    "name": "Business Evaluation Unconference",
+    "description": "A comprehensive evaluation of the unconference platform from a business perspective",
+    "organizerId": "user_1757011243208_1kwkrqgbr",
+    "location": "Business Center, Conference Room A",
+    "startDate": "2025-09-04T18:41:22.276Z",
+    "endDate": "2025-09-05T18:41:22.276Z",
+    "isActive": true,
+    "settings": {
+      "maxVotesPerTopic": 12,
+      "topTopicsCount": 10,
+      "showVoterNames": true,
+      "allowTopicSubmission": true,
+      "autoStartNewRound": false,
+      "allowGuestAccess": true
+    },
+    "createdAt": "2025-09-04T18:41:22.276Z",
+    "updatedAt": "2025-09-04T18:41:22.276Z"
   }
 ]

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, watch, onMounted } from 'vue'
   import { reactive, computed } from 'vue'
+  import { useDisplay } from 'vuetify'
 
   interface NavItem {
     icon: string
@@ -25,9 +26,24 @@
   onMounted(() => {
     initializeTheme()
     setupAutoThemeWatcher()
+    
+    // Fix: Ensure drawer state is properly initialized based on screen size
+    if (process.client) {
+      drawer.value = !window.matchMedia('(max-width: 960px)').matches
+    }
   })
 
   const drawer = ref(true)
+  
+  // Fix: Watch for screen size changes and update drawer behavior
+  const { mobile } = useDisplay()
+  watch(mobile, (isMobile) => {
+    if (isMobile) {
+      drawer.value = false // Close drawer on mobile
+    } else {
+      drawer.value = true // Open drawer on desktop
+    }
+  })
   const navItems = reactive<NavItem[]>([
     {
       icon: 'mdi-vote',
@@ -159,6 +175,19 @@
         </div>
         
         <v-spacer></v-spacer>
+
+        <!-- Event Quick Access (for multi-event users) -->
+        <div v-if="user" class="header-event-access mr-4">
+          <v-btn
+            color="primary"
+            variant="outlined"
+            prepend-icon="mdi-calendar-multiple"
+            to="/events"
+            size="small"
+          >
+            My Events
+          </v-btn>
+        </div>
         
         <!-- Viewer Mode Toggle -->
         <v-btn
@@ -198,6 +227,8 @@
       v-model="drawer"
       class="nav-drawer-modern"
       width="280"
+      :temporary="mobile"
+      :permanent="!mobile"
     >
       <v-list class="nav-list">
         <v-list-item
@@ -234,6 +265,7 @@
   background: rgba(255, 255, 255, 0.95) !important;
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  z-index: 1006 !important; /* Ensure app bar is above navigation drawer */
 }
 
 .nav-icon-modern {
@@ -313,6 +345,42 @@
   background: linear-gradient(135deg, #FFFFFF 0%, #FEFEFE 100%) !important;
   border-right: 1px solid rgba(148, 163, 184, 0.1);
   box-shadow: 4px 0 20px rgba(0,0,0,0.08);
+  z-index: 1005 !important; /* Ensure navigation drawer is above content but below overlays */
+}
+
+.nav-drawer-modern :deep(.v-navigation-drawer__content) {
+  overflow-y: auto;
+  height: 100%;
+}
+
+/* Fix: Prevent nav drawer overlay from interfering with page interaction */
+.nav-drawer-modern :deep(.v-overlay) {
+  z-index: 1004 !important;
+  pointer-events: none !important; /* Critical fix: Allow clicks to pass through */
+}
+
+/* Fix: Specifically target the scrim element that's blocking interactions */
+.nav-drawer-modern :deep(.v-navigation-drawer__scrim) {
+  pointer-events: none !important; /* Critical fix: Disable scrim pointer events */
+  opacity: 0 !important; /* Hide scrim visually */
+  display: none !important; /* Completely remove scrim for permanent drawer */
+}
+
+/* Fix: Ensure scrim doesn't block interactions when drawer is permanent */
+.nav-drawer-modern.v-navigation-drawer--permanent :deep(.v-overlay) {
+  display: none !important; /* Hide overlay completely for permanent drawer */
+}
+
+/* Fix: Only show overlay scrim on mobile/temporary drawer */
+.nav-drawer-modern.v-navigation-drawer--temporary :deep(.v-overlay) {
+  pointer-events: auto !important; /* Allow overlay interaction only on mobile */
+}
+
+/* Fix: For temporary drawer on mobile, allow scrim interaction for closing */
+.nav-drawer-modern.v-navigation-drawer--temporary :deep(.v-navigation-drawer__scrim) {
+  pointer-events: auto !important; /* Allow scrim interaction on mobile to close drawer */
+  opacity: 0.2 !important; /* Show scrim on mobile */
+  display: block !important; /* Show scrim on mobile */
 }
 
 .nav-list {

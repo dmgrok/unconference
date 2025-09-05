@@ -60,6 +60,14 @@ export default defineNuxtConfig({
         apiURL: process.env.GITHUB_API_URL ? process.env.GITHUB_API_URL : 'https://api.github.com',
         authorizationURL: process.env.AUTH_GITHUB_URL ? process.env.AUTH_GITHUB_URL : 'https://github.com/login/oauth/authorize',
         tokenURL: process.env.GITHUB_TOKEN_URL ? process.env.GITHUB_TOKEN_URL : 'https://github.com/login/oauth/access_token',
+      },
+      google: {
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        scope: ['openid', 'email', 'profile'],
+        authorizationURL: 'https://accounts.google.com/o/oauth2/v2/auth',
+        tokenURL: 'https://oauth2.googleapis.com/token',
+        userInfoURL: 'https://www.googleapis.com/oauth2/v2/userinfo'
       }
     },
     topicsFilePath: process.env.NUXT_TOPICS_FILE_PATH,

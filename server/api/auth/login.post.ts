@@ -5,11 +5,13 @@ import { join } from 'path'
 
 const bodySchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8)
+  password: z.string().min(8),
+  eventCode: z.string().optional(),
+  redirectTo: z.string().optional()
 })
 
 export default defineEventHandler(async (event) => {
-  const { email, password } = await readValidatedBody(event, bodySchema.parse)
+  const { email, password, eventCode, redirectTo } = await readValidatedBody(event, bodySchema.parse)
   const config = useRuntimeConfig()
   const usersFilePath = join(process.cwd(), config.usersFilePath)
 
@@ -29,7 +31,9 @@ export default defineEventHandler(async (event) => {
         name: `${user.Firstname} ${user.Lastname}`,
         email: user.Email,
         role: user.Role,
-        globalRole: user.GlobalRole || null
+        globalRole: user.GlobalRole || null,
+        pendingEventCode: eventCode,
+        pendingRedirect: redirectTo
       }
     })
     logger.debug(`User session set for user ${(session as any)?.user?.name} (${(session as any)?.user?.email}) with role ${(session as any)?.user?.role} and globalRole ${(session as any)?.user?.globalRole}`)

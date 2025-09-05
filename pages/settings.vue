@@ -721,71 +721,73 @@ definePageMeta({
             </v-col>
           </v-row>
           
-          <!-- Default Topics Section -->
-          <v-divider class="my-6"></v-divider>
-          <div class="mb-4 d-flex align-center">
-            <div>
-              <h3 class="text-h6 mb-2">Default Topics</h3>
-              <p class="text-body-2 text-grey-darken-1">
-                Configure topics that will be automatically loaded when starting a new session. These serve as starting points for discussions.
-              </p>
-            </div>
-            <v-spacer></v-spacer>
-            <v-chip 
-              v-if="defaultTopicsSaving" 
-              color="primary" 
-              size="small"
-              prepend-icon="mdi-loading mdi-spin"
-            >
-              Auto-saving...
-            </v-chip>
-            <v-chip 
-              v-else
-              color="success" 
-              size="small"
-              prepend-icon="mdi-check"
-            >
-              Auto-save enabled
-            </v-chip>
-          </div>
-          
-          <div v-for="(topic, index) in settings.admin.defaultTopics" :key="index" class="mb-4">
-            <v-card variant="outlined" class="pa-4">
-              <div class="d-flex align-center mb-2">
-                <h4 class="text-subtitle-1">Topic {{ index + 1 }}</h4>
-                <v-spacer></v-spacer>
-                <v-btn
-                  @click="removeDefaultTopic(index)"
-                  icon="mdi-delete"
-                  variant="text"
-                  color="error"
-                  size="small"
-                ></v-btn>
+          <!-- Default Topics Section - Only for Organizers -->
+          <template v-if="isOrganizer">
+            <v-divider class="my-6"></v-divider>
+            <div class="mb-4 d-flex align-center">
+              <div>
+                <h3 class="text-h6 mb-2">Mandatory Topics</h3>
+                <p class="text-body-2 text-grey-darken-1">
+                  Configure topics that will be automatically added to your event. These serve as starting points for discussions and will be available for voting when the event begins.
+                </p>
               </div>
-              <v-text-field
-                v-model="topic.title"
-                label="Topic Title"
-                placeholder="Enter topic title..."
-                class="mb-2"
-              ></v-text-field>
-              <v-textarea
-                v-model="topic.description"
-                label="Topic Description"
-                placeholder="Enter topic description..."
-                rows="2"
-              ></v-textarea>
-            </v-card>
-          </div>
-          
-          <v-btn
-            @click="addDefaultTopic"
-            prepend-icon="mdi-plus"
-            variant="outlined"
-            color="primary"
-            class="mb-4"
-          >
-            Add Default Topic
-          </v-btn>
+              <v-spacer></v-spacer>
+              <v-chip 
+                v-if="defaultTopicsSaving" 
+                color="primary" 
+                size="small"
+                prepend-icon="mdi-loading mdi-spin"
+              >
+                Auto-saving...
+              </v-chip>
+              <v-chip 
+                v-else
+                color="success" 
+                size="small"
+                prepend-icon="mdi-check"
+              >
+                Auto-save enabled
+              </v-chip>
+            </div>
+            
+            <div v-for="(topic, index) in settings.admin.defaultTopics" :key="index" class="mb-4">
+              <v-card variant="outlined" class="pa-4">
+                <div class="d-flex align-center mb-2">
+                  <h4 class="text-subtitle-1">Topic {{ index + 1 }}</h4>
+                  <v-spacer></v-spacer>
+                  <v-btn
+                    @click="removeDefaultTopic(index)"
+                    icon="mdi-delete"
+                    variant="text"
+                    color="error"
+                    size="small"
+                  ></v-btn>
+                </div>
+                <v-text-field
+                  v-model="topic.title"
+                  label="Topic Title"
+                  placeholder="Enter topic title..."
+                  class="mb-2"
+                ></v-text-field>
+                <v-textarea
+                  v-model="topic.description"
+                  label="Topic Description"
+                  placeholder="Enter topic description..."
+                  rows="2"
+                ></v-textarea>
+              </v-card>
+            </div>
+            
+            <v-btn
+              @click="addDefaultTopic"
+              prepend-icon="mdi-plus"
+              variant="outlined"
+              color="primary"
+              class="mb-4"
+            >
+              Add Mandatory Topic
+            </v-btn>
+          </template>
         </v-card-text>
       </v-card>
 

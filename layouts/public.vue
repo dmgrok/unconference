@@ -236,6 +236,7 @@ function scrollToSection(href: string) {
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1006 !important; /* Ensure app bar is above other elements */
 }
 
 .app-title-enhanced {
@@ -341,12 +342,19 @@ function scrollToSection(href: string) {
 }
 
 .mobile-drawer {
-  z-index: 2000 !important;
+  z-index: 1005 !important; /* Ensure mobile drawer is properly layered */
 }
 
 .mobile-drawer :deep(.v-overlay__scrim) {
   background: rgba(0, 0, 0, 0.5);
-  z-index: 1999;
+  z-index: 1004 !important;
+  pointer-events: auto !important; /* Allow mobile scrim interaction */
+}
+
+/* Fix: Ensure permanent drawer overlay doesn't block interactions */
+.mobile-drawer.v-navigation-drawer--permanent :deep(.v-overlay__scrim) {
+  pointer-events: none !important;
+  opacity: 0 !important;
 }
 
 .mobile-drawer :deep(.v-navigation-drawer__content) {

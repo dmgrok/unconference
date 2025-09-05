@@ -4,28 +4,34 @@
     "title": "Copilot and MCP servers",
     "description": "MCP servers are changing the landscape of AI. How do we leverage them securely?",
     "createdBy": "darth.vader@starwars.com",
-    "votes": 0,
-    "voters": [],
+    "votes": 1,
+    "voters": [
+      "qsdqs@dsqs.Com"
+    ],
     "badges": 15,
     "selectedForRound": true,
     "frozen": false,
-    "firstChoiceVoters": [],
+    "firstChoiceVoters": [
+      "qsdqs@dsqs.Com"
+    ],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 0
+    "totalPreferenceScore": 2
   },
   {
     "id": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
     "title": "GitHub Actions Hosted Runners optimization",
     "description": "Private networking and custom images are bringing new possibilities to GitHub Actions. How do we leverage them?",
     "createdBy": "storm.trooper@starwars.com",
-    "votes": 0,
+    "votes": 1,
     "voters": [],
     "badges": 15,
     "frozen": false,
     "selectedForRound": true,
     "firstChoiceVoters": [],
-    "secondChoiceVoters": [],
-    "totalPreferenceScore": 0,
+    "secondChoiceVoters": [
+      "qsdqs@dsqs.Com"
+    ],
+    "totalPreferenceScore": 1,
     "currentRound": 9
   },
   {
@@ -33,14 +39,18 @@
     "title": "TDO for IT",
     "description": "Discuss the TDO for IT and how it impacts us",
     "createdBy": "darth.vader@starwars.com",
-    "votes": 0,
-    "voters": [],
+    "votes": 1,
+    "voters": [
+      "darth.vader@starwars.com"
+    ],
     "frozen": false,
-    "selectedForRound": false,
+    "selectedForRound": true,
     "badges": 15,
-    "firstChoiceVoters": [],
+    "firstChoiceVoters": [
+      "darth.vader@starwars.com"
+    ],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 0
+    "totalPreferenceScore": 2
   },
   {
     "id": "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
@@ -80,6 +90,17 @@
     "badges": 11,
     "selectedForRound": false,
     "frozen": false,
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0
+  },
+  {
+    "id": "1c96bb50-86a0-4c3e-8393-ab88251180d2",
+    "title": "Testing Platform Evaluation",
+    "description": "Let's discuss the business evaluation of this unconference platform and share insights on its functionality",
+    "createdBy": "organizer@example.com",
+    "votes": 0,
+    "voters": [],
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
     "totalPreferenceScore": 0
