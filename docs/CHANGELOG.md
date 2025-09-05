@@ -4,7 +4,48 @@ All notable changes to the Unconference application will be documented in this f
 
 ## [Unreleased]
 
+## [v2.5.0] - 2025-09-05
+
 ### Added
+- **Enhanced Super Admin Role Management**
+  - Navigation isolation for Super Admins (platform-level admin items only)
+  - Automatic redirect to Super Admin dashboard post-login
+  - Access restrictions preventing Super Admins from accessing personal event features
+  - "All Events" button for platform-wide event management
+  - Improved header navigation with role-appropriate options
+
+- **Comprehensive Security Enhancements**
+  - CSRF (Cross-Site Request Forgery) protection system
+  - Development-friendly CSRF configuration with warnings but no blocking in dev mode
+  - Production-grade CSRF enforcement with strict validation
+  - Rate limiting system with endpoint-specific limits:
+    - Authentication: 10 requests/minute
+    - Voting: 20 requests/minute  
+    - General API: 100 requests/minute
+    - Admin endpoints: 200 requests/minute
+  - Input security with XSS protection and payload size limits
+  - Comprehensive security headers implementation
+  - Real-time threat detection and automatic IP blocking
+
+- **Improved User Registration System**
+  - Enhanced validation and error handling
+  - Success messaging for better user feedback
+  - Updated user data structure for better scalability
+
+- **Enhanced Navigation and Site Configuration**
+  - Refactored site configuration system
+  - Improved navigation components for better user experience
+  - Better integration between different user roles and their appropriate interfaces
+
+- **Documentation Organization**
+  - Reorganized docs folder into logical categories:
+    - `/docs/guides/` - User guides, deployment, and setup documentation
+    - `/docs/features/` - Feature specifications and architecture documents
+    - `/docs/security/` - Security configuration and monitoring documentation
+    - `/docs/reviews/` - Experience reviews and assessments
+    - `/docs/improvements/` - Improvement summaries and update logs
+  - Improved documentation discoverability and maintenance
+
 - **Topic Deletion Feature** - Users can now delete their own topics
   - New delete button available on voting page for topic authors
   - Admin users can delete any topic
@@ -76,10 +117,28 @@ All notable changes to the Unconference application will be documented in this f
   - Admin settings integration for round management
 
 ### Changed
+- **Super Admin Navigation**: Isolated navigation to platform-level items only
+- **Super Admin Access Flow**: Automatic redirection to appropriate admin interfaces
+- **Security Posture**: Enhanced protection against CSRF attacks and other security threats
+- **User Registration Flow**: Improved validation and feedback mechanisms
+- **Documentation Structure**: Reorganized for better navigation and maintenance
 - Dashboard now displays active round information prominently
 - Topic cards show round assignment status
 - Navigation includes new Round Management link for admins
 - Settings page includes round management configuration options
+
+### Fixed
+- Super Admin role isolation and access control issues
+- CSRF protection implementation for enhanced security
+- User registration validation and error handling improvements
+- Navigation consistency across different user roles
+
+### Security
+- Added CSRF protection with development-friendly configuration
+- Implemented comprehensive rate limiting system
+- Enhanced input validation and XSS protection
+- Added security headers and threat detection
+- Improved authentication flow security
 
 ### Technical Details
 - Added persistent round state tracking via JSON files
@@ -87,6 +146,14 @@ All notable changes to the Unconference application will be documented in this f
 - Enhanced voting system integration with round selection
 - Backward compatibility maintained with existing "Quick New Round" functionality
 - Complete integration with room assignment system
+- **Documentation Structure Overhaul**: Reorganized docs folder with logical categorization:
+  - `guides/` for user and deployment documentation
+  - `features/` for feature specifications and architecture
+  - `security/` for security configuration and monitoring
+  - `reviews/` for experience assessments and platform reviews
+  - `improvements/` for enhancement summaries and update logs
+- Improved documentation navigation and maintainability
+- Updated documentation cross-references and structure
 
 ## [Previous Versions]
 

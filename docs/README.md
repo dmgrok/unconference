@@ -1,92 +1,87 @@
-# Documentation Index
+# Unconference Documentation
 
-Welcome to the Unconference Application documentation. This comprehensive guide covers everything you need to know about using, deploying, and maintaining the application.
+Welcome to the comprehensive documentation for the Unconference Management Application. This documentation is organized into logical sections to help you find what you need quickly.
 
-## 📚 Documentation Overview
+## � Documentation Structure
 
-### 🎯 Getting Started
-- **[README](../README.md)** - Quick start and overview
-- **[User Guide](user-guide.md)** - Comprehensive guide for participants and organizers
-- **[Features Overview](FEAUTURES.md)** - Complete feature documentation
+### 📖 [`guides/`](./guides/)
+User guides, setup instructions, and deployment documentation:
+- **[User Guide](./guides/user-guide.md)** - Complete guide for organizers and participants
+- **[Deployment Guide](./guides/deployment-guide.md)** - Production deployment instructions
+- **[Environment Setup](./guides/environment-setup.md)** - Development environment configuration
+- **[OAuth Setup](./guides/oauth-setup.md)** - Authentication provider configuration
 
-### 🔧 Technical Documentation
-- **[API Documentation](api-documentation.md)** - Complete API reference
-- **[Architecture Guide](../CLAUDE.md)** - Technical implementation details
-- **[Round Management](round-management.md)** - Advanced round system guide
-- **[Deployment Guide](deployment-guide.md)** - Deployment options and instructions
+### ⚡ [`features/`](./features/)
+Feature specifications and architecture documentation:
+- **[Features Overview](./features/FEAUTURES.md)** - Complete feature list and capabilities
+- **[Round Management](./features/round-management.md)** - Round system architecture and workflow
+- **[Multi-Event Architecture](./features/multi-event-architecture.md)** - Platform scaling and event management
 
-### 📝 Project Information
-- **[Changelog](CHANGELOG.md)** - Version history and updates
-- **[Features](FEAUTURES.md)** - Detailed feature descriptions
+### � [`security/`](./security/)
+Security configuration and monitoring documentation:
+- **[CSRF Configuration](./security/CSRF_CONFIGURATION.md)** - Cross-Site Request Forgery protection setup
+- **[Monitoring & Security](./security/MONITORING_SECURITY.md)** - Security monitoring and threat detection
 
-## 🚀 Quick Navigation
+### 📊 [`reviews/`](./reviews/)
+Experience reviews and platform assessments:
+- **[Attendee Experience Review](./reviews/ATTENDEE_EXPERIENCE_REVIEW.md)** - User experience analysis
+- **[Organizer Experience Review](./reviews/ORGANIZER_EXPERIENCE_REVIEW.md)** - Admin/organizer workflow review
+- **[Platform Approach Review](./reviews/PLATFORM_APPROACH_REVIEW.md)** - Overall platform architecture assessment
 
-### For New Users
-1. Start with the **[README](../README.md)** for a quick overview
-2. Follow the **[User Guide](user-guide.md)** for detailed instructions
-3. Review **[Features](FEAUTURES.md)** to understand capabilities
+### 🚀 [`improvements/`](./improvements/)
+Improvement summaries and update logs:
+- **[Super Admin Role Improvements](./improvements/SUPER_ADMIN_ROLE_IMPROVEMENTS.md)** - Enhanced admin role features
+- **[Organizer Improvements Summary](./improvements/ORGANIZER_IMPROVEMENTS_SUMMARY.md)** - Organizer experience enhancements
+- **[Design Improvements Summary](./improvements/DESIGN_IMPROVEMENTS_SUMMARY.md)** - UI/UX improvements
+- **[Text Overflow Fixes](./improvements/TEXT_OVERFLOW_FIXES.md)** - Layout and display fixes
+- **[Group Assignment Fixes](./improvements/GROUP_ASSIGNMENT_FIXES.md)** - Assignment algorithm improvements
+- **[Topic Management Improvements](./improvements/TOPIC_MANAGEMENT_AND_GROUP_VIEWING_IMPROVEMENTS.md)** - Topic handling enhancements
+- **[Role Permissions Update](./improvements/ROLE_PERMISSIONS_UPDATE.md)** - Permission system changes
+- **[Event User Association](./improvements/EVENT_USER_ASSOCIATION.md)** - User-event relationship improvements
+- **[One Participant One Group Update](./improvements/ONE_PARTICIPANT_ONE_GROUP_UPDATE.md)** - Assignment logic fixes
 
-### For Developers
-1. Check **[Architecture Guide](../CLAUDE.md)** for technical overview
-2. Review **[API Documentation](api-documentation.md)** for integration
-3. Follow **[Deployment Guide](deployment-guide.md)** for setup
+## � Core Documentation
 
-### For Event Organizers
-1. Read **[User Guide - Admin Features](user-guide.md#admin-features)**
-2. Study **[Round Management](round-management.md)** for advanced features
-3. Check **[Deployment Guide](deployment-guide.md)** for hosting options
+- **[CHANGELOG.md](./CHANGELOG.md)** - Complete version history and feature changes
+- **[API Documentation](./api-documentation.md)** - Complete API reference
 
-## 📋 Document Summaries
+## 🎯 Quick Start
 
-### User Guide
-**Target Audience**: Participants and Event Organizers  
-**Contents**: Complete guide covering topic creation, voting, round participation, admin features, and troubleshooting.
+1. **For Developers**: Start with [Environment Setup](./guides/environment-setup.md)
+2. **For Deployers**: Check [Deployment Guide](./guides/deployment-guide.md)
+3. **For Users**: Read the [User Guide](./guides/user-guide.md)
+4. **For Security**: Review [Security Documentation](./security/)
 
-### Round Management Guide
-**Target Audience**: Event Organizers and Admins  
-**Contents**: Detailed guide for the advanced round management system including topic selection, timers, and participant coordination.
-
-### API Documentation
-**Target Audience**: Developers and Integrators  
-**Contents**: Complete API reference with endpoints, request/response formats, authentication, and examples.
-
-### Deployment Guide
-**Target Audience**: System Administrators and DevOps  
-**Contents**: Comprehensive deployment instructions for Docker, cloud platforms, and traditional servers.
-
-### Features Documentation
-**Target Audience**: All Users  
-**Contents**: Detailed overview of all application features, capabilities, and functionality.
-
-### Architecture Guide (CLAUDE.md)
-**Target Audience**: Developers  
-**Contents**: Technical implementation details, development commands, and codebase structure.
-
-### Changelog
-**Target Audience**: All Users  
-**Contents**: Version history, new features, bug fixes, and breaking changes.
-
-## 🎯 Quick Start Paths
+## � Quick Navigation Paths
 
 ### Path 1: Event Participant
 ```
-README → User Guide (Participant sections) → Features
+Main README → User Guide (Participant sections) → Features Overview
 ```
 
 ### Path 2: Event Organizer
 ```
-README → User Guide (Admin sections) → Round Management → Features
+Main README → User Guide (Admin sections) → Round Management → Organizer Improvements
 ```
 
 ### Path 3: Developer/Integrator
 ```
-README → Architecture Guide → API Documentation → Deployment Guide
+Main README → Environment Setup → API Documentation → Security Configuration
 ```
 
 ### Path 4: System Administrator
 ```
-README → Deployment Guide → Architecture Guide → API Documentation
+Main README → Deployment Guide → Security Documentation → Monitoring
 ```
+
+## 🔄 Recent Updates (v2.5.0 - September 2025)
+
+- ✅ **Enhanced Super Admin Role Management** - Isolated navigation and improved access controls
+- ✅ **Comprehensive Security Enhancements** - CSRF protection, rate limiting, and threat detection  
+- ✅ **Improved User Registration System** - Better validation and error handling
+- ✅ **Documentation Reorganization** - Logical folder structure for better navigation
+
+Check the [CHANGELOG.md](./CHANGELOG.md) for complete details.
 
 ## 🔍 Finding Information
 
@@ -100,99 +95,65 @@ README → Deployment Guide → Architecture Guide → API Documentation
 
 | Topic | Primary Document | Additional Resources |
 |-------|------------------|---------------------|
-| Installation | [README](../README.md), [Deployment Guide](deployment-guide.md) | [Architecture Guide](../CLAUDE.md) |
-| Voting System | [User Guide](user-guide.md) | [Features](FEAUTURES.md), [API Docs](api-documentation.md) |
-| Round Management | [Round Management](round-management.md) | [User Guide](user-guide.md), [Features](FEAUTURES.md) |
-| Admin Features | [User Guide](user-guide.md) | [Round Management](round-management.md), [API Docs](api-documentation.md) |
-| API Integration | [API Documentation](api-documentation.md) | [Architecture Guide](../CLAUDE.md) |
-| Deployment | [Deployment Guide](deployment-guide.md) | [README](../README.md) |
-| Troubleshooting | [User Guide](user-guide.md) | [Deployment Guide](deployment-guide.md) |
+| Installation | [Environment Setup](./guides/environment-setup.md) | [Deployment Guide](./guides/deployment-guide.md) |
+| Voting System | [User Guide](./guides/user-guide.md) | [Features](./features/FEAUTURES.md) |
+| Round Management | [Round Management](./features/round-management.md) | [User Guide](./guides/user-guide.md) |
+| Admin Features | [User Guide](./guides/user-guide.md) | [Organizer Improvements](./improvements/) |
+| API Integration | [API Documentation](./api-documentation.md) | [Security Config](./security/) |
+| Security Setup | [Security Documentation](./security/) | [Deployment Guide](./guides/deployment-guide.md) |
+| Troubleshooting | [User Guide](./guides/user-guide.md) | [Reviews](./reviews/) |
 
-## 📊 Documentation Status
+## �️ New File Structure
 
-### Completion Status
-- ✅ **User Guide**: Complete
-- ✅ **Round Management**: Complete  
-- ✅ **API Documentation**: Complete
-- ✅ **Deployment Guide**: Complete
-- ✅ **Features Documentation**: Complete
-- ✅ **Architecture Guide**: Complete
-- ✅ **Changelog**: Complete
+```
+docs/
+├── README.md                    # This index file
+├── CHANGELOG.md                 # Version history
+├── api-documentation.md         # API reference
+├── guides/                      # User and setup guides
+│   ├── user-guide.md
+│   ├── deployment-guide.md
+│   ├── environment-setup.md
+│   └── oauth-setup.md
+├── features/                    # Feature specifications
+│   ├── FEAUTURES.md
+│   ├── round-management.md
+│   └── multi-event-architecture.md
+├── security/                    # Security documentation
+│   ├── CSRF_CONFIGURATION.md
+│   └── MONITORING_SECURITY.md
+├── reviews/                     # Experience assessments
+│   ├── ATTENDEE_EXPERIENCE_REVIEW.md
+│   ├── ORGANIZER_EXPERIENCE_REVIEW.md
+│   └── PLATFORM_APPROACH_REVIEW.md
+└── improvements/                # Enhancement logs
+    ├── SUPER_ADMIN_ROLE_IMPROVEMENTS.md
+    ├── ORGANIZER_IMPROVEMENTS_SUMMARY.md
+    └── [other improvement docs]
+```
 
-### Last Updated
-- **User Guide**: August 2025
-- **Round Management**: August 2025
-- **API Documentation**: August 2025
-- **Deployment Guide**: August 2025
-- **Features**: August 2025
-- **Architecture**: August 2025
-- **Changelog**: August 2025
+## 🤝 Contributing
 
-## 🤝 Contributing to Documentation
-
-### Improvement Suggestions
-Documentation can always be improved. If you find:
-- Missing information
-- Unclear explanations
-- Outdated content
-- Broken links or examples
-
-Please:
-1. Create an issue describing the problem
-2. Submit a pull request with improvements
-3. Contact the maintainers directly
-4. Provide feedback through established channels
+When adding new documentation:
+1. Place files in the appropriate category folder
+2. Update this README if adding new categories
+3. Update the CHANGELOG.md for significant documentation changes
+4. Follow the existing naming conventions
 
 ### Documentation Standards
-When contributing to documentation:
 - Use clear, concise language
 - Include practical examples
 - Maintain consistent formatting
 - Update cross-references
 - Test all code examples
-- Keep screenshots current
 
 ## 📞 Support and Contact
 
-### Documentation Support
 - **General Questions**: Create GitHub issue
 - **Technical Issues**: Check troubleshooting guides first
 - **Feature Requests**: Submit enhancement proposals
 - **Bug Reports**: Use issue templates provided
 
-### Community Resources
-- **GitHub Discussions**: For community questions
-- **Issue Tracker**: For bugs and feature requests
-- **Wiki** (if available): For community contributions
-- **Changelog**: For update notifications
-
-## 🗂️ File Structure
-
-```
-docs/
-├── README.md                    # This index file
-├── user-guide.md               # Complete user guide
-├── round-management.md         # Round system guide
-├── api-documentation.md        # API reference
-├── deployment-guide.md         # Deployment instructions
-├── FEAUTURES.md               # Features overview
-└── CHANGELOG.md               # Version history
-```
-
-## 🔗 External Resources
-
-### Related Technologies
-- **[Nuxt 3 Documentation](https://nuxt.com/docs)** - Framework documentation
-- **[Vue 3 Guide](https://vuejs.org/guide/)** - Frontend framework
-- **[Vuetify Documentation](https://vuetifyjs.com/)** - UI component library
-- **[TypeScript Handbook](https://www.typescriptlang.org/docs/)** - Language reference
-
-### Deployment Platforms
-- **[Docker Documentation](https://docs.docker.com/)** - Containerization
-- **[Azure Static Web Apps](https://docs.microsoft.com/en-us/azure/static-web-apps/)** - Cloud hosting
-- **[Vercel Documentation](https://vercel.com/docs)** - Deployment platform
-- **[Netlify Docs](https://docs.netlify.com/)** - Static site hosting
-
 ---
 
-**Need help?** Start with the most relevant guide above, or create an issue if you can't find what you're looking for!
+*Last updated: September 2025*
