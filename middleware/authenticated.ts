@@ -2,6 +2,7 @@ interface User {
     name: string;
     email: string;
     role?: string;
+    isGuest?: boolean;
 }
 
 export default defineNuxtRouteMiddleware((to) => {
@@ -13,8 +14,9 @@ export default defineNuxtRouteMiddleware((to) => {
     }
 
     // check if the page requires admin role
-    if (to.meta.requiresAdmin && (user.value as User)?.role !== 'Admin') {
-        // if user is not an admin, redirect to dashboard or show access denied
-        return navigateTo('/dashboard')
+    const userRole = (user.value as any)?.Role || (user.value as any)?.role
+    if (to.meta.requiresAdmin && !['Admin', 'Organizer'].includes(userRole)) {
+        // if user is not an admin or organizer, redirect to voting page
+        return navigateTo('/voting')
     }
 })

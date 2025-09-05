@@ -1,11 +1,14 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import logger from '../../../../utils/logger'
+import { getAdminSettings } from '../../../../utils/adminSettings'
 import type { DiscussionTopic } from '~/types/topic'
+import type { User } from '~/types/user'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
-  const maxVotesPerTopic = config.public.maxVotesPerTopic
+  const adminSettings = await getAdminSettings()
+  const maxVotesPerTopic = adminSettings.maxVotesPerTopic
   const { user } = await requireUserSession(event)
   const topicId = getRouterParam(event, 'id')
   
@@ -16,12 +19,17 @@ export default defineEventHandler(async (event) => {
     const topicsData = await fs.readFile(topicsPath, 'utf-8')
     const topics = JSON.parse(topicsData)
     
-    // Check if user has already voted
-    const hasVoted = topics.some((topic: DiscussionTopic) => topic.voters.includes(user.email))
-    if (hasVoted) {
+    // Check if user has already voted (either simple vote or preference vote)
+    const hasSimpleVote = topics.some((topic: DiscussionTopic) => topic.voters.includes((user as User).email))
+    const hasPreferenceVote = topics.some((topic: DiscussionTopic) => 
+      topic.firstChoiceVoters?.includes((user as User).email) || 
+      topic.secondChoiceVoters?.includes((user as User).email)
+    )
+    
+    if (hasSimpleVote || hasPreferenceVote) {
       throw createError({
         statusCode: 400,
-        message: 'You have already voted in this round'
+        message: 'You have already voted. Please use the preferences page to change your votes.'
       })
     }
     
@@ -44,7 +52,7 @@ export default defineEventHandler(async (event) => {
     
     // Add vote
     topic.votes += 1
-    topic.voters.push(user.email)
+    topic.voters.push((user as User).email)
 
     // Check if topic just reached the limit
     if (topic.votes === maxVotesPerTopic) {
@@ -56,7 +64,7 @@ export default defineEventHandler(async (event) => {
     await fs.writeFile(topicsPath, JSON.stringify(topics, null, 2))
     
     return topic
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) throw error
     
     logger.error('Error voting for topic:', error)

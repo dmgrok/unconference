@@ -1,0 +1,291 @@
+[
+  {
+    "roundNumber": 1,
+    "timestamp": "2025-08-26T13:28:24.940Z",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 1,
+        "finalScore": 2
+      },
+      {
+        "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+        "title": "GitHub Actions Hosted Runners optimization",
+        "participantCount": 1,
+        "finalScore": 1
+      }
+    ],
+    "totalParticipants": 2
+  },
+  {
+    "roundNumber": 2,
+    "timestamp": "2025-08-26T13:32:57.607Z",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 0,
+        "finalScore": 0
+      },
+      {
+        "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+        "title": "GitHub Actions Hosted Runners optimization",
+        "participantCount": 0,
+        "finalScore": 0
+      }
+    ],
+    "totalParticipants": 0
+  },
+  {
+    "roundNumber": 3,
+    "timestamp": "2025-08-26T17:24:15.857Z",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "darth.vader@starwars.com"
+        ]
+      },
+      {
+        "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+        "title": "GitHub Actions Hosted Runners optimization",
+        "participantCount": 0,
+        "finalScore": 1,
+        "assignedParticipants": []
+      }
+    ],
+    "totalParticipants": 1
+  },
+  {
+    "id": "round-4",
+    "roundNumber": 4,
+    "timestamp": "2025-08-28T17:38:02.037Z",
+    "startTime": "2025-08-28T17:38:02.037Z",
+    "duration": 25,
+    "topicIds": [
+      "d130774e-f7fe-420e-ac83-061585fff93f",
+      "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
+    ],
+    "topicTitles": [
+      "Copilot and MCP servers",
+      "GitHub Actions Hosted Runners optimization"
+    ],
+    "participantCount": 0,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 0,
+        "finalScore": 0,
+        "assignedParticipants": [],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      },
+      {
+        "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+        "title": "GitHub Actions Hosted Runners optimization",
+        "participantCount": 0,
+        "finalScore": 0,
+        "assignedParticipants": [],
+        "roomAssignment": "Conference Room B (First Floor, West Wing)"
+      }
+    ],
+    "totalParticipants": 0
+  },
+  {
+    "id": "quick-round-5",
+    "roundNumber": 5,
+    "timestamp": "2025-08-28T20:50:16.462Z",
+    "startTime": "2025-08-28T20:50:16.462Z",
+    "duration": 20,
+    "topicIds": [
+      "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+      "d130774e-f7fe-420e-ac83-061585fff93f",
+      "4aa0a820-347c-49d5-84d9-9e582ef2c965",
+      "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
+      "c1256e92-7c82-49b4-9b06-2d7ee9d6ab87"
+    ],
+    "topicTitles": [
+      "GitHub Actions Hosted Runners optimization",
+      "Copilot and MCP servers",
+      "TDO for IT",
+      "Accessibility",
+      "Learning"
+    ],
+    "participantCount": 3,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+        "title": "GitHub Actions Hosted Runners optimization",
+        "participantCount": 1,
+        "finalScore": 4,
+        "assignedParticipants": [
+          "storm.trooper@starwars.com"
+        ],
+        "roomAssignment": "Conference Room B"
+      },
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 1,
+        "finalScore": 3,
+        "assignedParticipants": [
+          "darth.vader@starwars.com"
+        ],
+        "roomAssignment": "Conference Room A"
+      },
+      {
+        "topicId": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
+        "title": "TDO for IT",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "organizer@example.com"
+        ],
+        "roomAssignment": "Collaboration Space"
+      },
+      {
+        "topicId": "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
+        "title": "Accessibility",
+        "participantCount": 0,
+        "finalScore": 0,
+        "assignedParticipants": [],
+        "roomAssignment": "Small Meeting Room"
+      },
+      {
+        "topicId": "c1256e92-7c82-49b4-9b06-2d7ee9d6ab87",
+        "title": "Learning",
+        "participantCount": 0,
+        "finalScore": 0,
+        "assignedParticipants": [],
+        "roomAssignment": "Conference Room A"
+      }
+    ],
+    "totalParticipants": 3
+  },
+  {
+    "id": "round-6",
+    "roundNumber": 6,
+    "timestamp": "2025-08-28T21:00:26.523Z",
+    "startTime": "2025-08-28T21:00:26.523Z",
+    "duration": 20,
+    "topicIds": [
+      "d130774e-f7fe-420e-ac83-061585fff93f",
+      "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
+    ],
+    "topicTitles": [
+      "Copilot and MCP servers",
+      "GitHub Actions Hosted Runners optimization"
+    ],
+    "participantCount": 1,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "organizer@example.com"
+        ],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      },
+      {
+        "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+        "title": "GitHub Actions Hosted Runners optimization",
+        "participantCount": 0,
+        "finalScore": 1,
+        "assignedParticipants": [],
+        "roomAssignment": "Conference Room B (First Floor, West Wing)"
+      }
+    ],
+    "totalParticipants": 1
+  },
+  {
+    "id": "round-7",
+    "roundNumber": 7,
+    "timestamp": "2025-08-28T21:22:57.419Z",
+    "startTime": "2025-08-28T21:22:57.419Z",
+    "duration": 1,
+    "topicIds": [
+      "d130774e-f7fe-420e-ac83-061585fff93f"
+    ],
+    "topicTitles": [
+      "Copilot and MCP servers"
+    ],
+    "participantCount": 0,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 0,
+        "finalScore": 0,
+        "assignedParticipants": [],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      }
+    ],
+    "totalParticipants": 0
+  },
+  {
+    "id": "round-8",
+    "roundNumber": 8,
+    "timestamp": "2025-08-28T21:48:08.360Z",
+    "startTime": "2025-08-28T21:48:08.360Z",
+    "duration": 1,
+    "topicIds": [
+      "d130774e-f7fe-420e-ac83-061585fff93f"
+    ],
+    "topicTitles": [
+      "Copilot and MCP servers"
+    ],
+    "participantCount": 1,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "organizer@example.com"
+        ],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      }
+    ],
+    "totalParticipants": 1
+  },
+  {
+    "id": "round-9",
+    "roundNumber": 9,
+    "timestamp": "2025-08-28T22:20:29.752Z",
+    "startTime": "2025-08-28T22:20:29.752Z",
+    "duration": 20,
+    "topicIds": [
+      "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
+    ],
+    "topicTitles": [
+      "GitHub Actions Hosted Runners optimization"
+    ],
+    "participantCount": 1,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+        "title": "GitHub Actions Hosted Runners optimization",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "organizer@example.com"
+        ],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      }
+    ],
+    "totalParticipants": 1
+  }
+]

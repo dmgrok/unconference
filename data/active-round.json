@@ -1,0 +1,28 @@
+{
+  "id": "active-round-9",
+  "roundNumber": 9,
+  "startTime": "2025-08-28T22:20:29.753Z",
+  "duration": 20,
+  "topicIds": [
+    "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
+  ],
+  "selectedTopics": [
+    "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
+  ],
+  "topicTitles": [
+    "GitHub Actions Hosted Runners optimization"
+  ],
+  "isActive": false,
+  "groupAssignments": [
+    {
+      "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+      "topicTitle": "GitHub Actions Hosted Runners optimization",
+      "participants": [
+        "organizer@example.com"
+      ],
+      "roomAssignment": "Conference Room A (First Floor, East Wing)"
+    }
+  ],
+  "votingDisabled": false,
+  "eventId": "default-event"
+}

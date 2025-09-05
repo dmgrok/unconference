@@ -31,13 +31,14 @@ export default defineEventHandler(async (event) => {
     }
     
     // Check permissions
-    const isAdmin = user.role === 'Admin'
-    const isAuthor = topic.createdBy === user.email
+    const userRole = (user as any).Role || (user as any).role
+    const isAdminOrOrganizer = ['Admin', 'Organizer'].includes(userRole)
+    const isAuthor = topic.createdBy === (user as any).email
     
-    if (!isAdmin && !isAuthor) {
+    if (!isAdminOrOrganizer && !isAuthor) {
       throw createError({
         statusCode: 403,
-        message: 'Only admins and the topic author can edit this topic'
+        message: 'You can only edit topics you created. Organizers and administrators can edit any topic.'
       })
     }
     
@@ -49,9 +50,9 @@ export default defineEventHandler(async (event) => {
     // Write back to file
     await fs.writeFile(topicsPath, JSON.stringify(topics, null, 2))
     
-    logger.debug(`Topic "${oldTitle}" edited by ${user.email}`)
+    logger.debug(`Topic "${oldTitle}" edited by ${(user as any).email}`)
     return topic
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) throw error
     
     logger.error('Error editing topic:', error)

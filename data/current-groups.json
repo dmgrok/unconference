@@ -1,0 +1,44 @@
+{
+  "createdAt": "2025-08-26T13:29:14.412Z",
+  "createdBy": "darth.vader@starwars.com",
+  "eventRound": 1756214954412,
+  "roomConstraints": {
+    "totalRoomsAvailable": 4,
+    "totalRoomsUsed": 2,
+    "hasWaitlists": false,
+    "warnings": []
+  },
+  "statistics": {
+    "totalAssignedParticipants": 0,
+    "totalWaitlistedParticipants": 0,
+    "utilizationRate": 50
+  },
+  "groups": [
+    {
+      "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+      "topicTitle": "Copilot and MCP servers",
+      "participants": [],
+      "groupNumber": 1,
+      "roomId": "room-c",
+      "roomName": "Collaboration Space",
+      "roomCapacity": 15,
+      "roomLocation": "Second Floor, Open Area",
+      "isOvercapacity": false,
+      "waitlist": [],
+      "actualCapacity": 0
+    },
+    {
+      "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
+      "topicTitle": "GitHub Actions Hosted Runners optimization",
+      "participants": [],
+      "groupNumber": 2,
+      "roomId": "room-a",
+      "roomName": "Conference Room A",
+      "roomCapacity": 12,
+      "roomLocation": "First Floor, East Wing",
+      "isOvercapacity": false,
+      "waitlist": [],
+      "actualCapacity": 0
+    }
+  ]
+}

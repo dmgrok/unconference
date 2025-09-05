@@ -3,22 +3,106 @@
     "id": "d130774e-f7fe-420e-ac83-061585fff93f",
     "title": "Copilot and MCP servers",
     "description": "MCP servers are changing the landscape of AI. How do we leverage them securely?",
-    "createdBy": "helaili@github.com",
-    "votes": 0,
-    "voters": [],
-    "badges": 0,
-    "selectedForRound": false,
-    "frozen": false
+    "createdBy": "darth.vader@starwars.com",
+    "votes": 1,
+    "voters": [
+      "qsdqs@dsqs.Com"
+    ],
+    "badges": 15,
+    "selectedForRound": true,
+    "frozen": false,
+    "firstChoiceVoters": [
+      "qsdqs@dsqs.Com"
+    ],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 2
   },
   {
     "id": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
     "title": "GitHub Actions Hosted Runners optimization",
     "description": "Private networking and custom images are bringing new possibilities to GitHub Actions. How do we leverage them?",
-    "createdBy": "helaili@github.com",
+    "createdBy": "storm.trooper@starwars.com",
+    "votes": 1,
+    "voters": [],
+    "badges": 15,
+    "frozen": false,
+    "selectedForRound": true,
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [
+      "qsdqs@dsqs.Com"
+    ],
+    "totalPreferenceScore": 1,
+    "currentRound": 9
+  },
+  {
+    "id": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
+    "title": "TDO for IT",
+    "description": "Discuss the TDO for IT and how it impacts us",
+    "createdBy": "darth.vader@starwars.com",
+    "votes": 1,
+    "voters": [
+      "darth.vader@starwars.com"
+    ],
+    "frozen": false,
+    "selectedForRound": true,
+    "badges": 15,
+    "firstChoiceVoters": [
+      "darth.vader@starwars.com"
+    ],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 2
+  },
+  {
+    "id": "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
+    "title": "Accessibility",
+    "description": "Accessibility",
+    "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 0,
     "frozen": false,
-    "selectedForRound": false
+    "selectedForRound": false,
+    "badges": 13,
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0
+  },
+  {
+    "id": "c1256e92-7c82-49b4-9b06-2d7ee9d6ab87",
+    "title": "Learning",
+    "description": "Learning",
+    "createdBy": "darth.vader@starwars.com",
+    "votes": 0,
+    "voters": [],
+    "badges": 13,
+    "selectedForRound": false,
+    "frozen": false,
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0
+  },
+  {
+    "id": "6dd81849-2a8a-4d1e-adb5-044c433eb0e6",
+    "title": "Innovation with Agentic",
+    "description": "Discuss our expriences",
+    "createdBy": "darth.vader@starwars.com",
+    "votes": 0,
+    "voters": [],
+    "badges": 11,
+    "selectedForRound": false,
+    "frozen": false,
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0
+  },
+  {
+    "id": "1c96bb50-86a0-4c3e-8393-ab88251180d2",
+    "title": "Testing Platform Evaluation",
+    "description": "Let's discuss the business evaluation of this unconference platform and share insights on its functionality",
+    "createdBy": "organizer@example.com",
+    "votes": 0,
+    "voters": [],
+    "firstChoiceVoters": [],
+    "secondChoiceVoters": [],
+    "totalPreferenceScore": 0
   }
 ]

@@ -1,0 +1,93 @@
+[
+  {
+    "userId": "organizer-001",
+    "eventId": "event-001",
+    "role": "Organizer",
+    "joinedAt": "2024-08-20T10:00:00.000Z"
+  },
+  {
+    "userId": "admin-001",
+    "eventId": "event-002",
+    "role": "Organizer",
+    "joinedAt": "2024-08-15T14:00:00.000Z"
+  },
+  {
+    "userId": "organizer-001",
+    "eventId": "event-003",
+    "role": "Organizer",
+    "joinedAt": "2024-08-01T09:00:00.000Z"
+  },
+  {
+    "userId": "user-001",
+    "eventId": "event-001",
+    "role": "Participant",
+    "joinedAt": "2024-08-22T15:00:00.000Z"
+  },
+  {
+    "userId": "user-001",
+    "eventId": "event-003",
+    "role": "Participant",
+    "joinedAt": "2024-08-10T12:00:00.000Z"
+  },
+  {
+    "userId": "user_1757011243208_1kwkrqgbr",
+    "eventId": "evt_1757011282276_vv5f7sk2y",
+    "role": "Organizer",
+    "permissions": [
+      {
+        "resource": "topics",
+        "actions": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "manage"
+        ]
+      },
+      {
+        "resource": "rooms",
+        "actions": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "manage"
+        ]
+      },
+      {
+        "resource": "settings",
+        "actions": [
+          "read",
+          "update",
+          "manage"
+        ]
+      },
+      {
+        "resource": "users",
+        "actions": [
+          "read",
+          "update",
+          "manage"
+        ]
+      },
+      {
+        "resource": "rounds",
+        "actions": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "manage"
+        ]
+      },
+      {
+        "resource": "voting",
+        "actions": [
+          "read",
+          "manage"
+        ]
+      }
+    ],
+    "joinedAt": "2025-09-04T18:41:22.306Z"
+  }
+]
