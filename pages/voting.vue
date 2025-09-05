@@ -24,6 +24,13 @@ interface UserAssignment {
 
 const config = useRuntimeConfig()
 const { user } = useUserSession()
+
+// Redirect super admins to their admin dashboard  
+const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
+if (isSuperAdmin.value) {
+  await navigateTo('/super-admin/dashboard')
+}
+
 const { settings: adminSettings, loadSettings } = useAdminSettings()
 const { shouldHideAdminFeatures, getEffectiveRole } = useViewerMode()
 const VOTE_LIMIT = computed(() => adminSettings.value.maxVotesPerTopic)

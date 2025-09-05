@@ -20,6 +20,13 @@ interface TopicSelection {
 }
 
 const { user } = useUserSession()
+
+// Redirect super admins to their admin dashboard
+const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
+if (isSuperAdmin.value) {
+  await navigateTo('/super-admin/dashboard')
+}
+
 const { settings: adminSettings, loadSettings } = useAdminSettings()
 const groups = ref<GroupAssignment[]>([])
 const activeRound = ref<ActiveRound | null>(null)

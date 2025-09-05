@@ -1,5 +1,12 @@
 <script setup lang="ts">
 const { user } = useUserSession()
+
+// Redirect super admins to their platform settings
+const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
+if (isSuperAdmin.value) {
+  await navigateTo('/super-admin/settings')
+}
+
 const config = useRuntimeConfig()
 const { eventConfig, updateEventConfig } = useEventConfig()
 const { applyTheme, getCurrentTheme, initializeTheme, setupAutoThemeWatcher } = useAppTheme()

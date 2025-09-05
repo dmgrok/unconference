@@ -123,9 +123,14 @@
 
   const filteredNavItems = computed<NavItem[]>(() => 
     navItems.filter(item => {
-      // Super admin items
+      // Super admin users should ONLY see super admin items
+      if (isSuperAdmin.value) {
+        return item.superAdminOnly
+      }
+      
+      // Super admin items are only for super admins
       if (item.superAdminOnly) {
-        return isSuperAdmin.value
+        return false
       }
       
       // Regular admin items

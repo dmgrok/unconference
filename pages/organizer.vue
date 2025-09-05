@@ -6,6 +6,12 @@ definePageMeta({
 })
 
 const { user } = useUserSession()
+
+// Redirect super admins to their admin dashboard
+const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
+if (isSuperAdmin.value) {
+  await navigateTo('/super-admin/dashboard')
+}
 // TODO: Implement multi-event support later
 // const { currentEventId } = useEventContext()
 // const currentEvent = inject('currentEvent') as any
