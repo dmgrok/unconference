@@ -1,26 +1,37 @@
 {
-  "id": "active-round-9",
-  "roundNumber": 9,
-  "startTime": "2025-08-28T22:20:29.753Z",
+  "id": "active-round-10",
+  "roundNumber": 10,
+  "startTime": "2025-09-05T13:17:32.952Z",
   "duration": 20,
   "topicIds": [
-    "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
+    "d130774e-f7fe-420e-ac83-061585fff93f",
+    "4aa0a820-347c-49d5-84d9-9e582ef2c965"
   ],
   "selectedTopics": [
-    "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8"
+    "d130774e-f7fe-420e-ac83-061585fff93f",
+    "4aa0a820-347c-49d5-84d9-9e582ef2c965"
   ],
   "topicTitles": [
-    "GitHub Actions Hosted Runners optimization"
+    "Copilot and MCP servers",
+    "TDO for IT"
   ],
   "isActive": false,
   "groupAssignments": [
     {
-      "topicId": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
-      "topicTitle": "GitHub Actions Hosted Runners optimization",
+      "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+      "topicTitle": "Copilot and MCP servers",
       "participants": [
-        "organizer@example.com"
+        "qsdqs@dsqs.Com"
       ],
       "roomAssignment": "Conference Room A (First Floor, East Wing)"
+    },
+    {
+      "topicId": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
+      "topicTitle": "TDO for IT",
+      "participants": [
+        "darth.vader@starwars.com"
+      ],
+      "roomAssignment": "Conference Room B (First Floor, West Wing)"
     }
   ],
   "votingDisabled": false,

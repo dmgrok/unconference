@@ -287,5 +287,45 @@
       }
     ],
     "totalParticipants": 1
+  },
+  {
+    "id": "round-10",
+    "roundNumber": 10,
+    "timestamp": "2025-09-05T13:17:32.950Z",
+    "startTime": "2025-09-05T13:17:32.950Z",
+    "duration": 20,
+    "topicIds": [
+      "d130774e-f7fe-420e-ac83-061585fff93f",
+      "4aa0a820-347c-49d5-84d9-9e582ef2c965"
+    ],
+    "topicTitles": [
+      "Copilot and MCP servers",
+      "TDO for IT"
+    ],
+    "participantCount": 2,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "qsdqs@dsqs.Com"
+        ],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      },
+      {
+        "topicId": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
+        "title": "TDO for IT",
+        "participantCount": 1,
+        "finalScore": 2,
+        "assignedParticipants": [
+          "darth.vader@starwars.com"
+        ],
+        "roomAssignment": "Conference Room B (First Floor, West Wing)"
+      }
+    ],
+    "totalParticipants": 2
   }
 ]

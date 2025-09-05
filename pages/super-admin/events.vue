@@ -2,8 +2,8 @@
   <v-container class="pa-6">
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold">Event Management</h1>
-        <p class="text-body-1 mt-2">Manage all events across the platform</p>
+        <h1 class="text-h4 font-weight-bold">Platform Event Management</h1>
+        <p class="text-body-1 mt-2">Comprehensive oversight and management of all events across the platform</p>
       </div>
       
       <div class="d-flex gap-2">

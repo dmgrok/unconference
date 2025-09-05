@@ -179,6 +179,7 @@
         <!-- Event Quick Access (for multi-event users) -->
         <div v-if="user" class="header-event-access mr-4">
           <v-btn
+            v-if="!isSuperAdmin"
             color="primary"
             variant="outlined"
             prepend-icon="mdi-calendar-multiple"
@@ -186,6 +187,16 @@
             size="small"
           >
             My Events
+          </v-btn>
+          <v-btn
+            v-else
+            color="primary"
+            variant="outlined"
+            prepend-icon="mdi-calendar-multiple"
+            to="/super-admin/events"
+            size="small"
+          >
+            All Events
           </v-btn>
         </div>
         

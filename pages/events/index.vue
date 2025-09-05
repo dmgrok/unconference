@@ -319,6 +319,15 @@ definePageMeta({
   layout: 'multi-event'
 })
 
+// Check if user is super admin and redirect if needed
+const { user } = useUserSession()
+const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
+
+// Redirect super admins to the admin events page
+if (isSuperAdmin.value) {
+  await navigateTo('/super-admin/events')
+}
+
 interface Event {
   id: string
   code: string
