@@ -12,6 +12,7 @@ const { eventConfig, updateEventConfig } = useEventConfig()
 const { applyTheme, getCurrentTheme, initializeTheme, setupAutoThemeWatcher } = useAppTheme()
 const { settings: adminSettings, updateSetting } = useAdminSettings()
 const { settings: viewerModeSettings, toggleViewerMode, isViewerMode } = useViewerMode()
+const { eventStatus, isEventActive, isEventInactive, canEditEvent, toggleEventStatus, canReactivateEvent } = useEventStatus()
 
 // Initialize theme on component mount
 onMounted(async () => {
@@ -97,6 +98,33 @@ const userRole = computed(() => {
   if (isOrganizer.value) return 'Organizer'
   return 'Participant'
 })
+
+// Toggle event status handlers
+async function handleReactivateEvent() {
+  try {
+    const success = await toggleEventStatus()
+    if (success) {
+      message.value = 'Event reactivated successfully!'
+      messageType.value = 'success'
+    }
+  } catch (error) {
+    message.value = 'Failed to reactivate event'
+    messageType.value = 'error'
+  }
+}
+
+async function handleCloseEvent() {
+  try {
+    const success = await toggleEventStatus()
+    if (success) {
+      message.value = 'Event closed successfully!'
+      messageType.value = 'success'
+    }
+  } catch (error) {
+    message.value = 'Failed to close event'
+    messageType.value = 'error'
+  }
+}
 
 // Theme options
 const themeOptions = [
@@ -480,6 +508,16 @@ definePageMeta({
           </v-chip>
         </v-card-title>
         <v-card-text>
+          <v-alert
+            v-if="isEventInactive"
+            type="info"
+            variant="tonal"
+            class="mb-4"
+            prepend-icon="mdi-lock"
+          >
+            Admin settings are read-only while the event is inactive.
+          </v-alert>
+          
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
@@ -490,6 +528,8 @@ definePageMeta({
                 max="50"
                 prepend-icon="mdi-vote"
                 hint="Maximum number of votes each topic can receive"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
@@ -501,6 +541,8 @@ definePageMeta({
                 max="20"
                 prepend-icon="mdi-trophy"
                 hint="Number of top topics to award badges when starting new round"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
@@ -509,6 +551,8 @@ definePageMeta({
                 label="Allow Topic Submission"
                 color="primary"
                 hint="Allow users to submit new topics"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-switch>
             </v-col>
             <v-col cols="12" md="6">
@@ -517,6 +561,8 @@ definePageMeta({
                 label="Auto Start New Round"
                 color="primary"
                 hint="Automatically start new round when vote limit reached"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-switch>
             </v-col>
             <v-col cols="12" md="6">
@@ -525,6 +571,8 @@ definePageMeta({
                 label="Show Voter Names"
                 color="primary"
                 hint="Display who voted for each topic (visible to all participants)"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-switch>
             </v-col>
           </v-row>
@@ -541,6 +589,8 @@ definePageMeta({
                 max="60"
                 prepend-icon="mdi-timer"
                 hint="How long each discussion round should last"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
@@ -552,6 +602,8 @@ definePageMeta({
                 max="20"
                 prepend-icon="mdi-format-list-numbered"
                 hint="Maximum number of topics that can be selected for each round"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -611,6 +663,73 @@ definePageMeta({
               </v-alert>
             </v-col>
           </v-row>
+        </v-card-text>
+      </v-card>
+
+      <!-- Event Status Section (Visible to organizers) -->
+      <v-card v-if="hasEventAccess" class="mb-6">
+        <v-card-title class="d-flex align-center">
+          <v-icon class="mr-2">mdi-toggle-switch</v-icon>
+          Event Status
+          <v-spacer></v-spacer>
+          <v-chip
+            :color="isEventActive ? 'success' : 'warning'"
+            size="small"
+            :prepend-icon="isEventActive ? 'mdi-check-circle' : 'mdi-pause-circle'"
+          >
+            {{ isEventActive ? 'Active' : 'Inactive' }}
+          </v-chip>
+        </v-card-title>
+        <v-card-text>
+          <v-alert
+            v-if="isEventInactive"
+            type="warning"
+            variant="tonal"
+            class="mb-4"
+            prepend-icon="mdi-information"
+          >
+            <v-alert-title>Event is Inactive</v-alert-title>
+            This event is currently inactive. Event data is visible but editing is disabled.
+            {{ eventStatus?.statusReason || 'Event settings cannot be modified while inactive.' }}
+          </v-alert>
+          
+          <div class="d-flex align-center">
+            <div>
+              <p class="text-body-1 mb-2">
+                <strong>Current Status:</strong> {{ isEventActive ? 'Active' : 'Inactive' }}
+              </p>
+              <p class="text-body-2 text-grey-darken-1">
+                {{ isEventActive 
+                  ? 'Event is active and can be edited. Participants can join and vote.' 
+                  : 'Event is inactive. Data is visible but editing is disabled.' 
+                }}
+              </p>
+            </div>
+            
+            <v-spacer></v-spacer>
+            
+            <v-btn
+              v-if="isEventInactive && (isOrganizer || userRole === 'Admin')"
+              color="success"
+              variant="elevated"
+              prepend-icon="mdi-play"
+              @click="handleReactivateEvent"
+              :loading="eventStatus?.isLoading"
+            >
+              Reactivate Event
+            </v-btn>
+            
+            <v-btn
+              v-else-if="isEventActive && (isOrganizer || userRole === 'Admin')"
+              color="warning"
+              variant="outlined"
+              prepend-icon="mdi-pause"
+              @click="handleCloseEvent"
+              :loading="eventStatus?.isLoading"
+            >
+              Close Event
+            </v-btn>
+          </div>
         </v-card-text>
       </v-card>
 
@@ -688,6 +807,16 @@ definePageMeta({
             </v-chip>
           </div>
           
+          <v-alert
+            v-if="isEventInactive"
+            type="info"
+            variant="tonal"
+            class="mb-4"
+            prepend-icon="mdi-lock"
+          >
+            Event information is read-only while the event is inactive.
+          </v-alert>
+          
           <v-row>
             <v-col cols="12">
               <v-text-field
@@ -696,6 +825,8 @@ definePageMeta({
                 prepend-icon="mdi-calendar-text"
                 placeholder="Enter event title..."
                 hint="Main title displayed on the homepage"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
@@ -706,6 +837,8 @@ definePageMeta({
                 placeholder="Enter event description..."
                 rows="2"
                 hint="Brief description of the event purpose"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-textarea>
             </v-col>
             <v-col cols="12" md="6">
@@ -715,6 +848,8 @@ definePageMeta({
                 prepend-icon="mdi-calendar-range"
                 placeholder="e.g., May 21st - 22nd, 2025"
                 hint="When the event takes place"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
@@ -724,6 +859,8 @@ definePageMeta({
                 prepend-icon="mdi-map-marker"
                 placeholder="Enter event location..."
                 hint="Where the event takes place"
+                :readonly="!canEditEvent"
+                :disabled="!canEditEvent"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -768,6 +905,7 @@ definePageMeta({
                     variant="text"
                     color="error"
                     size="small"
+                    :disabled="!canEditEvent"
                   ></v-btn>
                 </div>
                 <v-text-field
@@ -775,12 +913,16 @@ definePageMeta({
                   label="Topic Title"
                   placeholder="Enter topic title..."
                   class="mb-2"
+                  :readonly="!canEditEvent"
+                  :disabled="!canEditEvent"
                 ></v-text-field>
                 <v-textarea
                   v-model="topic.description"
                   label="Topic Description"
                   placeholder="Enter topic description..."
                   rows="2"
+                  :readonly="!canEditEvent"
+                  :disabled="!canEditEvent"
                 ></v-textarea>
               </v-card>
             </div>
@@ -791,6 +933,7 @@ definePageMeta({
               variant="outlined"
               color="primary"
               class="mb-4"
+              :disabled="!canEditEvent"
             >
               Add Mandatory Topic
             </v-btn>
@@ -825,6 +968,7 @@ definePageMeta({
                     :loading="saving"
                     color="success"
                     prepend-icon="mdi-restart"
+                    :disabled="!canEditEvent"
                   >
                     Start New Round
                   </v-btn>
@@ -867,6 +1011,7 @@ definePageMeta({
                     @click="exportData"
                     color="info"
                     prepend-icon="mdi-download"
+                    :disabled="!canEditEvent"
                   >
                     Export Topics
                   </v-btn>
@@ -889,6 +1034,7 @@ definePageMeta({
                     :loading="saving"
                     color="warning"
                     prepend-icon="mdi-playlist-plus"
+                    :disabled="!canEditEvent"
                   >
                     Load Default Topics
                   </v-btn>
@@ -911,6 +1057,7 @@ definePageMeta({
                     :loading="saving"
                     color="purple"
                     prepend-icon="mdi-web"
+                    :disabled="!canEditEvent"
                   >
                     Update Homepage
                   </v-btn>
@@ -936,6 +1083,8 @@ definePageMeta({
                         label="Event Code"
                         hint="Short code participants will use to join (e.g., DEMO2024)"
                         prepend-icon="mdi-ticket-confirmation"
+                        :readonly="!canEditEvent"
+                        :disabled="!canEditEvent"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" md="6">
@@ -944,6 +1093,8 @@ definePageMeta({
                         label="Event Name"
                         hint="Full name of the event for display"
                         prepend-icon="mdi-calendar-text"
+                        :readonly="!canEditEvent"
+                        :disabled="!canEditEvent"
                       ></v-text-field>
                     </v-col>
                   </v-row>
@@ -987,6 +1138,7 @@ definePageMeta({
                     :loading="qrGenerating"
                     color="indigo"
                     prepend-icon="mdi-qrcode"
+                    :disabled="!canEditEvent"
                   >
                     Generate QR Code
                   </v-btn>

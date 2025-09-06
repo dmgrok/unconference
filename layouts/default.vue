@@ -45,6 +45,13 @@
     }
   })
   const navItems = reactive<NavItem[]>([
+      {
+      icon: 'mdi-account-star',
+      title: 'Dashboard',
+      to: '/organizer',
+      adminOnly: true,
+      organizerAccess: true
+    },
     {
       icon: 'mdi-vote',
       title: 'Voting & Topics',
@@ -53,28 +60,14 @@
     },
     {
       icon: 'mdi-account-group',
-      title: 'Discussion Groups',
+      title: 'Groups',
       to: '/groups',
       adminOnly: false
     },
     {
-      icon: 'mdi-account-star',
-      title: 'Organizer Hub',
-      to: '/organizer',
-      adminOnly: true,
-      organizerAccess: true
-    },
-    {
       icon: 'mdi-chart-bar',
-      title: 'Live Voting',
+      title: 'Screen share',
       to: '/admin/voting-dashboard',
-      adminOnly: true,
-      organizerAccess: true
-    },
-    {
-      icon: 'mdi-timer',
-      title: 'Round Management',
-      to: '/groups',
       adminOnly: true,
       organizerAccess: true
     },
