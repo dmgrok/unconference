@@ -33,6 +33,7 @@ if (isSuperAdmin.value) {
 
 const { settings: adminSettings, loadSettings } = useAdminSettings()
 const { shouldHideAdminFeatures, getEffectiveRole } = useViewerMode()
+const { eventStatus, isEventActive, isEventInactive, canEditEvent } = useEventStatus()
 const VOTE_LIMIT = computed(() => adminSettings.value.maxVotesPerTopic)
 const dialog = ref(false)
 const editDialog = ref(false)
@@ -426,6 +427,11 @@ const placeholderCount = computed(() => {
 const placeholders = computed(() => Array(placeholderCount.value).fill(null))
 
 function getVoteStatus(topic: DiscussionTopic) {
+  // Check if event is inactive
+  if (isEventInactive.value) {
+    return { status: 'disabled', text: 'Event Inactive', color: 'grey', variant: 'outlined' as const, disabled: true, icon: 'mdi-pause-circle' }
+  }
+  
   // Check if voting is disabled during active rounds
   if (isVotingDisabled.value) {
     return { status: 'disabled', text: 'Voting Disabled', color: 'grey', variant: 'outlined' as const, disabled: true, icon: 'mdi-vote-off' }
@@ -645,9 +651,26 @@ function closeTour() {
           color="primary"
           prepend-icon="mdi-plus"
           @click="dialog = true"
+          :disabled="!canEditEvent || !adminSettings.allowTopicSubmission"
         >
           Propose Topic
         </v-btn>
+      </v-col>
+    </v-row>
+
+    <!-- Event Inactive Alert -->
+    <v-row v-if="isEventInactive" class="mb-4">
+      <v-col>
+        <v-alert
+          type="warning"
+          prominent
+          variant="tonal"
+          prepend-icon="mdi-pause-circle"
+        >
+          <v-alert-title>Event is Inactive</v-alert-title>
+          This event is currently inactive. You can view topics and data, but voting and topic creation are disabled.
+          {{ eventStatus?.statusReason }}
+        </v-alert>
       </v-col>
     </v-row>
 
@@ -1017,6 +1040,7 @@ function closeTour() {
                   size="small"
                   prepend-icon="mdi-pencil"
                   @click="startEdit(topic)"
+                  :disabled="!canEditEvent"
                 >
                   Edit
                 </v-btn>
@@ -1027,6 +1051,7 @@ function closeTour() {
                   size="small"
                   prepend-icon="mdi-delete"
                   @click="deleteTopic(topic)"
+                  :disabled="!canEditEvent"
                 >
                   Delete
                 </v-btn>
@@ -1037,6 +1062,7 @@ function closeTour() {
                   size="small"
                   prepend-icon="mdi-snowflake"
                   @click="topicToFreeze = topic; freezeConfirmDialog = true"
+                  :disabled="!canEditEvent"
                 >
                   Freeze
                 </v-btn>

@@ -28,6 +28,7 @@ if (isSuperAdmin.value) {
 }
 
 const { settings: adminSettings, loadSettings } = useAdminSettings()
+const { eventStatus, isEventActive, isEventInactive, canEditEvent } = useEventStatus()
 const groups = ref<GroupAssignment[]>([])
 const activeRound = ref<ActiveRound | null>(null)
 const roundHistory = ref<RoundHistory[]>([])
@@ -346,6 +347,7 @@ onBeforeUnmount(() => {
               prepend-icon="mdi-lightning-bolt"
               variant="outlined"
               @click="quickRoundDialog = true"
+              :disabled="!canEditEvent"
             >
               Quick Round
             </v-btn>
@@ -353,6 +355,7 @@ onBeforeUnmount(() => {
               color="success"
               prepend-icon="mdi-play-circle"
               @click="openNewRoundDialog"
+              :disabled="!canEditEvent"
             >
               Start Custom Round
             </v-btn>
@@ -388,6 +391,22 @@ onBeforeUnmount(() => {
         </v-btn>
       </div>
     </div>
+
+    <!-- Event Inactive Alert -->
+    <v-row v-if="isEventInactive" class="mb-4">
+      <v-col>
+        <v-alert
+          type="warning"
+          prominent
+          variant="tonal"
+          prepend-icon="mdi-pause-circle"
+        >
+          <v-alert-title>Event is Inactive</v-alert-title>
+          This event is currently inactive. You can view discussion groups and data, but round management is disabled.
+          {{ eventStatus?.statusReason }}
+        </v-alert>
+      </v-col>
+    </v-row>
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-8">
@@ -513,6 +532,7 @@ onBeforeUnmount(() => {
             color="success" 
             @click="openNewRoundDialog"
             variant="elevated"
+            :disabled="!canEditEvent"
           >
             <v-icon class="mr-2">mdi-play-circle</v-icon>
             Start New Round
