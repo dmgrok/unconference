@@ -480,7 +480,7 @@ async function confirmRoleChange() {
   
   try {
     await $fetch(`/api/events/${currentEventId.value}/participants/${selectedParticipant.value.id}/role`, {
-      method: 'POST',
+      method: 'PUT',
       body: { role: newRole.value }
     })
     
@@ -551,7 +551,7 @@ async function generateQRCode() {
       method: 'POST'
     }) as any
     
-    qrCodeUrl.value = response.qrCode
+    qrCodeUrl.value = response.qrCodeDataUrl
   } catch (error) {
     console.error('Failed to generate QR code:', error)
     alert('Failed to generate QR code')

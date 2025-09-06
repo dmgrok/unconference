@@ -46,7 +46,7 @@ const quickActions = [
     subtitle: 'Set up discussion rooms and locations',
     icon: 'mdi-home-city',
     color: 'info',
-    to: '/admin/rooms',
+    to: '/organizer/rooms',
     action: 'rooms'
   },
   {
@@ -124,7 +124,7 @@ async function updateChecklistStatus() {
     checklistItems.value[0].completed = !!setupComplete
     
     // Check rooms configuration
-    const rooms = await $fetch('/api/admin/rooms')
+    const rooms = await $fetch('/api/organizer/rooms')
     checklistItems.value[1].completed = rooms.rooms && rooms.rooms.length > 0
     
     // Check QR code generation (could check if QR exists)
@@ -384,7 +384,7 @@ onMounted(() => {
                 Configure discussion rooms, set capacities, and manage physical logistics.
               </v-card-text>
               <v-card-actions>
-                <v-btn color="secondary" to="/admin/rooms">Manage Rooms</v-btn>
+                <v-btn color="secondary" to="/organizer/rooms">Manage Rooms</v-btn>
               </v-card-actions>
             </v-card>
           </v-col>

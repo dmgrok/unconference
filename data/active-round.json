@@ -1,7 +1,7 @@
 {
-  "id": "active-round-11",
-  "roundNumber": 11,
-  "startTime": "2025-09-06T21:11:01.205Z",
+  "id": "active-round-12",
+  "roundNumber": 12,
+  "startTime": "2025-09-06T22:17:03.000Z",
   "duration": 20,
   "topicIds": [
     "d130774e-f7fe-420e-ac83-061585fff93f"
@@ -17,7 +17,9 @@
     {
       "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
       "topicTitle": "Copilot and MCP servers",
-      "participants": [],
+      "participants": [
+        "organizer@example.com"
+      ],
       "roomAssignment": "Conference Room A (First Floor, East Wing)"
     }
   ],

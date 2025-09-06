@@ -74,8 +74,9 @@
     {
       icon: 'mdi-home-city',
       title: 'Room Management',
-      to: '/admin/rooms',
-      adminOnly: true
+      to: '/organizer/rooms',
+      adminOnly: true,
+      organizerAccess: true
     },
     {
       icon: 'mdi-cog',

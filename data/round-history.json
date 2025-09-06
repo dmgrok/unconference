@@ -353,5 +353,33 @@
       }
     ],
     "totalParticipants": 0
+  },
+  {
+    "id": "round-12",
+    "roundNumber": 12,
+    "timestamp": "2025-09-06T22:17:02.999Z",
+    "startTime": "2025-09-06T22:17:02.999Z",
+    "duration": 20,
+    "topicIds": [
+      "d130774e-f7fe-420e-ac83-061585fff93f"
+    ],
+    "topicTitles": [
+      "Copilot and MCP servers"
+    ],
+    "participantCount": 1,
+    "eventId": "default-event",
+    "selectedTopics": [
+      {
+        "topicId": "d130774e-f7fe-420e-ac83-061585fff93f",
+        "title": "Copilot and MCP servers",
+        "participantCount": 1,
+        "finalScore": 1,
+        "assignedParticipants": [
+          "organizer@example.com"
+        ],
+        "roomAssignment": "Conference Room A (First Floor, East Wing)"
+      }
+    ],
+    "totalParticipants": 1
   }
 ]

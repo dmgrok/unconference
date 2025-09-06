@@ -387,7 +387,7 @@ onBeforeUnmount(() => {
             color="info"
             prepend-icon="mdi-home-city"
             variant="outlined"
-            to="/admin/rooms"
+            to="/organizer/rooms"
           >
             Configure Rooms
           </v-btn>
