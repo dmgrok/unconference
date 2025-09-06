@@ -31,7 +31,7 @@ async function loadRooms() {
   error.value = ''
   
   try {
-    const response = await $fetch('/api/admin/rooms')
+    const response = await $fetch('/api/organizer/rooms')
     rooms.value = response.rooms
   } catch (err: any) {
     error.value = err.data?.message || 'Failed to load rooms'
@@ -72,7 +72,7 @@ async function saveRoom() {
   }
 
   try {
-    const response = await $fetch('/api/admin/rooms', {
+    const response = await $fetch('/api/organizer/rooms', {
       method: 'POST',
       body: {
         ...newRoom.value,
