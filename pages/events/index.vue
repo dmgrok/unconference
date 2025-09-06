@@ -37,25 +37,28 @@
         md="6" 
         lg="4"
       >
-        <v-card class="h-100" elevation="2">
-          <v-card-title class="d-flex justify-space-between">
-            <span class="text-truncate">{{ event.name }}</span>
-            <div class="d-flex gap-1">
-              <v-chip
-                :color="event.isActive ? 'success' : 'warning'"
-                size="small"
-                variant="tonal"
-              >
-                {{ event.isActive ? 'Active' : 'Inactive' }}
-              </v-chip>
+        <v-card class="h-100" elevation="2" :class="{ 'border-primary': event.role === 'Organizer' }">
+          <v-card-title class="d-flex justify-space-between align-start">
+            <div class="flex-grow-1">
+              <div class="text-truncate">{{ event.name }}</div>
               <v-chip
                 :color="getRoleColor(event.role)"
                 size="small"
-                variant="outlined"
+                variant="flat"
+                class="mt-1"
               >
-                {{ event.role }}
+                <v-icon start size="small">{{ getRoleIcon(event.role) }}</v-icon>
+                {{ event.role || 'Participant' }}
               </v-chip>
             </div>
+            <v-chip
+              :color="event.isActive ? 'success' : 'warning'"
+              size="small"
+              variant="tonal"
+              :prepend-icon="event.isActive ? 'mdi-check-circle' : 'mdi-pause-circle'"
+            >
+              {{ event.isActive ? 'Active' : 'Inactive' }}
+            </v-chip>
           </v-card-title>
           
           <v-card-subtitle>
@@ -66,6 +69,18 @@
             <p v-if="event.description" class="text-body-2 mb-2">
               {{ event.description }}
             </p>
+            
+            <!-- Inactive Event Notice for Organizers -->
+            <v-alert 
+              v-if="!event.isActive && event.role === 'Organizer'"
+              type="info"
+              variant="tonal"
+              density="compact"
+              class="mb-3"
+              prepend-icon="mdi-information"
+            >
+              <span class="text-caption">This event is inactive. You can still access settings and reactivate it.</span>
+            </v-alert>
             
             <div class="d-flex align-center mb-2">
               <v-icon size="small" class="mr-2">mdi-calendar</v-icon>
@@ -88,7 +103,20 @@
           </v-card-text>
           
           <v-card-actions>
+            <!-- Primary Enter/Manage Button -->
             <v-btn 
+              v-if="event.role === 'Organizer'"
+              :to="`/settings?eventId=${event.id}`"
+              color="primary"
+              variant="flat"
+              size="small"
+              :prepend-icon="event.isActive ? 'mdi-cog' : 'mdi-settings'"
+            >
+              {{ event.isActive ? 'Manage Event' : 'View Settings' }}
+            </v-btn>
+            
+            <v-btn 
+              v-else
               :to="`/voting?eventId=${event.id}`"
               color="primary"
               variant="flat"
@@ -98,16 +126,17 @@
             >
               {{ event.isActive ? 'Enter Event' : 'Event Closed' }}
             </v-btn>
-            
+
+            <!-- Secondary Action for Organizers -->
             <v-btn 
-              v-if="event.role === 'Organizer'"
-              :to="`/organizer?eventId=${event.id}`"
+              v-if="event.role === 'Organizer' && event.isActive"
+              :to="`/voting?eventId=${event.id}`"
               color="secondary"
               variant="tonal"
               size="small"
-              prepend-icon="mdi-cog"
+              prepend-icon="mdi-vote"
             >
-              Manage
+              Join Voting
             </v-btn>
 
             <!-- Event Status Controls for Organizers -->
@@ -120,7 +149,7 @@
               @click="toggleEventStatus(event)"
               :loading="event._statusLoading"
             >
-              {{ event.isActive ? 'Close' : 'Start' }}
+              {{ event.isActive ? 'Close' : 'Reactivate' }}
             </v-btn>
             
             <v-spacer />
@@ -452,6 +481,22 @@ function getRoleColor(role?: string) {
       return 'warning'
     default:
       return 'grey'
+  }
+}
+
+// Get role icon
+function getRoleIcon(role?: string) {
+  switch (role) {
+    case 'Organizer':
+      return 'mdi-crown'
+    case 'Moderator':
+      return 'mdi-shield-account'
+    case 'Participant':
+      return 'mdi-account'
+    case 'Guest':
+      return 'mdi-account-question'
+    default:
+      return 'mdi-account'
   }
 }
 

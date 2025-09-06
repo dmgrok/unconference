@@ -72,6 +72,10 @@ export default defineEventHandler(async (event) => {
   const topTopicsCount = config.public.topTopicsCount
   const { user } = await requireUserSession(event)
   
+  // NOTE: This is a legacy endpoint for single-event installations.
+  // In multi-event mode, use /api/events/[eventId]/rounds/start.post.ts instead
+  // which includes proper event status validation.
+  
   // Verify admin or organizer role
   const userRole = (user as any).Role || (user as any).role
   if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'SuperAdmin') {

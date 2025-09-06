@@ -12,7 +12,7 @@ const { eventConfig, updateEventConfig } = useEventConfig()
 const { applyTheme, getCurrentTheme, initializeTheme, setupAutoThemeWatcher } = useAppTheme()
 const { settings: adminSettings, updateSetting } = useAdminSettings()
 const { settings: viewerModeSettings, toggleViewerMode, isViewerMode } = useViewerMode()
-const { eventStatus, isEventActive, isEventInactive, canEditEvent, toggleEventStatus, canReactivateEvent } = useEventStatus()
+const { eventStatus, isEventActive, isEventInactive, canEditEvent, toggleEventStatus, canReactivateEvent, hasEventAccess } = useEventStatus()
 
 // Initialize theme on component mount
 onMounted(async () => {
@@ -88,7 +88,8 @@ const eventCodeForm = ref({
 // Check if user is admin or organizer
 const isAdmin = computed(() => (user.value as any)?.Role === 'Admin' || (user.value as any)?.role === 'Admin')
 const isOrganizer = computed(() => (user.value as any)?.Role === 'Organizer' || (user.value as any)?.role === 'Organizer')
-const hasEventAccess = computed(() => isAdmin.value || isOrganizer.value)
+// Use event access from useEventStatus composable instead of role-based check
+// const hasEventAccess = computed(() => isAdmin.value || isOrganizer.value)
 
 // Event and user context for organizer management
 const { currentEventId } = useEventContext()
@@ -402,11 +403,34 @@ definePageMeta({
     <v-container max-width="800">
       <h1 class="text-h4 mb-6 text-primary">Settings</h1>
       
-      <!-- Alert Messages -->
+      <!-- Access Denied Alert for Events -->
       <v-alert
-        v-if="message"
-        :type="messageType"
-        dismissible
+        v-if="currentEventId && !hasEventAccess"
+        type="error"
+        prominent
+        variant="tonal"
+        class="mb-6"
+        prepend-icon="mdi-lock"
+      >
+        <v-alert-title>Access Denied</v-alert-title>
+        <p>You don't have permission to access settings for this event.</p>
+        <p class="text-caption mt-2">
+          {{ eventStatus?.statusReason || 'Please check that you have the correct role in this event.' }}
+        </p>
+        <template #append>
+          <v-btn color="primary" variant="outlined" to="/events">
+            Back to My Events
+          </v-btn>
+        </template>
+      </v-alert>
+
+      <!-- Settings Content (only show if user has access) -->
+      <template v-if="!currentEventId || hasEventAccess">
+        <!-- Alert Messages -->
+        <v-alert
+          v-if="message"
+          :type="messageType"
+          dismissible
         class="mb-6"
         @click:close="message = ''"
       >
@@ -1202,6 +1226,7 @@ definePageMeta({
           </v-row>
         </v-card-text>
       </v-card>
+      </template>
     </v-container>
   </div>
 </template>

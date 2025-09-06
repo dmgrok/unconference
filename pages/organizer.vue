@@ -6,6 +6,7 @@ definePageMeta({
 })
 
 const { user } = useUserSession()
+const { eventStatus, isEventActive, isEventInactive, canEditEvent } = useEventStatus()
 
 // Redirect super admins to their admin dashboard
 const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
@@ -200,6 +201,18 @@ onMounted(() => {
 
 <template>
   <v-container>
+    <!-- Event Status Warning -->
+    <v-alert
+      v-if="isEventInactive"
+      type="warning"
+      class="mb-4"
+      variant="outlined"
+    >
+      <v-icon>mdi-alert</v-icon>
+      Event is currently inactive. Management actions may be limited.
+      <span v-if="eventStatus.statusReason">{{ eventStatus.statusReason }}</span>
+    </v-alert>
+    
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
         <h1 class="text-h4 font-weight-bold">Organizer Dashboard</h1>

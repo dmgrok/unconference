@@ -1,4 +1,6 @@
 import { eventService } from '../../../../utils/eventService'
+import { resolveUserId } from '../../../utils/userHelper'
+import logger from '../../../../utils/logger'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
@@ -11,9 +13,25 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const userId = (user as any).id || (user as any).email
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Authentication required'
+    })
+  }
 
   try {
+    // Get the actual user ID by looking up the user by email
+    const userId = await resolveUserId(user)
+    
+    if (!userId) {
+      logger.warn(`No user found for session user: ${JSON.stringify(user)}`)
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'User not found in platform'
+      })
+    }
+
     // Check if user has access to this event
     const userRole = await eventService.getUserRoleInEvent(userId, eventId)
     const isSuperAdmin = (user as any).globalRole === 'SuperAdmin'

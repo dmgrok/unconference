@@ -7,6 +7,7 @@ definePageMeta({
 })
 
 const { user } = useUserSession()
+const { eventStatus, isEventActive, isEventInactive, canEditEvent } = useEventStatus()
 
 // Check if user is admin or organizer - defensive approach with reactivity
 const hasAccess = ref(false)
@@ -618,6 +619,7 @@ onUnmounted(() => {
               variant="outlined"
               class="pixel-btn"
               size="small"
+              :disabled="!canEditEvent"
             >
               START ROUND
             </v-btn>
@@ -1018,7 +1020,7 @@ onUnmounted(() => {
           </v-btn>
           <v-btn
             color="primary"
-            :disabled="!canStartRound || startingRound"
+            :disabled="!canStartRound || startingRound || !canEditEvent"
             :loading="startingRound"
             @click="startNewRound"
           >

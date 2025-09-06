@@ -9,6 +9,7 @@ definePageMeta({
 
 const { user } = useUserSession()
 const { settings: adminSettings, loadSettings } = useAdminSettings()
+const { eventStatus, isEventActive, isEventInactive, canEditEvent } = useEventStatus()
 
 const hasAccess = computed(() => {
   const userRole = (user.value as any)?.Role || (user.value as any)?.role
@@ -42,7 +43,9 @@ const selectedTopics = computed(() =>
 )
 
 const canStartRound = computed(() => 
-  selectedTopics.value.length > 0 && selectedTopics.value.length <= adminSettings.value.maxTopicsPerRound
+  selectedTopics.value.length > 0 && 
+  selectedTopics.value.length <= adminSettings.value.maxTopicsPerRound && 
+  canEditEvent.value
 )
 
 async function loadRoundHistory() {
@@ -210,12 +213,24 @@ onBeforeUnmount(() => {
 
 <template>
   <v-container>
+    <!-- Event Status Warning -->
+    <v-alert
+      v-if="isEventInactive"
+      type="warning"
+      class="mb-4"
+      variant="outlined"
+    >
+      <v-icon>mdi-alert</v-icon>
+      Event is currently inactive. Round management actions are disabled.
+      <span v-if="eventStatus.statusReason">{{ eventStatus.statusReason }}</span>
+    </v-alert>
+    
     <v-row class="mb-4">
       <v-col>
         <h1 class="text-h4 mb-4">Round Management</h1>
         
         <!-- Active Round Status -->
-        <v-card v-if="activeRound?.isActive" class="mb-6" color="success" variant="outlined">
+        <v-card v-if="activeRound?.isActive && canEditEvent" class="mb-6" color="success" variant="outlined">
           <v-card-title class="d-flex align-center">
             <v-icon class="mr-2">mdi-play-circle</v-icon>
             Round {{ activeRound.roundNumber }} Active
@@ -278,7 +293,7 @@ onBeforeUnmount(() => {
     </v-row>
 
     <!-- Action Buttons -->
-    <v-row class="mb-6">
+    <v-row v-if="canEditEvent" class="mb-6">
       <v-col class="d-flex gap-4">
         <v-btn
           color="primary"

@@ -68,7 +68,9 @@ const selectedTopics = computed(() =>
 )
 
 const canStartRound = computed(() => 
-  selectedTopics.value.length > 0 && selectedTopics.value.length <= adminSettings.value.maxTopicsPerRound
+  selectedTopics.value.length > 0 && 
+  selectedTopics.value.length <= adminSettings.value.maxTopicsPerRound &&
+  canEditEvent.value
 )
 
 async function loadGroups() {
@@ -308,6 +310,18 @@ onBeforeUnmount(() => {
 
 <template>
   <v-container>
+    <!-- Event Status Warning -->
+    <v-alert
+      v-if="isEventInactive"
+      type="warning"
+      class="mb-4"
+      variant="outlined"
+    >
+      <v-icon>mdi-alert</v-icon>
+      Event is currently inactive. Round management is disabled.
+      <span v-if="eventStatus.statusReason">{{ eventStatus.statusReason }}</span>
+    </v-alert>
+    
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
         <h1 class="text-h4 font-weight-bold">Discussion Groups & Round Management</h1>
@@ -320,7 +334,7 @@ onBeforeUnmount(() => {
         <!-- For Organizers - Round Management Actions -->
         <template v-if="isOrganizer">
           <!-- Active Round Controls -->
-          <template v-if="activeRound?.isActive">
+          <template v-if="activeRound?.isActive && canEditEvent">
             <v-btn
               color="warning"
               prepend-icon="mdi-timer-plus"
@@ -341,13 +355,12 @@ onBeforeUnmount(() => {
           </template>
           
           <!-- No Active Round Controls -->
-          <template v-else>
+          <template v-else-if="!activeRound?.isActive && canEditEvent">
             <v-btn
               color="secondary"
               prepend-icon="mdi-lightning-bolt"
               variant="outlined"
               @click="quickRoundDialog = true"
-              :disabled="!canEditEvent"
             >
               Quick Round
             </v-btn>
@@ -355,7 +368,6 @@ onBeforeUnmount(() => {
               color="success"
               prepend-icon="mdi-play-circle"
               @click="openNewRoundDialog"
-              :disabled="!canEditEvent"
             >
               Start Custom Round
             </v-btn>
@@ -371,6 +383,7 @@ onBeforeUnmount(() => {
             Round History
           </v-btn>
           <v-btn
+            v-if="canEditEvent"
             color="info"
             prepend-icon="mdi-home-city"
             variant="outlined"

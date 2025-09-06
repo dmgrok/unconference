@@ -4,6 +4,7 @@ import type { Room } from '~/types/room'
 import { AMENITIES } from '~/types/room'
 
 const { user } = useUserSession()
+const { eventStatus, isEventActive, isEventInactive, canEditEvent } = useEventStatus()
 const rooms = ref<Room[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -120,10 +121,23 @@ definePageMeta({
 
 <template>
   <v-container>
+    <!-- Event Status Warning -->
+    <v-alert
+      v-if="isEventInactive"
+      type="warning"
+      class="mb-4"
+      variant="outlined"
+    >
+      <v-icon>mdi-alert</v-icon>
+      Event is currently inactive. Room management may be limited.
+      <span v-if="eventStatus.statusReason">{{ eventStatus.statusReason }}</span>
+    </v-alert>
+    
     <div class="d-flex justify-space-between align-center mb-6">
       <h1 class="text-h4 text-primary">Room Management</h1>
       
       <v-btn
+        v-if="canEditEvent"
         color="primary"
         prepend-icon="mdi-plus"
         @click="startCreate"
@@ -216,7 +230,7 @@ definePageMeta({
             </div>
           </v-card-text>
           
-          <v-card-actions>
+          <v-card-actions v-if="canEditEvent">
             <v-btn
               variant="text"
               prepend-icon="mdi-pencil"

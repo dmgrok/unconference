@@ -16,6 +16,10 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const topicsPath = join(process.cwd(), config.topicsFilePath)
   
+  // NOTE: This is a legacy endpoint for single-event installations.
+  // In multi-event mode, topic editing should go through event-specific endpoints
+  // which include proper event status validation.
+  
   try {
     // Read existing topics
     const topicsData = await fs.readFile(topicsPath, 'utf-8')

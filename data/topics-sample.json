@@ -4,29 +4,35 @@
     "title": "Copilot and MCP servers",
     "description": "MCP servers are changing the landscape of AI. How do we leverage them securely?",
     "createdBy": "darth.vader@starwars.com",
-    "votes": 0,
+    "votes": 1,
     "voters": [],
-    "badges": 16,
+    "badges": 17,
     "selectedForRound": true,
     "frozen": false,
     "firstChoiceVoters": [],
-    "secondChoiceVoters": [],
-    "totalPreferenceScore": 0,
-    "currentRound": 10
+    "secondChoiceVoters": [
+      "organizer@example.com"
+    ],
+    "totalPreferenceScore": 1,
+    "currentRound": 11
   },
   {
     "id": "1136cf62-9b50-4f0b-91dd-8cdc6a2100b8",
     "title": "GitHub Actions Hosted Runners optimization",
     "description": "Private networking and custom images are bringing new possibilities to GitHub Actions. How do we leverage them?",
     "createdBy": "storm.trooper@starwars.com",
-    "votes": 0,
-    "voters": [],
-    "badges": 16,
+    "votes": 1,
+    "voters": [
+      "organizer@example.com"
+    ],
+    "badges": 17,
     "frozen": false,
-    "selectedForRound": false,
-    "firstChoiceVoters": [],
+    "selectedForRound": true,
+    "firstChoiceVoters": [
+      "organizer@example.com"
+    ],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 0
+    "totalPreferenceScore": 2
   },
   {
     "id": "4aa0a820-347c-49d5-84d9-9e582ef2c965",
@@ -36,12 +42,11 @@
     "votes": 0,
     "voters": [],
     "frozen": false,
-    "selectedForRound": true,
-    "badges": 16,
+    "selectedForRound": false,
+    "badges": 17,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 0,
-    "currentRound": 10
+    "totalPreferenceScore": 0
   },
   {
     "id": "90396b29-96ce-4c62-b3c3-b2ec4a07906a",
@@ -52,7 +57,7 @@
     "voters": [],
     "frozen": false,
     "selectedForRound": false,
-    "badges": 14,
+    "badges": 15,
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
     "totalPreferenceScore": 0
@@ -64,7 +69,7 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 14,
+    "badges": 15,
     "selectedForRound": false,
     "frozen": false,
     "firstChoiceVoters": [],
@@ -78,7 +83,7 @@
     "createdBy": "darth.vader@starwars.com",
     "votes": 0,
     "voters": [],
-    "badges": 12,
+    "badges": 13,
     "selectedForRound": false,
     "frozen": false,
     "firstChoiceVoters": [],
@@ -95,7 +100,7 @@
     "firstChoiceVoters": [],
     "secondChoiceVoters": [],
     "totalPreferenceScore": 0,
-    "badges": 1,
+    "badges": 2,
     "selectedForRound": false,
     "frozen": false
   }

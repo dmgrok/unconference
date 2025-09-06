@@ -26,11 +26,23 @@ export default defineEventHandler(async (event) => {
     
     const userEvents = await eventService.getUserEvents(userId)
     
-    logger.debug(`Retrieved ${userEvents.length} events for user ${userId} (${(user as any).email})`)
+    // Enhance events with user role information
+    const eventsWithRoles = await Promise.all(
+      userEvents.map(async (evt) => {
+        const userRole = await eventService.getUserRoleInEvent(userId, evt.id)
+        return {
+          ...evt,
+          role: userRole,
+          joinedAt: evt.createdAt // Default to creation date, could be enhanced with actual join date
+        }
+      })
+    )
+    
+    logger.debug(`Retrieved ${eventsWithRoles.length} events for user ${userId} (${(user as any).email})`)
     
     return {
       success: true,
-      events: userEvents
+      events: eventsWithRoles
     }
   } catch (error) {
     logger.error('Error getting user events:', error)

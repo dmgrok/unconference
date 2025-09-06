@@ -10,6 +10,10 @@ export default defineEventHandler(async (event) => {
   const topicsPath = join(process.cwd(), config.topicsFilePath)
   const activeRoundPath = join(process.cwd(), config.activeRoundFilePath)
   
+  // NOTE: This is a legacy endpoint for single-event installations.
+  // In multi-event mode, topic deletion should go through event-specific endpoints
+  // which include proper event status validation.
+  
   if (!topicId) {
     throw createError({
       statusCode: 400,

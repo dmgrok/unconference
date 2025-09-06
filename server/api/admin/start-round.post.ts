@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import logger from '../../../utils/logger'
+import { requireActiveEvent } from '../../utils/eventStatusHelper'
 import type { DiscussionTopic, RoundHistory, ActiveRound, GroupAssignment } from '~/types/topic'
 import type { User } from '~/types/user'
 import type { Room } from '~/types/room'
@@ -87,6 +88,11 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const query = getQuery(event)
   const eventId = query.eventId as string
+  
+  // Check if the event is active before allowing round management
+  if (eventId) {
+    await requireActiveEvent(eventId)
+  }
   
   // Verify admin or organizer role
   const userRole = (user as any).Role || (user as any).role

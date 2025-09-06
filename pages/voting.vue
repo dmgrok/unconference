@@ -189,6 +189,11 @@ async function voteForTopic(topicId: string) {
     return
   }
   
+  if (!canEditEvent.value) {
+    alert('Voting is disabled when the event is not active')
+    return
+  }
+  
   try {
     if (userFirstChoice.value && userFirstChoice.value.id === topicId) {
       // If clicking on their first choice, remove it
@@ -245,6 +250,11 @@ async function voteForTopic(topicId: string) {
 }
 
 async function resetVotes() {
+  if (!canEditEvent.value) {
+    alert('Vote resetting is disabled when the event is not active')
+    return
+  }
+  
   const confirmed = confirm('Are you sure you want to reset all your votes?')
   if (!confirmed) return
   
@@ -640,7 +650,7 @@ function closeTour() {
     <v-row class="mb-4">
       <v-col class="d-flex justify-end gap-4">
         <v-btn
-          v-if="isAdmin"
+          v-if="isAdmin && canEditEvent"
           color="success"
           prepend-icon="mdi-cog"
           :to="'/groups'"
@@ -648,10 +658,10 @@ function closeTour() {
           Manage Rounds
         </v-btn>
         <v-btn
+          v-if="canEditEvent && adminSettings.allowTopicSubmission"
           color="primary"
           prepend-icon="mdi-plus"
           @click="dialog = true"
-          :disabled="!canEditEvent || !adminSettings.allowTopicSubmission"
         >
           Propose Topic
         </v-btn>
@@ -829,7 +839,7 @@ function closeTour() {
             </div>
           </v-card-text>
           
-          <v-card-actions v-if="hasVotedPreferences" class="justify-center py-3">
+          <v-card-actions v-if="hasVotedPreferences && canEditEvent" class="justify-center py-3">
             <v-btn
               color="white"
               variant="outlined"
@@ -1034,35 +1044,32 @@ function closeTour() {
               <!-- Edit/Delete Actions -->
               <div class="topic-management-actions">
                 <v-btn
-                  v-if="canEditTopic(topic)"
+                  v-if="canEditTopic(topic) && canEditEvent"
                   color="primary"
                   variant="text"
                   size="small"
                   prepend-icon="mdi-pencil"
                   @click="startEdit(topic)"
-                  :disabled="!canEditEvent"
                 >
                   Edit
                 </v-btn>
                 <v-btn
-                  v-if="canDeleteTopic(topic)"
+                  v-if="canDeleteTopic(topic) && canEditEvent"
                   color="error"
                   variant="text"
                   size="small"
                   prepend-icon="mdi-delete"
                   @click="deleteTopic(topic)"
-                  :disabled="!canEditEvent"
                 >
                   Delete
                 </v-btn>
                 <v-btn
-                  v-if="isAdmin && !topic.frozen"
+                  v-if="isAdmin && !topic.frozen && canEditEvent"
                   color="error"
                   variant="text"
                   size="small"
                   prepend-icon="mdi-snowflake"
                   @click="topicToFreeze = topic; freezeConfirmDialog = true"
-                  :disabled="!canEditEvent"
                 >
                   Freeze
                 </v-btn>

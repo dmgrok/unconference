@@ -2,6 +2,7 @@ import { promises as fs } from 'fs'
 import { join } from 'path'
 import logger from '../../../../../utils/logger'
 import { requireEventPermission } from "../../../../utils/authService"
+import { requireActiveEvent } from "../../../../utils/eventStatusHelper"
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
 
@@ -19,6 +20,9 @@ export default defineEventHandler(async (event) => {
       message: 'Event ID is required'
     })
   }
+
+  // Check if the event is active before allowing topic creation
+  await requireActiveEvent(eventId)
 
   // Check if user has permission to create topics in this event
   const user = await requireEventPermission(event, eventId, 'topics', 'create')

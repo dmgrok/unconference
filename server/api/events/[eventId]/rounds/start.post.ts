@@ -2,6 +2,7 @@ import { promises as fs } from 'fs'
 import { join } from 'path'
 import logger from '../../../../../utils/logger'
 import { requireEventPermission } from "../../../../utils/authService"
+import { requireActiveEvent } from "../../../../utils/eventStatusHelper"
 import type { DiscussionTopic, RoundHistory, ActiveRound, GroupAssignment } from '~/types/topic'
 
 // Function to automatically assign participants to groups based on their votes
@@ -65,6 +66,9 @@ export default defineEventHandler(async (event) => {
       message: 'Event ID is required'
     })
   }
+
+  // Check if the event is active before allowing round management
+  await requireActiveEvent(eventId)
 
   // Check if user has permission to manage rounds in this event
   await requireEventPermission(event, eventId, 'rounds', 'create')

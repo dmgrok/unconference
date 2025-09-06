@@ -3,6 +3,7 @@ import { join } from 'path'
 import logger from '../../../../utils/logger'
 import { getAdminSettings } from '../../../../utils/adminSettings'
 import { monitoringService } from '../../../utils/monitoringService'
+import { requireActiveEvent } from '../../../utils/eventStatusHelper'
 import type { DiscussionTopic } from '~/types/topic'
 import type { User } from '~/types/user'
 
@@ -12,6 +13,11 @@ export default defineEventHandler(async (event) => {
   const maxVotesPerTopic = adminSettings.maxVotesPerTopic
   const { user } = await requireUserSession(event)
   const topicId = getRouterParam(event, 'id')
+  
+  // TODO: This endpoint is for legacy single-event mode. In multi-event mode,
+  // we should check the event status based on the context. For now, we'll
+  // skip the event status check for legacy endpoints since they may be used
+  // in single-event installations.
   
   // Track request completion for monitoring
   const onRequestEnd = (statusCode: number, error?: string) => {
