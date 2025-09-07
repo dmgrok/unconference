@@ -4,14 +4,18 @@
     "title": "Copilot and MCP servers",
     "description": "MCP servers are changing the landscape of AI. How do we leverage them securely?",
     "createdBy": "darth.vader@starwars.com",
-    "votes": 0,
-    "voters": [],
+    "votes": 1,
+    "voters": [
+      "organizer@example.com"
+    ],
     "badges": 18,
     "selectedForRound": true,
     "frozen": false,
-    "firstChoiceVoters": [],
+    "firstChoiceVoters": [
+      "organizer@example.com"
+    ],
     "secondChoiceVoters": [],
-    "totalPreferenceScore": 0,
+    "totalPreferenceScore": 2,
     "currentRound": 12
   },
   {

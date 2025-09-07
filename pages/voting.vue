@@ -100,8 +100,18 @@ const topicRules = {
 
 async function createTopic() {
   if (!newTopic.value.title || !newTopic.value.description) return
+  if (!canEditEvent.value) {
+    alert('Topic creation is disabled when the event is not active')
+    return
+  }
 
-  const response = await $fetch('/api/topics', {
+  const { currentEventId } = useEventContext()
+  if (!currentEventId.value) {
+    alert('No event selected')
+    return
+  }
+
+  const response = await $fetch(`/api/events/${currentEventId.value}/topics`, {
     method: 'POST',
     body: {
       title: newTopic.value.title,
@@ -118,8 +128,19 @@ async function createTopic() {
 }
 
 async function fetchTopics() {
-  const response = await $fetch('/api/topics')
-  topics.value = response as DiscussionTopic[]
+  const { currentEventId } = useEventContext()
+  if (!currentEventId.value) {
+    topics.value = []
+    return
+  }
+  
+  try {
+    const response = await $fetch(`/api/events/${currentEventId.value}/topics`)
+    topics.value = response as DiscussionTopic[]
+  } catch (error) {
+    console.error('Failed to fetch topics:', error)
+    topics.value = []
+  }
 }
 
 async function loadActiveRound() {
@@ -276,6 +297,10 @@ async function resetVotes() {
 
 async function freezeTopic() {
   if (!topicToFreeze.value) return
+  if (!canEditEvent.value) {
+    alert('Topic freezing is disabled when the event is not active')
+    return
+  }
 
   try {
     await $fetch(`/api/topics/${topicToFreeze.value.id}/freeze`, {
@@ -300,6 +325,10 @@ function startEdit(topic: DiscussionTopic) {
 
 async function saveTopic() {
   if (!topicToEdit.value || !editedTopic.value.title || !editedTopic.value.description) return
+  if (!canEditEvent.value) {
+    alert('Topic editing is disabled when the event is not active')
+    return
+  }
 
   try {
     await $fetch(`/api/topics/${topicToEdit.value.id}/edit`, {
@@ -315,6 +344,11 @@ async function saveTopic() {
 }
 
 async function deleteTopic(topic: DiscussionTopic) {
+  if (!canEditEvent.value) {
+    alert('Topic deletion is disabled when the event is not active')
+    return
+  }
+
   const confirmed = confirm(`Are you sure you want to delete the topic "${topic.title}"? This action cannot be undone.`)
   if (!confirmed) return
 

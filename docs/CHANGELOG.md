@@ -3,6 +3,8 @@
 All notable changes to the Unconference application will be documented in this file.
 
 ## [Unreleased]
+### Added
+- Read-only past event viewer: organizers can browse participants, topics, and round history of inactive events without reactivation (`/past-events` and `/event-viewer?eventId=...`).
 
 ## [v2.5.0] - 2025-09-05
 

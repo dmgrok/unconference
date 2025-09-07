@@ -10,11 +10,16 @@
     adminOnly: boolean
     organizerAccess?: boolean
     superAdminOnly?: boolean
+    disabledWhenInactive?: boolean
   }
 
   const { user, clear: clearSession } = useUserSession()
   const { initializeTheme, setupAutoThemeWatcher } = useAppTheme()
   const { shouldHideAdminFeatures, isViewerMode } = useViewerMode()
+  
+  // Event status and context
+  const { isEventActive, isEventInactive, canEditEvent, toggleEventStatus, eventStatus } = useEventStatus()
+  const { currentEvent, eventStats, userRole: eventUserRole, loading: eventLoading } = useCurrentEvent()
   
   // Get user role directly from session for now (until multi-event is fully implemented)
   const userRole = computed(() => (user.value as any)?.Role || (user.value as any)?.role || null)
@@ -50,7 +55,8 @@
       title: 'Dashboard',
       to: '/organizer',
       adminOnly: true,
-      organizerAccess: true
+      organizerAccess: true,
+      disabledWhenInactive: true
     },
     {
       icon: 'mdi-vote',
@@ -69,14 +75,16 @@
       title: 'Screen share',
       to: '/admin/voting-dashboard',
       adminOnly: true,
-      organizerAccess: true
+      organizerAccess: true,
+      disabledWhenInactive: true
     },
     {
       icon: 'mdi-home-city',
       title: 'Room Management',
       to: '/organizer/rooms',
       adminOnly: true,
-      organizerAccess: true
+      organizerAccess: true,
+      disabledWhenInactive: true
     },
     {
       icon: 'mdi-cog',
@@ -112,6 +120,13 @@
       to: '/super-admin/settings',
       adminOnly: false,
       superAdminOnly: true
+    },
+    {
+      icon: 'mdi-flask',
+      title: 'Read-Only Demo',
+      to: '/read-only-demo',
+      adminOnly: true,
+      organizerAccess: true
     }
   ])
 
@@ -124,6 +139,11 @@
       
       // Super admin items are only for super admins
       if (item.superAdminOnly) {
+        return false
+      }
+      
+      // If event is inactive, filter out items that should be disabled
+      if (isEventInactive.value && item.disabledWhenInactive) {
         return false
       }
       
@@ -143,6 +163,59 @@
       return isCurrentUserAdmin && !shouldHideAdminFeatures(currentUserRole || '')
     })
   )
+
+  // Determine if we should show the event summary instead of normal navigation
+  const showEventSummary = computed(() => 
+    isEventInactive.value && currentEvent.value && !isSuperAdmin.value
+  )
+
+  // Can the user reactivate the event?
+  const canReactivateEvent = computed(() => 
+    canEditEvent.value && ['Organizer', 'Admin'].includes(eventUserRole.value || '')
+  )
+
+  // Convert readonly refs to proper types for the component
+  const eventForSummary = computed(() => {
+    const event = currentEvent.value
+    if (!event) return undefined
+    return {
+      id: event.id,
+      code: event.code,
+      name: event.name,
+      description: event.description,
+      location: event.location,
+      startDate: event.startDate,
+      endDate: event.endDate,
+      isActive: event.isActive
+    }
+  })
+
+  const statsForSummary = computed(() => {
+    const stats = eventStats.value
+    if (!stats) return undefined
+    return {
+      participantCount: stats.participantCount,
+      organizerCount: stats.organizerCount,
+      topicCount: stats.topicCount,
+      roundCount: stats.roundCount
+    }
+  })
+
+  const roleForSummary = computed(() => {
+    return eventUserRole.value || undefined
+  })
+
+  const statusReasonForSummary = computed(() => {
+    return eventStatus.value.statusReason || 'Event is currently inactive. View-only mode enabled.'
+  })
+
+  const reactivateEvent = async () => {
+    try {
+      await toggleEventStatus()
+    } catch (error) {
+      console.error('Failed to reactivate event:', error)
+    }
+  }
 
   const toggleDrawer = () => {
     drawer.value = !drawer.value
@@ -240,7 +313,21 @@
       :temporary="mobile"
       :permanent="!mobile"
     >
-      <v-list class="nav-list">
+      <!-- Event Summary for Inactive Events -->
+      <div v-if="showEventSummary" class="pa-4">
+        <EventSummary
+          :event="eventForSummary"
+          :user-role="roleForSummary"
+          :event-stats="statsForSummary"
+          :status-reason="statusReasonForSummary"
+          :can-reactivate="canReactivateEvent"
+          :loading="eventLoading"
+          @reactivate-event="reactivateEvent"
+        />
+      </div>
+
+      <!-- Regular Navigation for Active Events -->
+      <v-list v-else class="nav-list">
         <v-list-item
           v-for="(item, i) in filteredNavItems"
           :key="i"

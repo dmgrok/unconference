@@ -66,6 +66,14 @@ const quickActions = [
     action: 'display'
   },
   {
+    title: 'Past Events',
+    subtitle: 'Browse inactive events in read-only mode',
+    icon: 'mdi-archive',
+    color: 'grey',
+    to: '/past-events',
+    action: 'past-events'
+  },
+  {
     title: 'Generate QR Code',
     subtitle: 'Create join code for easy access',
     icon: 'mdi-qrcode',
