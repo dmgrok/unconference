@@ -89,7 +89,7 @@ async function logout() {
         <div class="d-flex align-items-center">
           <v-btn
             variant="text"
-            :to="loggedIn ? '/voting' : '/'"
+            :to="loggedIn ? '/events' : '/'"
             class="header-logo"
           >
             <v-icon class="mr-2" size="28">mdi-forum</v-icon>
@@ -98,10 +98,12 @@ async function logout() {
             </span>
           </v-btn>
           
-          <!-- Current Event Display -->
-          <div v-if="showCurrentEvent && currentEvent" class="ml-6 d-flex align-center">
+          <!-- Current Event Display or Event Selector -->
+          <div v-if="loggedIn" class="ml-6 d-flex align-center">
             <v-divider vertical class="mx-3" />
-            <div class="event-info">
+            
+            <!-- Show current event when one is selected -->
+            <div v-if="showCurrentEvent && currentEvent" class="event-info">
               <div class="d-flex align-center">
                 <v-chip
                   :color="currentEvent.isActive ? 'success' : 'warning'"
@@ -166,6 +168,61 @@ async function logout() {
                   </v-list>
                 </v-menu>
               </div>
+            </div>
+            
+            <!-- Show event selector when no event is selected but user has events -->
+            <div v-else-if="userEvents.length > 0 && !eventLoading" class="event-selector">
+              <v-menu offset-y>
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    prepend-icon="mdi-calendar-multiple"
+                    append-icon="mdi-chevron-down"
+                  >
+                    Select Event
+                  </v-btn>
+                </template>
+                <v-list class="event-selector-list">
+                  <v-list-subheader>Choose an Event</v-list-subheader>
+                  <v-list-item
+                    v-for="event in userEvents"
+                    :key="event.id"
+                    @click="switchEvent(event.id)"
+                  >
+                    <template #prepend>
+                      <v-icon>
+                        {{ event.isActive ? 'mdi-calendar-check' : 'mdi-calendar-clock' }}
+                      </v-icon>
+                    </template>
+                    <v-list-item-title>{{ event.name }}</v-list-item-title>
+                    <v-list-item-subtitle>{{ event.code }}</v-list-item-subtitle>
+                    <template #append>
+                      <v-chip
+                        :color="event.isActive ? 'success' : 'warning'"
+                        size="x-small"
+                        variant="outlined"
+                      >
+                        {{ event.isActive ? 'Active' : 'Inactive' }}
+                      </v-chip>
+                    </template>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </div>
+            
+            <!-- Show message when user has no events -->
+            <div v-else-if="!eventLoading && userEvents.length === 0" class="no-events">
+              <v-chip
+                color="info"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-information"
+              >
+                No events yet
+              </v-chip>
             </div>
           </div>
         </div>
@@ -394,12 +451,26 @@ async function logout() {
   opacity: 0.8;
 }
 
+.event-selector, .no-events {
+  display: flex;
+  align-items: center;
+}
+
+.event-selector .v-btn {
+  text-transform: none;
+  font-weight: 500;
+}
+
+.no-events .v-chip {
+  font-size: 0.75rem;
+}
+
 @media (max-width: 768px) {
   .logo-text {
     display: none;
   }
   
-  .event-info {
+  .event-info, .event-selector, .no-events {
     display: none !important;
   }
   

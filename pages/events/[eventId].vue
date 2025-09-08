@@ -17,6 +17,31 @@
     <!-- Event Details -->
     <div v-else-if="event" class="pa-4">
       <v-container>
+        <!-- Breadcrumb Navigation -->
+        <v-breadcrumbs class="pa-0 mb-4">
+          <v-breadcrumbs-item to="/events" title="My Events">
+            <v-icon size="16" class="mr-1">mdi-calendar-multiple</v-icon>
+            My Events
+          </v-breadcrumbs-item>
+          <v-breadcrumbs-divider />
+          <v-breadcrumbs-item :title="event.name" disabled>
+            {{ event.name }}
+          </v-breadcrumbs-item>
+        </v-breadcrumbs>
+
+        <!-- Event Context Confirmation -->
+        <v-alert 
+          v-if="$route.query.selected === 'true'" 
+          type="success" 
+          variant="tonal" 
+          class="mb-4"
+          closable
+          @click:close="$router.replace({ query: {} })"
+        >
+          <div class="text-h6 mb-1">Event Selected</div>
+          <p class="mb-0">You're now managing <strong>{{ event.name }}</strong>. Use the actions below to navigate.</p>
+        </v-alert>
+
         <!-- Header -->
         <div class="d-flex justify-space-between align-center mb-6">
           <div>
@@ -57,7 +82,7 @@
                 color="primary"
                 size="large"
                 prepend-icon="mdi-vote"
-                @click="navigateTo('/voting')"
+                @click="navigateTo(`/voting?eventId=${event.id}`)"
               >
                 Voting & Topics
               </v-btn>
@@ -67,7 +92,7 @@
                 size="large"
                 prepend-icon="mdi-view-dashboard"
                 variant="outlined"
-                @click="navigateTo('/dashboard')"
+                @click="navigateTo(`/dashboard?eventId=${event.id}`)"
               >
                 Dashboard
               </v-btn>
@@ -78,7 +103,7 @@
                 size="large"
                 prepend-icon="mdi-account-star"
                 variant="outlined"
-                @click="navigateTo('/organizer')"
+                @click="navigateTo(`/organizer?eventId=${event.id}`)"
               >
                 Organizer Hub
               </v-btn>
@@ -88,7 +113,7 @@
                 size="large"
                 prepend-icon="mdi-account-group"
                 variant="outlined"
-                @click="navigateTo('/participants')"
+                @click="navigateTo(`/participants?eventId=${event.id}`)"
               >
                 Participants
               </v-btn>
@@ -99,7 +124,7 @@
                 size="large"
                 prepend-icon="mdi-cog"
                 variant="outlined"
-                @click="navigateTo('/settings')"
+                @click="navigateTo(`/settings?eventId=${event.id}`)"
               >
                 Settings
               </v-btn>

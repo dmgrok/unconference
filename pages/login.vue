@@ -39,7 +39,9 @@ const success = ref('')
 
 // Get redirect URL from query params
 const redirectUrl = computed(() => {
-  return route.query.redirect?.toString() || '/groups'
+  // If user is selecting an event, add the select parameter
+  const defaultRedirect = route.query.fromEventSelection === 'true' ? '/events?select=true' : '/events'
+  return route.query.redirect?.toString() || defaultRedirect
 })
 
 // Check for OAuth errors
@@ -133,7 +135,8 @@ async function handleGuestJoin() {
     // Refresh the session on client-side to update authentication state
     await refreshSession()
     
-    await router.push('/groups')
+    // For guest users, redirect to their current event or events page
+    await router.push(guestForm.value.eventCode ? '/voting' : '/events')
   } catch (err: any) {
     error.value = err.data?.message || 'Failed to join event'
   } finally {

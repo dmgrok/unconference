@@ -29,7 +29,7 @@
             My Events
           </h1>
           <p class="text-h6 text-medium-emphasis">
-            Manage your unconference events and track engagement
+            Select an event to manage or participate in
           </p>
         </div>
         
@@ -98,23 +98,36 @@
         <p class="text-h6 mt-4">Loading your events...</p>
       </div>
 
+            <!-- Empty State -->
       <div v-else-if="events.length === 0" class="text-center py-12">
-        <v-icon size="120" color="grey-lighten-2" class="mb-4">
-          mdi-calendar-plus
-        </v-icon>
-        <h2 class="text-h4 text-medium-emphasis mb-4">No Events Yet</h2>
-        <p class="text-h6 text-medium-emphasis mb-6">
-          Create your first unconference event to start building community discussions.
+        <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-calendar-plus</v-icon>
+        <h3 class="text-h5 mb-4">No Events Yet</h3>
+        <p class="text-body-1 text-medium-emphasis mb-6">
+          Create your first unconference event to get started
         </p>
         <v-btn
           color="primary"
           size="large"
           prepend-icon="mdi-plus"
-          to="/events/create"
+          @click="showCreateDialog = true"
         >
           Create Your First Event
         </v-btn>
       </div>
+
+      <!-- Event Selection Prompt -->
+      <v-alert
+        v-else-if="$route.query.select === 'true'"
+        type="info"
+        variant="tonal"
+        class="mb-6"
+        prominent
+      >
+        <div class="text-h6 mb-2">Select an Event</div>
+        <p class="mb-0">
+          Choose an event below to access its dashboard, manage participants, or join discussions.
+        </p>
+      </v-alert>
 
       <v-row v-else>
         <v-col
@@ -128,7 +141,8 @@
             class="event-card h-100"
             elevation="4"
             hover
-            @click="navigateTo(`/events/${event.id}`)"
+            style="cursor: pointer;"
+            @click="navigateTo(`/events/${event.id}?selected=true`)"
           >
             <v-card-title class="pb-2">
               <div class="d-flex justify-space-between align-start w-100">
@@ -218,11 +232,12 @@
               <v-spacer />
               <v-btn
                 color="primary"
-                variant="text"
-                prepend-icon="mdi-arrow-right"
-                @click.stop="navigateTo(`/events/${event.id}`)"
+                variant="elevated"
+                prepend-icon="mdi-arrow-right-circle"
+                size="large"
+                @click.stop="navigateTo(`/events/${event.id}?selected=true`)"
               >
-                Manage Event
+                Enter Event
               </v-btn>
             </v-card-actions>
           </v-card>
