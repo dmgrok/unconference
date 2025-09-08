@@ -1,4 +1,5 @@
 <template>
+  <!-- Events page template -->
   <div class="events-page">
     <v-container class="py-8">
       <!-- Success Message -->
@@ -126,8 +127,8 @@
           <v-card
             class="event-card h-100"
             elevation="4"
-            :to="`/events/${event.id}`"
             hover
+            @click="navigateTo(`/events/${event.id}`)"
           >
             <v-card-title class="pb-2">
               <div class="d-flex justify-space-between align-start w-100">
@@ -219,6 +220,7 @@
                 color="primary"
                 variant="text"
                 prepend-icon="mdi-arrow-right"
+                @click.stop="navigateTo(`/events/${event.id}`)"
               >
                 Manage Event
               </v-btn>
@@ -361,6 +363,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    </v-container>
   </div>
 </template>
 
@@ -372,15 +375,37 @@ definePageMeta({
   middleware: 'auth'
 })
 
+interface Event {
+  id: string
+  title: string
+  status: string
+  paymentStatus: string
+  scheduledFor: string | null
+  _count: {
+    memberships: number
+  }
+  memberships: any[]
+  owner: any
+}
+
+interface Subscription {
+  status: string
+  isActive: boolean
+  tier: string
+  limits: any
+  usage: any
+  needsUpgrade: boolean
+}
+
 const route = useRoute()
 
 // State
 const loading = ref(true)
-const events = ref([])
-const subscription = ref(null)
+const events = ref<Event[]>([])
+const subscription = ref<Subscription | null>(null)
 const showJoinDialog = ref(false)
 const showShareDialog = ref(false)
-const selectedEvent = ref(null)
+const selectedEvent = ref<Event | null>(null)
 const joining = ref(false)
 
 // Join form

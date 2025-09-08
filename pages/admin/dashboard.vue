@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Admin dashboard component
 import { ref, computed } from 'vue'
 
 definePageMeta({
@@ -6,11 +7,35 @@ definePageMeta({
   middleware: ['auth', 'admin']
 })
 
+interface AdminStats {
+  totalUsers: number
+  totalEvents: number
+  activeEvents: number
+  paidSubscriptions: number
+  revenue: number
+  monthlyRecurringRevenue: number
+  eventPaymentsThisMonth: number
+}
+
+interface ActivityItem {
+  id: string
+  action: string
+  details: string | null
+  createdAt: string
+}
+
+interface RecentUser {
+  id: string
+  name: string | null
+  email: string
+  subscriptionTier: string
+}
+
 // State
 const loading = ref(true)
-const stats = ref<any>({})
-const recentActivity = ref([])
-const recentUsers = ref([])
+const stats = ref<AdminStats>({} as AdminStats)
+const recentActivity = ref<ActivityItem[]>([])
+const recentUsers = ref<RecentUser[]>([])
 
 // Fetch admin stats
 async function fetchAdminStats() {
@@ -48,6 +73,46 @@ function formatCurrency(cents: number) {
     currency: 'USD',
     minimumFractionDigits: 0
   }).format(cents / 100)
+}
+
+function getActivityColor(action: string) {
+  switch (action) {
+    case 'event_created': return 'success'
+    case 'subscription_upgraded': return 'info'
+    case 'event_payment_completed': return 'warning'
+    case 'user_registered': return 'primary'
+    default: return 'grey'
+  }
+}
+
+function getActivityIcon(action: string) {
+  switch (action) {
+    case 'event_created': return 'mdi-calendar-plus'
+    case 'subscription_upgraded': return 'mdi-arrow-up-bold'
+    case 'event_payment_completed': return 'mdi-credit-card'
+    case 'user_registered': return 'mdi-account-plus'
+    default: return 'mdi-information'
+  }
+}
+
+function getActivityDescription(action: string) {
+  switch (action) {
+    case 'event_created': return 'New event created'
+    case 'subscription_upgraded': return 'Subscription upgraded'
+    case 'event_payment_completed': return 'Event payment completed'
+    case 'user_registered': return 'New user registered'
+    default: return action
+  }
+}
+
+function getSubscriptionColor(tier: string) {
+  switch (tier) {
+    case 'FREE': return 'grey'
+    case 'COMMUNITY': return 'blue'
+    case 'ORGANIZER': return 'orange'
+    case 'UNLIMITED': return 'purple'
+    default: return 'grey'
+  }
 }
 
 onMounted(() => {
@@ -239,52 +304,6 @@ useSeoMeta({
     </v-container>
   </div>
 </template>
-
-<script>
-export default {
-  methods: {
-    getActivityColor(action) {
-      switch (action) {
-        case 'event_created': return 'success'
-        case 'subscription_upgraded': return 'info'
-        case 'event_payment_completed': return 'warning'
-        case 'user_registered': return 'primary'
-        default: return 'grey'
-      }
-    },
-    
-    getActivityIcon(action) {
-      switch (action) {
-        case 'event_created': return 'mdi-calendar-plus'
-        case 'subscription_upgraded': return 'mdi-arrow-up-bold'
-        case 'event_payment_completed': return 'mdi-credit-card'
-        case 'user_registered': return 'mdi-account-plus'
-        default: return 'mdi-information'
-      }
-    },
-    
-    getActivityDescription(action) {
-      switch (action) {
-        case 'event_created': return 'New event created'
-        case 'subscription_upgraded': return 'Subscription upgraded'
-        case 'event_payment_completed': return 'Event payment completed'
-        case 'user_registered': return 'New user registered'
-        default: return action
-      }
-    },
-    
-    getSubscriptionColor(tier) {
-      switch (tier) {
-        case 'FREE': return 'grey'
-        case 'COMMUNITY': return 'blue'
-        case 'ORGANIZER': return 'orange'
-        case 'UNLIMITED': return 'purple'
-        default: return 'grey'
-      }
-    }
-  }
-}
-</script>
 
 <style scoped>
 .admin-dashboard {

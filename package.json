@@ -6,11 +6,18 @@
     "build": "nuxt build",
     "build:azure": "npx nuxi build --preset=azure",
     "build:docker": "docker build -t unconference .",
-    "dev": "npx nuxi dev --dotenv .env",
+    "dev": "npm run db:setup && npx nuxi dev --dotenv .env",
+    "dev:simple": "npx nuxi dev --dotenv .env",
     "docker": "docker run --rm -it -p 3000:3000 -v \"$(pwd)/data:/src/data\" --env-file .env --name unconference unconference",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare && npm run db:generate",
+    "db:setup": "npm run db:generate && npm run db:migrate",
+    "db:generate": "npx prisma generate",
+    "db:migrate": "npx prisma db push",
+    "db:studio": "npx prisma studio",
+    "db:reset": "npx prisma migrate reset --force",
+    "db:seed": "node scripts/create-test-users.mjs"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",

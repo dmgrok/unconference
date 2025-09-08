@@ -7,6 +7,7 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
+const { fetch: refreshSession } = useUserSession()
 
 // Form state
 const isLogin = ref(true)
@@ -70,6 +71,10 @@ async function handleLogin() {
     })
     
     success.value = response.message
+    
+    // Refresh the session on client-side to update authentication state
+    await refreshSession()
+    
     await router.push(redirectUrl.value)
   } catch (err: any) {
     error.value = err.data?.message || 'Login failed'
@@ -124,6 +129,10 @@ async function handleGuestJoin() {
     })
     
     success.value = response.message
+    
+    // Refresh the session on client-side to update authentication state
+    await refreshSession()
+    
     await router.push('/groups')
   } catch (err: any) {
     error.value = err.data?.message || 'Failed to join event'
