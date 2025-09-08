@@ -1,8 +1,9 @@
 import nodemailer from 'nodemailer'
 
+// Email service for the application
 // For development, we'll log to console. In production, use real SMTP
 const transporter = process.env.NODE_ENV === 'production' 
-  ? nodemailer.createTransporter({
+  ? nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587'),
       secure: false,
@@ -12,7 +13,7 @@ const transporter = process.env.NODE_ENV === 'production'
       }
     })
   : nodemailer.createTestAccount().then(account => 
-      nodemailer.createTransporter({
+      nodemailer.createTransport({
         host: 'smtp.ethereal.email',
         port: 587,
         secure: false,

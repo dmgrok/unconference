@@ -7,6 +7,7 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
+const { fetch: refreshSession } = useUserSession()
 
 // Form state
 const isLogin = ref(true)
@@ -38,7 +39,9 @@ const success = ref('')
 
 // Get redirect URL from query params
 const redirectUrl = computed(() => {
-  return route.query.redirect?.toString() || '/groups'
+  // If user is selecting an event, add the select parameter
+  const defaultRedirect = route.query.fromEventSelection === 'true' ? '/events?select=true' : '/events'
+  return route.query.redirect?.toString() || defaultRedirect
 })
 
 // Check for OAuth errors
@@ -70,6 +73,10 @@ async function handleLogin() {
     })
     
     success.value = response.message
+    
+    // Refresh the session on client-side to update authentication state
+    await refreshSession()
+    
     await router.push(redirectUrl.value)
   } catch (err: any) {
     error.value = err.data?.message || 'Login failed'
@@ -124,7 +131,12 @@ async function handleGuestJoin() {
     })
     
     success.value = response.message
-    await router.push('/groups')
+    
+    // Refresh the session on client-side to update authentication state
+    await refreshSession()
+    
+    // For guest users, redirect to their current event or events page
+    await router.push(guestForm.value.eventCode ? '/voting' : '/events')
   } catch (err: any) {
     error.value = err.data?.message || 'Failed to join event'
   } finally {
