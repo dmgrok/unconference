@@ -27,3 +27,5 @@ logs
 data/users.json
 data/topics.json
 .playwright-mcp
+
+/generated/prisma

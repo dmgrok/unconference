@@ -15,14 +15,22 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "@nuxt/schema": "^3.17.3",
+    "@prisma/client": "^6.15.0",
+    "@stripe/stripe-js": "^7.9.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/nodemailer": "^7.0.1",
     "@types/qrcode": "^1.5.5",
+    "bcryptjs": "^3.0.2",
+    "nodemailer": "^7.0.6",
     "nuxt": "^3.17.3",
     "nuxt-auth-utils": "^0.5.20",
+    "prisma": "^6.15.0",
     "qrcode": "^1.5.4",
+    "stripe": "^18.5.0",
     "vue": "^3.5.14",
     "vue-router": "^4.5.1",
     "winston": "^3.17.0",
-    "zod": "^3.25.7"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@nuxt/test-utils": "^3.19.0",

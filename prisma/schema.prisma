@@ -1,0 +1,373 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User management with subscription tiers
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  nickname    String?  // Display name for events (can be auto-generated)
+  passwordHash String? // For email/password auth
+  avatar      String?
+  
+  // Email verification
+  isEmailVerified Boolean @default(false)
+  emailVerifyPin  String?
+  emailVerifyExpires DateTime?
+  
+  // Authentication providers
+  githubId    String?  @unique
+  googleId    String?  @unique
+  
+  // User status and roles
+  globalRole  GlobalRole @default(USER)
+  isActive    Boolean    @default(true)
+  isGuest     Boolean    @default(false)
+  
+  // Subscription management
+  subscriptionTier    SubscriptionTier @default(FREE)
+  subscriptionId      String?          @unique // Stripe subscription ID
+  customerId          String?          @unique // Stripe customer ID
+  subscriptionStatus  SubscriptionStatus @default(ACTIVE)
+  subscriptionStart   DateTime?
+  subscriptionEnd     DateTime?
+  participantLimit    Int              @default(50) // Free tier limit
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastLoginAt DateTime?
+  
+  // Relationships
+  ownedEvents     Event[]             @relation("EventOwner")
+  eventMemberships EventMembership[]
+  createdTopics   Topic[]
+  votes          Vote[]
+  roundParticipations RoundParticipation[]
+  
+  @@map("users")
+}
+
+// Subscription tiers focused on community events and small conferences
+enum SubscriptionTier {
+  FREE        // Up to 50 participants, 5 events/month
+  COMMUNITY   // Up to 150 participants, 15 events/month - $19
+  ORGANIZER   // Up to 300 participants, 30 events/month - $49  
+  UNLIMITED   // Unlimited participants/events - $99
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  UNPAID
+}
+
+enum GlobalRole {
+  SUPER_ADMIN
+  USER
+}
+
+// Event management with subscription enforcement
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  code        String   @unique // Join code for participants
+  
+  // Event configuration
+  maxParticipants   Int       @default(50)
+  allowGuestAccess  Boolean   @default(true)
+  requireApproval   Boolean   @default(false)
+  
+  // Event status
+  status      EventStatus @default(DRAFT)
+  statusReason String?
+  
+  // Payment information for pay-per-event
+  paymentType     EventPaymentType @default(SUBSCRIPTION)
+  paymentStatus   EventPaymentStatus @default(FREE)
+  stripePaymentId String? @unique // For one-time payments
+  paidAmount      Int @default(0) // Amount paid in cents
+  paidAt          DateTime?
+  
+  // Voting and round settings
+  maxVotesPerTopic    Int @default(12)
+  maxTopicsPerRound   Int @default(10)
+  defaultRoundDuration Int @default(20) // minutes
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  startsAt    DateTime?
+  endsAt      DateTime?
+  
+  // Owner relationship
+  ownerId     String
+  owner       User     @relation("EventOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  // Relationships
+  memberships EventMembership[]
+  topics      Topic[]
+  rooms       Room[]
+  rounds      Round[]
+  
+  @@map("events")
+}
+
+enum EventStatus {
+  DRAFT
+  ACTIVE  
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum EventPaymentType {
+  SUBSCRIPTION  // Covered by user's subscription
+  PAY_PER_EVENT // One-time payment for this event
+  FREE         // Free tier event
+}
+
+enum EventPaymentStatus {
+  FREE          // No payment needed (within free limits)
+  PENDING       // Payment required but not completed
+  PAID          // Payment completed
+  FAILED        // Payment failed
+}
+
+// Event membership with roles and permissions
+model EventMembership {
+  id        String   @id @default(cuid())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  role      EventRole @default(PARTICIPANT)
+  status    MembershipStatus @default(ACTIVE)
+  
+  joinedAt  DateTime @default(now())
+  
+  @@unique([userId, eventId])
+  @@map("event_memberships")
+}
+
+enum EventRole {
+  ORGANIZER
+  MODERATOR
+  PARTICIPANT
+  GUEST
+}
+
+enum MembershipStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_APPROVAL
+}
+
+// Enhanced topic management
+model Topic {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  
+  // Topic status
+  isActive    Boolean  @default(true)
+  isFrozen    Boolean  @default(false) // Locked for voting
+  
+  // Voting metrics
+  totalVotes        Int @default(0)
+  preferenceScore   Int @default(0) // Weighted score: 1st choice = 2 points, 2nd choice = 1 point
+  badges            Int @default(0)
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  
+  votes       Vote[]
+  roundTopics RoundTopic[]
+  
+  @@map("topics")
+}
+
+// Preference-based voting system
+model Vote {
+  id        String   @id @default(cuid())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  topicId   String
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  
+  preference VotePreference // 1st choice = 2 points, 2nd choice = 1 point
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, topicId])
+  @@map("votes")
+}
+
+enum VotePreference {
+  FIRST_CHOICE   // 2 points
+  SECOND_CHOICE  // 1 point
+}
+
+// Room management for discussions
+model Room {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  capacity    Int      @default(20)
+  location    String?  // Physical or virtual room info
+  
+  isActive    Boolean  @default(true)
+  
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  roundParticipations RoundParticipation[]
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("rooms")
+}
+
+// Round management with analytics
+model Round {
+  id            String   @id @default(cuid())
+  roundNumber   Int
+  
+  // Round configuration
+  duration      Int      // minutes
+  status        RoundStatus @default(PLANNED)
+  
+  // Timestamps
+  startTime     DateTime?
+  endTime       DateTime?
+  createdAt     DateTime @default(now())
+  
+  // Event relationship
+  eventId       String
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  // Relationships
+  roundTopics   RoundTopic[]
+  participants  RoundParticipation[]
+  
+  @@unique([eventId, roundNumber])
+  @@map("rounds")
+}
+
+enum RoundStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// Junction table for round-topic relationships
+model RoundTopic {
+  id       String @id @default(cuid())
+  
+  roundId  String
+  round    Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  
+  topicId  String
+  topic    Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  
+  finalScore Int  @default(0) // Score when topic was selected
+  
+  @@unique([roundId, topicId])
+  @@map("round_topics")
+}
+
+// Participant assignments to rooms/topics in rounds
+model RoundParticipation {
+  id       String @id @default(cuid())
+  
+  roundId  String
+  round    Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  roomId   String?
+  room     Room?  @relation(fields: [roomId], references: [id])
+  
+  assignedAt DateTime @default(now())
+  checkedIn  Boolean  @default(false)
+  checkedInAt DateTime?
+  
+  @@unique([roundId, userId])
+  @@map("round_participations")
+}
+
+// Subscription and billing management
+model Subscription {
+  id                String    @id @default(cuid())
+  stripeSubscriptionId String @unique
+  stripeCustomerId    String
+  stripePriceId       String
+  
+  tier              SubscriptionTier
+  status            SubscriptionStatus
+  
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean @default(false)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("subscriptions")
+}
+
+// Audit log for important actions
+model AuditLog {
+  id          String   @id @default(cuid())
+  
+  userId      String?
+  eventId     String?
+  
+  action      String   // e.g., "round_started", "user_upgraded", "payment_processed"
+  details     String?  // JSON string with additional data
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("audit_logs")
+}
+
+// System settings and feature flags
+model SystemSetting {
+  id     String @id
+  value  String
+  
+  updatedAt DateTime @updatedAt
+  
+  @@map("system_settings")
+}

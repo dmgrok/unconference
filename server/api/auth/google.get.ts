@@ -1,126 +1,38 @@
-import logger from '../../../utils/logger'
-import { promises as fs } from 'fs'
-import { join } from 'path'
+import { AuthService } from '~/lib/auth'
 
 export default defineOAuthGoogleEventHandler({
   async onSuccess(event, { user: googleUser, tokens }) {
-    logger.info('Google OAuth success', { email: googleUser.email, name: googleUser.name })
-    
     try {
-      // Check if user exists in our system
-      const config = useRuntimeConfig()
-      const usersFilePath = join(process.cwd(), config.usersFilePath)
-      const platformUsersPath = join(process.cwd(), 'data', 'platform', 'users.json')
-      
-      let existingUsers = []
-      let platformUsers = []
-      
-      // Read existing users
-      try {
-        const usersData = await fs.readFile(usersFilePath, 'utf-8')
-        existingUsers = JSON.parse(usersData)
-      } catch (error) {
-        existingUsers = []
-      }
+      // Upsert user in database
+      const user = await AuthService.upsertOAuthUser('google', {
+        id: googleUser.id,
+        email: googleUser.email,
+        name: googleUser.name,
+        avatar: googleUser.picture
+      })
 
-      try {
-        const platformData = await fs.readFile(platformUsersPath, 'utf-8')
-        platformUsers = JSON.parse(platformData)
-      } catch (error) {
-        platformUsers = []
-      }
-
-      // Check if user already exists
-      let user = existingUsers.find((u: any) => u.Email.toLowerCase() === googleUser.email.toLowerCase()) ||
-                 platformUsers.find((u: any) => u.email.toLowerCase() === googleUser.email.toLowerCase())
-
-      if (!user) {
-        // Create new user if doesn't exist
-        const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        const [firstName, ...lastNameParts] = (googleUser.name || '').split(' ')
-        const lastName = lastNameParts.join(' ') || ''
-
-        // Create user object for legacy system
-        const legacyUser = {
-          id: userId,
-          Email: googleUser.email,
-          Password: '', // OAuth users don't have passwords
-          Firstname: firstName,
-          Lastname: lastName,
-          Role: 'User',
-          GlobalRole: 'User',
-          CreatedAt: new Date().toISOString(),
-          IsActive: true,
-          AuthProvider: 'google'
-        }
-
-        // Create user object for platform system
-        const platformUser = {
-          id: userId,
-          name: googleUser.name,
-          email: googleUser.email,
-          globalRole: 'User',
-          isGuest: false,
-          createdAt: new Date(),
-          lastLoginAt: new Date(),
-          isActive: true,
-          authProvider: 'google'
-        }
-
-        // Add to existing users arrays
-        existingUsers.push(legacyUser)
-        platformUsers.push(platformUser)
-
-        // Ensure directories exist and write back to files
-        await fs.mkdir(join(process.cwd(), 'data', 'platform'), { recursive: true })
-        await fs.writeFile(usersFilePath, JSON.stringify(existingUsers, null, 2))
-        await fs.writeFile(platformUsersPath, JSON.stringify(platformUsers, null, 2))
-
-        user = legacyUser
-        logger.info(`New Google user registered: ${googleUser.email}`)
-      } else {
-        logger.info(`Existing Google user login: ${googleUser.email}`)
-        
-        // Update last login time for platform user
-        const platformUserIndex = platformUsers.findIndex((u: any) => u.email.toLowerCase() === googleUser.email.toLowerCase())
-        if (platformUserIndex !== -1) {
-          platformUsers[platformUserIndex].lastLoginAt = new Date()
-          await fs.writeFile(platformUsersPath, JSON.stringify(platformUsers, null, 2))
-        }
-      }
-
-      // Get pending event code and redirect from query parameters
-      const query = getQuery(event)
-      const pendingEventCode = query.state as string // OAuth state parameter can carry event code
-      const pendingRedirect = query.redirect_uri as string
-
-      // Set user session
+      // Create session
+      const sessionUser = AuthService.createSessionUser(user)
       await setUserSession(event, {
-        user: {
-          id: user.id,
-          name: user.Firstname ? `${user.Firstname} ${user.Lastname}` : user.name || googleUser.name,
-          email: user.Email || user.email || googleUser.email,
-          role: user.Role || user.globalRole || 'User',
-          globalRole: user.GlobalRole || user.globalRole || 'User',
-          pendingEventCode,
-          pendingRedirect
-        }
+        user: sessionUser,
+        loggedInAt: new Date()
       })
 
-      // Redirect to post-login handler for smart routing
-      return sendRedirect(event, '/api/auth/post-login-redirect')
+      // Redirect to appropriate page
+      const query = getQuery(event)
+      const redirectUrl = query.redirect?.toString() || '/groups'
       
+      return sendRedirect(event, redirectUrl)
     } catch (error: any) {
-      logger.error('Error during Google OAuth:', error)
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Authentication failed'
-      })
+      console.error('Google OAuth error:', error)
+      
+      // Redirect to login with error
+      return sendRedirect(event, '/login?error=oauth_failed')
     }
   },
   
   onError(event, error) {
-    logger.error('Google OAuth error:', error)
+    console.error('Google OAuth error:', error)
     return sendRedirect(event, '/login?error=oauth_failed')
   }
 })

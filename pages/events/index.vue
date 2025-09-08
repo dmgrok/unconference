@@ -1,210 +1,231 @@
 <template>
-  <div class="pa-6">
-    <div class="d-flex justify-space-between align-center mb-6">
-      <div>
-        <h1 class="text-h4 font-weight-bold">My Events</h1>
-        <p class="text-body-1 mt-2">Manage your unconference events</p>
-      </div>
-      
-      <div class="d-flex gap-3">
-        <v-btn 
-          color="secondary" 
-          size="large" 
-          @click="showJoinDialog = true"
-          prepend-icon="mdi-account-plus"
-          variant="outlined"
-        >
-          Join Event
-        </v-btn>
-        
-        <v-btn 
-          color="primary" 
-          size="large" 
-          @click="showCreateDialog = true"
-          prepend-icon="mdi-plus"
-        >
-          Create Event
-        </v-btn>
-      </div>
-    </div>
-
-    <!-- Events Grid -->
-    <v-row v-if="events.length > 0">
-      <v-col 
-        v-for="event in events" 
-        :key="event.id" 
-        cols="12" 
-        md="6" 
-        lg="4"
+  <div class="events-page">
+    <v-container class="py-8">
+      <!-- Success Message -->
+      <v-alert
+        v-if="showSuccessMessage"
+        type="success"
+        variant="tonal"
+        class="mb-6"
+        closable
+        @click:close="$router.replace({ query: {} })"
       >
-        <v-card class="h-100" elevation="2" :class="{ 'border-primary': event.role === 'Organizer' }">
-          <v-card-title class="d-flex justify-space-between align-start">
-            <div class="flex-grow-1">
-              <div class="text-truncate">{{ event.name }}</div>
-              <v-chip
-                :color="getRoleColor(event.role)"
-                size="small"
-                variant="flat"
-                class="mt-1"
-              >
-                <v-icon start size="small">{{ getRoleIcon(event.role) }}</v-icon>
-                {{ event.role || 'Participant' }}
-              </v-chip>
-            </div>
-            <v-chip
-              :color="event.isActive ? 'success' : 'warning'"
-              size="small"
-              variant="tonal"
-              :prepend-icon="event.isActive ? 'mdi-check-circle' : 'mdi-pause-circle'"
-            >
-              {{ event.isActive ? 'Active' : 'Inactive' }}
-            </v-chip>
-          </v-card-title>
-          
-          <v-card-subtitle>
-            Code: {{ event.code }}
-          </v-card-subtitle>
-          
-          <v-card-text>
-            <p v-if="event.description" class="text-body-2 mb-2">
-              {{ event.description }}
-            </p>
-            
-            <!-- Inactive Event Notice for Organizers -->
-            <v-alert 
-              v-if="!event.isActive && event.role === 'Organizer'"
-              type="info"
-              variant="tonal"
-              density="compact"
-              class="mb-3"
-              prepend-icon="mdi-information"
-            >
-              <span class="text-caption">This event is inactive. You can still access settings and reactivate it.</span>
-            </v-alert>
-            
-            <div class="d-flex align-center mb-2">
-              <v-icon size="small" class="mr-2">mdi-calendar</v-icon>
-              <span class="text-caption">
-                {{ formatDate(event.startDate) }}
-              </span>
-            </div>
-            
-            <div v-if="event.location" class="d-flex align-center mb-2">
-              <v-icon size="small" class="mr-2">mdi-map-marker</v-icon>
-              <span class="text-caption">{{ event.location }}</span>
-            </div>
-            
-            <div class="d-flex align-center">
-              <v-icon size="small" class="mr-2">mdi-account-group</v-icon>
-              <span class="text-caption">
-                {{ event.participantCount || 0 }} participants
-              </span>
-            </div>
-          </v-card-text>
-          
-          <v-card-actions>
-            <!-- Primary Enter/Manage Button -->
-            <v-btn 
-              v-if="event.role === 'Organizer'"
-              :to="`/settings?eventId=${event.id}`"
-              color="primary"
-              variant="flat"
-              size="small"
-              :prepend-icon="event.isActive ? 'mdi-cog' : 'mdi-settings'"
-            >
-              {{ event.isActive ? 'Manage Event' : 'View Settings' }}
-            </v-btn>
-            
-            <v-btn 
-              v-else
-              :to="`/voting?eventId=${event.id}`"
-              color="primary"
-              variant="flat"
-              size="small"
-              prepend-icon="mdi-play"
-              :disabled="!event.isActive"
-            >
-              {{ event.isActive ? 'Enter Event' : 'Event Closed' }}
-            </v-btn>
+        <div class="text-h6 mb-2">
+          {{ $route.query.upgrade === 'success' ? 'Subscription Upgraded!' : 'Payment Successful!' }}
+        </div>
+        <p class="mb-0">
+          {{ $route.query.upgrade === 'success' 
+            ? 'Your subscription has been upgraded successfully. You can now create more events!' 
+            : 'Your event payment has been processed successfully!' 
+          }}
+        </p>
+      </v-alert>
 
-            <!-- Secondary Action for Organizers -->
-            <v-btn 
-              v-if="event.role === 'Organizer' && event.isActive"
-              :to="`/voting?eventId=${event.id}`"
-              color="secondary"
-              variant="tonal"
-              size="small"
-              prepend-icon="mdi-vote"
-            >
-              Join Voting
-            </v-btn>
-
-            <!-- Event Status Controls for Organizers -->
-            <v-btn
-              v-if="event.role === 'Organizer'"
-              :color="event.isActive ? 'warning' : 'success'"
-              :variant="event.isActive ? 'outlined' : 'flat'"
-              size="small"
-              :prepend-icon="event.isActive ? 'mdi-pause' : 'mdi-play'"
-              @click="toggleEventStatus(event)"
-              :loading="event._statusLoading"
-            >
-              {{ event.isActive ? 'Close' : 'Reactivate' }}
-            </v-btn>
-            
-            <v-spacer />
-
-            <!-- Join Date Info -->
-            <v-tooltip location="top">
-              <template #activator="{ props }">
-                <v-chip
-                  v-bind="props"
-                  size="small"
-                  variant="text"
-                  prepend-icon="mdi-calendar-clock"
-                >
-                  {{ formatJoinDate(event.joinedAt) }}
-                </v-chip>
-              </template>
-              <span>Joined: {{ formatDateTime(event.joinedAt) }}</span>
-            </v-tooltip>
-            
-            <v-btn
-              icon="mdi-share-variant"
-              size="small"
-              variant="text"
-              @click="shareEvent(event)"
-            />
-          </v-card-actions>
-        </v-card>
-      </v-col>
-    </v-row>
-    
-    <!-- Empty State -->
-    <v-card v-else class="text-center pa-8">
-      <v-icon size="64" color="grey-lighten-1">mdi-calendar-plus</v-icon>
-      <h3 class="text-h6 mt-4 mb-2">No Events Yet</h3>
-      <p class="text-body-2 mb-4">Create your first unconference event or join an existing one</p>
-      
-      <div class="d-flex justify-center gap-3 flex-wrap">
-        <v-btn 
-          color="secondary" 
-          @click="showJoinDialog = true"
-          prepend-icon="mdi-account-plus"
-          variant="outlined"
-        >
-          Join Event
-        </v-btn>
+      <!-- Header -->
+      <div class="d-flex justify-space-between align-center mb-8">
+        <div>
+          <h1 class="text-h3 font-weight-bold text-primary mb-2">
+            My Events
+          </h1>
+          <p class="text-h6 text-medium-emphasis">
+            Manage your unconference events and track engagement
+          </p>
+        </div>
         
-        <v-btn 
-          color="primary" 
-          @click="showCreateDialog = true"
+        <div class="d-flex gap-3">
+          <v-btn
+            color="secondary"
+            size="large"
+            prepend-icon="mdi-account-plus"
+            variant="outlined"
+            @click="showJoinDialog = true"
+          >
+            Join Event
+          </v-btn>
+          
+          <v-btn
+            color="primary"
+            size="large"
+            prepend-icon="mdi-plus"
+            to="/events/create"
+          >
+            Create Event
+          </v-btn>
+        </div>
+      </div>
+
+      <!-- Subscription Status -->
+      <v-card v-if="subscription" class="mb-6" elevation="2">
+        <v-card-text class="pa-6">
+          <div class="d-flex justify-space-between align-center">
+            <div>
+              <h3 class="text-h5 mb-2">
+                {{ subscription.tier.charAt(0) + subscription.tier.slice(1).toLowerCase() }} Plan
+                <v-chip 
+                  :color="subscription.isActive ? 'success' : 'warning'" 
+                  size="small" 
+                  class="ml-2"
+                >
+                  {{ subscription.status }}
+                </v-chip>
+              </h3>
+              <p class="text-body-1 mb-1">
+                <strong>Events this month:</strong> {{ subscription.usage.eventsThisMonth }} / 
+                {{ subscription.limits.maxEventsPerMonth === -1 ? '∞' : subscription.limits.maxEventsPerMonth }}
+              </p>
+              <p class="text-body-1 mb-0">
+                <strong>Max participants per event:</strong> 
+                {{ subscription.limits.maxParticipants === -1 ? 'Unlimited' : subscription.limits.maxParticipants }}
+              </p>
+            </div>
+            
+            <v-btn
+              v-if="subscription.tier === 'FREE' || subscription.needsUpgrade"
+              color="primary"
+              variant="outlined"
+              to="/pricing"
+            >
+              {{ subscription.tier === 'FREE' ? 'Upgrade Plan' : 'View Plans' }}
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+
+      <!-- Events List -->
+      <div v-if="loading" class="text-center py-8">
+        <v-progress-circular indeterminate color="primary" size="64" />
+        <p class="text-h6 mt-4">Loading your events...</p>
+      </div>
+
+      <div v-else-if="events.length === 0" class="text-center py-12">
+        <v-icon size="120" color="grey-lighten-2" class="mb-4">
+          mdi-calendar-plus
+        </v-icon>
+        <h2 class="text-h4 text-medium-emphasis mb-4">No Events Yet</h2>
+        <p class="text-h6 text-medium-emphasis mb-6">
+          Create your first unconference event to start building community discussions.
+        </p>
+        <v-btn
+          color="primary"
+          size="large"
           prepend-icon="mdi-plus"
+          to="/events/create"
         >
-          Create Event
+          Create Your First Event
         </v-btn>
       </div>
-    </v-card>
+
+      <v-row v-else>
+        <v-col
+          v-for="event in events"
+          :key="event.id"
+          cols="12"
+          md="6"
+          lg="4"
+        >
+          <v-card
+            class="event-card h-100"
+            elevation="4"
+            :to="`/events/${event.id}`"
+            hover
+          >
+            <v-card-title class="pb-2">
+              <div class="d-flex justify-space-between align-start w-100">
+                <div class="flex-grow-1">
+                  <h3 class="text-h5 mb-1">{{ event.title }}</h3>
+                  <p class="text-caption text-medium-emphasis mb-0">
+                    Code: {{ event.code }}
+                  </p>
+                </div>
+                
+                <div class="text-right">
+                  <v-chip
+                    :color="getStatusColor(event.status)"
+                    size="small"
+                    class="mb-1"
+                  >
+                    {{ event.status }}
+                  </v-chip>
+                  <br>
+                  <v-chip
+                    v-if="event.paymentStatus !== 'FREE'"
+                    :color="getPaymentStatusColor(event.paymentStatus)"
+                    size="x-small"
+                    variant="outlined"
+                  >
+                    {{ event.paymentStatus }}
+                  </v-chip>
+                </div>
+              </div>
+            </v-card-title>
+
+            <v-card-text>
+              <p class="text-body-2 text-medium-emphasis mb-3">
+                {{ event.description || 'No description provided' }}
+              </p>
+
+              <div class="event-stats mb-3">
+                <div class="d-flex justify-space-between mb-2">
+                  <span>Participants:</span>
+                  <span class="font-weight-medium">
+                    {{ event.memberships?.length || 0 }} / {{ event.maxParticipants }}
+                  </span>
+                </div>
+                
+                <div class="d-flex justify-space-between mb-2">
+                  <span>Topics:</span>
+                  <span class="font-weight-medium">{{ event._count?.topics || 0 }}</span>
+                </div>
+
+                <div v-if="event.startsAt" class="d-flex justify-space-between">
+                  <span>Starts:</span>
+                  <span class="font-weight-medium">{{ formatDate(event.startsAt) }}</span>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <v-chip
+                  v-if="event.allowGuestAccess"
+                  color="blue"
+                  size="x-small"
+                  variant="outlined"
+                >
+                  Guest Access
+                </v-chip>
+                
+                <v-chip
+                  v-if="event.requireApproval"
+                  color="orange"
+                  size="x-small"
+                  variant="outlined"
+                >
+                  Requires Approval
+                </v-chip>
+                
+                <v-chip
+                  v-if="event.paymentType === 'PAY_PER_EVENT' && event.paymentStatus === 'PAID'"
+                  color="green"
+                  size="x-small"
+                  variant="outlined"
+                >
+                  Paid Event
+                </v-chip>
+              </div>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                color="primary"
+                variant="text"
+                prepend-icon="mdi-arrow-right"
+              >
+                Manage Event
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
 
     <!-- Create Event Dialog -->
     <v-dialog v-model="showCreateDialog" max-width="600">
@@ -344,106 +365,83 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue'
+
 definePageMeta({
-  layout: 'multi-event'
+  layout: 'default',
+  middleware: 'auth'
 })
 
-// Check if user is super admin and redirect if needed
-const { user } = useUserSession()
-const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
+const route = useRoute()
 
-// Redirect super admins to the admin events page
-if (isSuperAdmin.value) {
-  await navigateTo('/super-admin/events')
-}
-
-interface Event {
-  id: string
-  code: string
-  name: string
-  description?: string
-  location?: string
-  startDate: string
-  endDate: string
-  isActive: boolean
-  participantCount?: number
-  role?: string
-  joinedAt?: string
-  _statusLoading?: boolean
-}
-
-// Data
-const events = ref<Event[]>([])
-const showCreateDialog = ref(false)
+// State
+const loading = ref(true)
+const events = ref([])
+const subscription = ref(null)
 const showJoinDialog = ref(false)
 const showShareDialog = ref(false)
-const selectedEvent = ref<Event | null>(null)
-const formValid = ref(false)
-const joinFormValid = ref(false)
-const creating = ref(false)
+const selectedEvent = ref(null)
 const joining = ref(false)
 
-const newEvent = ref({
-  name: '',
-  description: '',
-  location: '',
-  startDate: '',
-  endDate: '',
-  allowGuestAccess: true
-})
-
+// Join form
 const joinEvent = ref({
   eventCode: ''
 })
 
-// Load events
-async function loadEvents() {
+// Success message from payment
+const showSuccessMessage = computed(() => route.query.upgrade === 'success' || route.query.payment === 'success')
+
+// Fetch user's events and subscription info
+async function fetchEvents() {
+  loading.value = true
+  
   try {
-    const response = await $fetch('/api/events/my-events') as any
-    events.value = response.events || []
+    const [eventsResponse, subscriptionResponse] = await Promise.all([
+      $fetch('/api/events'),
+      $fetch('/api/subscription/details')
+    ])
+    
+    events.value = eventsResponse.events || []
+    subscription.value = subscriptionResponse
   } catch (error) {
-    console.error('Failed to load events:', error)
+    console.error('Failed to fetch events:', error)
+  } finally {
+    loading.value = false
   }
 }
 
-// Create event
-async function createEvent() {
-  if (!formValid.value) return
-  
-  creating.value = true
-  try {
-    const response = await $fetch('/api/events/create', {
-      method: 'POST',
-      body: {
-        ...newEvent.value,
-        settings: {
-          allowGuestAccess: newEvent.value.allowGuestAccess
-        }
-      }
-    }) as any
-    
-    if (response.success) {
-      showCreateDialog.value = false
-      resetForm()
-      await loadEvents()
-      
-      // Navigate to the new event
-      await navigateTo(`/dashboard?eventId=${response.event.id}`)
-    }
-  } catch (error) {
-    console.error('Failed to create event:', error)
-  } finally {
-    creating.value = false
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'ACTIVE': return 'success'
+    case 'DRAFT': return 'warning'
+    case 'COMPLETED': return 'info'
+    case 'PAUSED': return 'warning'
+    case 'ARCHIVED': return 'grey'
+    default: return 'grey'
   }
+}
+
+function getPaymentStatusColor(status: string) {
+  switch (status) {
+    case 'FREE': return 'success'
+    case 'PAID': return 'success'
+    case 'PENDING': return 'warning'
+    case 'FAILED': return 'error'
+    default: return 'grey'
+  }
+}
+
+function formatDate(dateString: string) {
+  if (!dateString) return 'Not set'
+  return new Date(dateString).toLocaleDateString()
 }
 
 // Join event by code
 async function joinEventByCode() {
-  if (!joinFormValid.value) return
+  if (!joinEvent.value.eventCode) return
 
   joining.value = true
   try {
-    // Use the direct join route
     await navigateTo(`/join/${joinEvent.value.eventCode.toUpperCase()}`)
   } catch (error) {
     console.error('Failed to join event:', error)
@@ -453,7 +451,7 @@ async function joinEventByCode() {
 }
 
 // Share event
-function shareEvent(event: Event) {
+function shareEvent(event: any) {
   selectedEvent.value = event
   showShareDialog.value = true
 }
@@ -468,118 +466,50 @@ async function copyToClipboard(text: string) {
   }
 }
 
-// Get role color
-function getRoleColor(role?: string) {
-  switch (role) {
-    case 'Organizer':
-      return 'primary'
-    case 'Moderator':
-      return 'info'
-    case 'Participant':
-      return 'success'
-    case 'Guest':
-      return 'warning'
-    default:
-      return 'grey'
-  }
-}
-
-// Get role icon
-function getRoleIcon(role?: string) {
-  switch (role) {
-    case 'Organizer':
-      return 'mdi-crown'
-    case 'Moderator':
-      return 'mdi-shield-account'
-    case 'Participant':
-      return 'mdi-account'
-    case 'Guest':
-      return 'mdi-account-question'
-    default:
-      return 'mdi-account'
-  }
-}
-
-// Toggle event status (for organizers)
-async function toggleEventStatus(event: Event) {
-  if (!event.role || event.role !== 'Organizer') return
-  
-  const action = event.isActive ? 'close' : 'activate'
-  const actionText = event.isActive ? 'close' : 'start'
-  
-  const confirmed = confirm(`Are you sure you want to ${actionText} this event?`)
-  if (!confirmed) return
-
-  // Set loading state
-  event._statusLoading = true
-
-  try {
-    const response = await $fetch(`/api/events/${event.id}/${action}`, {
-      method: 'POST'
-    }) as any
-    
-    if (response.success) {
-      // Update local event status
-      event.isActive = !event.isActive
-      
-      // Show success message
-      console.log(`Event ${actionText}ed successfully`)
-    }
-  } catch (error: any) {
-    console.error(`Failed to ${actionText} event:`, error)
-    alert(`Failed to ${actionText} event: ${error.data?.message || 'Unknown error'}`)
-  } finally {
-    event._statusLoading = false
-  }
-}
-
-// Format join date (relative)
-function formatJoinDate(dateString?: string) {
-  if (!dateString) return 'Unknown'
-  
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-  
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Yesterday'
-  if (diffDays < 7) return `${diffDays}d ago`
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
-  return formatDate(dateString)
-}
-
-// Format date and time
-function formatDateTime(dateString?: string) {
-  if (!dateString) return 'Unknown'
-  return new Date(dateString).toLocaleString()
-}
-
-// Format date
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString()
-}
-
-// Reset form
-function resetForm() {
-  newEvent.value = {
-    name: '',
-    description: '',
-    location: '',
-    startDate: '',
-    endDate: '',
-    allowGuestAccess: true
-  }
-}
-
-// Reset join form
-function resetJoinForm() {
-  joinEvent.value = {
-    eventCode: ''
-  }
-}
-
-// Load events on mount
 onMounted(() => {
-  loadEvents()
+  fetchEvents()
+})
+
+useSeoMeta({
+  title: 'My Events - Unconference',
+  description: 'Manage your unconference events and track participant engagement.',
 })
 </script>
+
+<style scoped>
+.events-page {
+  background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
+  min-height: 100vh;
+}
+
+.event-card {
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.event-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 50%, #06B6D4 100%);
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.event-stats {
+  font-size: 0.875rem;
+}
+
+.v-card--hover {
+  cursor: pointer;
+}
+</style>

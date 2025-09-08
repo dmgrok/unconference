@@ -50,49 +50,79 @@
     }
   })
   const navItems = reactive<NavItem[]>([
-      {
-      icon: 'mdi-account-star',
-      title: 'Dashboard',
-      to: '/organizer',
-      adminOnly: true,
-      organizerAccess: true,
-      disabledWhenInactive: true
-    },
+    // Primary Navigation - Unified Dashboard
     {
-      icon: 'mdi-vote',
-      title: 'Voting & Topics',
-      to: '/voting',
+      icon: 'mdi-view-dashboard',
+      title: 'Dashboard',
+      to: '/dashboard',
       adminOnly: false
     },
+    
+    // Participant Directory
     {
       icon: 'mdi-account-group',
-      title: 'Groups',
-      to: '/groups',
+      title: 'Participants',
+      to: '/participants',
       adminOnly: false
     },
+    
+    // Organizer Hub - Consolidated admin functions
     {
-      icon: 'mdi-chart-bar',
-      title: 'Screen share',
-      to: '/admin/voting-dashboard',
+      icon: 'mdi-account-star',
+      title: 'Organizer Hub',
+      to: '/admin-hub',
+      adminOnly: true,
+      organizerAccess: true,
+      disabledWhenInactive: false
+    },
+    
+    // Round & Room Management - Enhanced prominence  
+    {
+      icon: 'mdi-cog',
+      title: 'Round Management',
+      to: '/groups',
       adminOnly: true,
       organizerAccess: true,
       disabledWhenInactive: true
     },
     {
       icon: 'mdi-home-city',
-      title: 'Room Management',
-      to: '/organizer/rooms',
+      title: 'Room Hub',
+      to: '/room-hub',
+      adminOnly: true,
+      organizerAccess: true,
+      disabledWhenInactive: false
+    },
+    
+    // Display & Presentation Tools
+    {
+      icon: 'mdi-monitor',
+      title: 'Live Display',
+      to: '/admin/voting-dashboard',
       adminOnly: true,
       organizerAccess: true,
       disabledWhenInactive: true
     },
+    
+    // Configuration
     {
-      icon: 'mdi-cog',
-      title: 'Settings',
+      icon: 'mdi-tune',
+      title: 'Event Settings',
       to: '/settings',
       adminOnly: true,
       organizerAccess: true
     },
+
+    // Legacy pages (for backward compatibility)
+    {
+      icon: 'mdi-vote-outline',
+      title: 'Legacy Voting',
+      to: '/voting',
+      adminOnly: false,
+      disabledWhenInactive: false
+    },
+    
+    // Super Admin Section
     {
       icon: 'mdi-shield-crown',
       title: 'Platform Admin',
