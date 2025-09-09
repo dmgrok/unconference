@@ -2,6 +2,7 @@
   "name": "unconference",
   "private": true,
   "type": "module",
+  "license": "AGPL-3.0",
   "scripts": {
     "build": "nuxt build",
     "build:azure": "npx nuxi build --preset=azure",

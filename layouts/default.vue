@@ -377,6 +377,26 @@
       <div class="content-wrapper">
         <slot/>
       </div>
+      
+      <!-- Attribution Footer (Required by License) -->
+      <footer class="attribution-footer">
+        <v-container>
+          <div class="text-center py-4">
+            <p class="attribution-text">
+              Powered by 
+              <a 
+                href="https://github.com/dmgrok/unconference" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="attribution-link"
+              >
+                Unconference Platform
+              </a>
+              <!-- Add version if needed: v{{ version }} -->
+            </p>
+          </div>
+        </v-container>
+      </footer>
     </v-main>
   </v-app>
 </template>
@@ -654,5 +674,50 @@
   .nav-list {
     padding: 0.5rem 0.25rem;
   }
+}
+
+/* Attribution Footer (Required by License) */
+.attribution-footer {
+  margin-top: auto;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  background: rgba(248, 250, 252, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.attribution-text {
+  font-size: 0.85rem;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
+.attribution-link {
+  color: #6366F1;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.attribution-link:hover {
+  color: #4F46E5;
+  text-decoration: underline;
+}
+
+/* Dark theme styles for attribution */
+.v-theme--dark .attribution-footer {
+  border-top: 1px solid rgba(71, 85, 105, 0.4);
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.v-theme--dark .attribution-text {
+  color: #94A3B8;
+}
+
+.v-theme--dark .attribution-link {
+  color: #818CF8;
+}
+
+.v-theme--dark .attribution-link:hover {
+  color: #A5B4FC;
 }
 </style>

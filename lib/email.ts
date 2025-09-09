@@ -1,8 +1,9 @@
 import nodemailer from 'nodemailer'
 
-// For development, we'll log to console. In production, use real SMTP
-const transporter = process.env.NODE_ENV === 'production' 
-  ? nodemailer.createTransporter({
+// Create transporter based on environment
+const createTransporter = async () => {
+  if (process.env.NODE_ENV === 'production') {
+    return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587'),
       secure: false,
@@ -11,17 +12,30 @@ const transporter = process.env.NODE_ENV === 'production'
         pass: process.env.SMTP_PASS
       }
     })
-  : nodemailer.createTestAccount().then(account => 
-      nodemailer.createTransporter({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: account.user,
-          pass: account.pass
-        }
-      })
-    )
+  } else {
+    // For development, use ethereal test account
+    const testAccount = await nodemailer.createTestAccount()
+    return nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass
+      }
+    })
+  }
+}
+
+// Cache the transporter promise
+let transporterPromise: Promise<nodemailer.Transporter> | null = null
+
+const getTransporter = () => {
+  if (!transporterPromise) {
+    transporterPromise = createTransporter()
+  }
+  return transporterPromise
+}
 
 export class EmailService {
   /**
@@ -88,10 +102,7 @@ This email would be sent in production.
   }
 
   private static async getTransporter() {
-    if (typeof transporter === 'object') {
-      return transporter
-    }
-    return await transporter
+    return await getTransporter()
   }
 
   private static getVerificationEmailTemplate(pin: string, name?: string): string {

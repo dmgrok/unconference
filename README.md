@@ -232,9 +232,28 @@ services:
 - Include appropriate error handling
 - Update documentation for new features
 
-## 📄 License
+## 📄 License & Commercial Use
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### Open Source (AGPLv3)
+This project is available under the **GNU Affero General Public License v3.0** for:
+- ✅ Events with **fewer than 50 participants**
+- ✅ Personal and educational use
+- ✅ Small community events
+- ⚠️ Requires attribution and sharing modifications
+
+### Commercial License Required
+For events with **50 or more participants**, including:
+- 🏢 Corporate conferences and meetings
+- 🎓 Large educational events
+- 🏛️ Government and public sector events
+- 💼 Professional conferences and trade shows
+
+**[Contact us for commercial licensing →](mailto:your-email@domain.com)**
+
+### Attribution Required
+All users must include: **"Powered by [Unconference Platform](https://github.com/dmgrok/unconference)"**
+
+📖 **[Read full licensing documentation →](docs/LICENSING.md)**
 
 ## 🆘 Support & Troubleshooting
 
