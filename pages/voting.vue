@@ -34,6 +34,7 @@ if (isSuperAdmin.value) {
 const { settings: adminSettings, loadSettings } = useAdminSettings()
 const { shouldHideAdminFeatures, getEffectiveRole } = useViewerMode()
 const { eventStatus, isEventActive, isEventInactive, canEditEvent } = useEventStatus()
+const { currentEventId } = useEventContext()
 const VOTE_LIMIT = computed(() => adminSettings.value.maxVotesPerTopic)
 const dialog = ref(false)
 const editDialog = ref(false)
@@ -513,7 +514,26 @@ function closeTour() {
 </script>
 
 <template>
-  <v-container>
+  <!-- No Event Selected State -->
+  <div v-if="!currentEventId" class="d-flex justify-center align-center" style="min-height: 60vh;">
+    <v-card max-width="600" class="text-center pa-8">
+      <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-vote-outline</v-icon>
+      <h2 class="text-h4 mb-4">No Event Selected</h2>
+      <p class="text-body-1 text-medium-emphasis mb-6">
+        Please select an event to access voting and topic discussions.
+      </p>
+      <v-btn
+        color="primary"
+        size="large"
+        prepend-icon="mdi-calendar-multiple"
+        @click="navigateTo('/events?select=true')"
+      >
+        Select Event
+      </v-btn>
+    </v-card>
+  </div>
+
+  <v-container v-else>
     <!-- Active Round Display -->
     <v-row v-if="activeRound?.isActive" class="mb-4">
       <v-col>

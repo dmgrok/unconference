@@ -275,6 +275,28 @@
             <p class="user-role-text">{{ globalRole === 'SuperAdmin' ? 'Super Admin' : (userRole || 'Participant') }}</p>
           </div>
         </div>
+
+        <!-- Current Event Context Display -->
+        <div v-if="currentEvent && !isSuperAdmin" class="header-event-context ml-6">
+          <v-chip 
+            color="primary" 
+            variant="tonal" 
+            size="large"
+            class="event-context-chip"
+          >
+            <v-icon start size="18">mdi-calendar</v-icon>
+            <span class="font-weight-medium">{{ currentEvent.name }}</span>
+            <v-btn 
+              size="x-small" 
+              variant="text" 
+              @click="navigateTo('/events')"
+              class="ml-2"
+            >
+              <v-icon size="14">mdi-swap-horizontal</v-icon>
+              Change
+            </v-btn>
+          </v-chip>
+        </div>
         
         <v-spacer></v-spacer>
 
@@ -453,6 +475,21 @@
 .app-title-modern {
   font-weight: 800;
   font-size: 1.4rem;
+}
+
+.event-context-chip {
+  max-width: 300px;
+  transition: all 0.2s ease;
+}
+
+.event-context-chip:hover {
+  transform: scale(1.02);
+}
+
+.event-context-chip .v-chip__content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .viewer-toggle-btn {
