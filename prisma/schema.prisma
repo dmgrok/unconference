@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,78 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User management with subscription tiers
-model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  name        String?
-  nickname    String?  // Display name for events (can be auto-generated)
-  passwordHash String? // For email/password auth
-  avatar      String?
-  
-  // Email verification
-  isEmailVerified Boolean @default(false)
-  emailVerifyPin  String?
-  emailVerifyExpires DateTime?
-  
-  // Authentication providers
-  githubId    String?  @unique
-  googleId    String?  @unique
-  
-  // User status and roles
-  globalRole  GlobalRole @default(USER)
-  isActive    Boolean    @default(true)
-  isGuest     Boolean    @default(false)
-  
-  // Phase 1: Connection Profile
-  bio         String?
-  skills      String? // JSON string array
-  interests   String? // JSON string array
-  lookingFor  String? // JSON string array
-  linkedinUrl String?
-  twitterHandle String?
-  websiteUrl  String?
-  allowContactSharing Boolean @default(false)
-  
-  // Subscription management
-  subscriptionTier    SubscriptionTier @default(FREE)
-  subscriptionId      String?          @unique // Stripe subscription ID
-  customerId          String?          @unique // Stripe customer ID
-  subscriptionStatus  SubscriptionStatus @default(ACTIVE)
-  subscriptionStart   DateTime?
-  subscriptionEnd     DateTime?
-  participantLimit    Int              @default(50) // Free tier limit
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  lastLoginAt DateTime?
-  
-  // Relationships
-  ownedEvents     Event[]             @relation("EventOwner")
-  eventMemberships EventMembership[]
-  createdTopics   Topic[]
-  votes          Vote[]
-  roundParticipations RoundParticipation[]
-  
-  // Phase 1: Connection Relationships
-  connectionsA    EventConnection[]  @relation("ConnectionParticipantA")
-  connectionsB    EventConnection[]  @relation("ConnectionParticipantB")
-  achievements    UserAchievement[]
-  introductionRequests IntroductionRequest[] @relation("IntroductionRequester")
-  introductionTargets  IntroductionRequest[] @relation("IntroductionTarget")
-  skillMatchesA   SkillMatch[]       @relation("SkillMatchPersonA")
-  skillMatchesB   SkillMatch[]       @relation("SkillMatchPersonB")
-  
-  @@map("users")
-}
-
-// Subscription tiers focused on community events and small conferences
 enum SubscriptionTier {
-  FREE        // Up to 50 participants, 5 events/month
-  COMMUNITY   // Up to 150 participants, 15 events/month - $19
-  ORGANIZER   // Up to 300 participants, 30 events/month - $49  
-  UNLIMITED   // Unlimited participants/events - $99
+  FREE
+  COMMUNITY
+  ORGANIZER
+  UNLIMITED
 }
 
 enum SubscriptionStatus {
@@ -99,91 +29,25 @@ enum GlobalRole {
   USER
 }
 
-// Event management with subscription enforcement
-model Event {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  code        String   @unique // Join code for participants
-  
-  // Event configuration
-  maxParticipants   Int       @default(50)
-  allowGuestAccess  Boolean   @default(true)
-  requireApproval   Boolean   @default(false)
-  
-  // Event status
-  status      EventStatus @default(DRAFT)
-  statusReason String?
-  
-  // Payment information for pay-per-event
-  paymentType     EventPaymentType @default(SUBSCRIPTION)
-  paymentStatus   EventPaymentStatus @default(FREE)
-  stripePaymentId String? @unique // For one-time payments
-  paidAmount      Int @default(0) // Amount paid in cents
-  paidAt          DateTime?
-  
-  // Voting and round settings
-  maxVotesPerTopic    Int @default(12)
-  maxTopicsPerRound   Int @default(10)
-  defaultRoundDuration Int @default(20) // minutes
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  startsAt    DateTime?
-  endsAt      DateTime?
-  
-  // Owner relationship
-  ownerId     String
-  owner       User     @relation("EventOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  
-  // Relationships
-  memberships EventMembership[]
-  topics      Topic[]
-  rooms       Room[]
-  rounds      Round[]
-  
-  @@map("events")
-}
-
 enum EventStatus {
   DRAFT
-  ACTIVE  
+  ACTIVE
   PAUSED
   COMPLETED
   ARCHIVED
 }
 
 enum EventPaymentType {
-  SUBSCRIPTION  // Covered by user's subscription
-  PAY_PER_EVENT // One-time payment for this event
-  FREE         // Free tier event
+  SUBSCRIPTION
+  PAY_PER_EVENT
+  FREE
 }
 
 enum EventPaymentStatus {
-  FREE          // No payment needed (within free limits)
-  PENDING       // Payment required but not completed
-  PAID          // Payment completed
-  FAILED        // Payment failed
-}
-
-// Event membership with roles and permissions
-model EventMembership {
-  id        String   @id @default(cuid())
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
-  role      EventRole @default(PARTICIPANT)
-  status    MembershipStatus @default(ACTIVE)
-  
-  joinedAt  DateTime @default(now())
-  
-  @@unique([userId, eventId])
-  @@map("event_memberships")
+  FREE
+  PENDING
+  PAID
+  FAILED
 }
 
 enum EventRole {
@@ -199,105 +63,9 @@ enum MembershipStatus {
   PENDING_APPROVAL
 }
 
-// Enhanced topic management
-model Topic {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  
-  // Topic status
-  isActive    Boolean  @default(true)
-  isFrozen    Boolean  @default(false) // Locked for voting
-  
-  // Voting metrics
-  totalVotes        Int @default(0)
-  preferenceScore   Int @default(0) // Weighted score: 1st choice = 2 points, 2nd choice = 1 point
-  badges            Int @default(0)
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relationships
-  eventId     String
-  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
-  createdById String
-  createdBy   User     @relation(fields: [createdById], references: [id])
-  
-  votes       Vote[]
-  roundTopics RoundTopic[]
-  
-  @@map("topics")
-}
-
-// Preference-based voting system
-model Vote {
-  id        String   @id @default(cuid())
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  topicId   String
-  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  
-  preference VotePreference // 1st choice = 2 points, 2nd choice = 1 point
-  
-  createdAt DateTime @default(now())
-  
-  @@unique([userId, topicId])
-  @@map("votes")
-}
-
 enum VotePreference {
-  FIRST_CHOICE   // 2 points
-  SECOND_CHOICE  // 1 point
-}
-
-// Room management for discussions
-model Room {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  capacity    Int      @default(20)
-  location    String?  // Physical or virtual room info
-  
-  isActive    Boolean  @default(true)
-  
-  eventId     String
-  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
-  roundParticipations RoundParticipation[]
-  
-  createdAt   DateTime @default(now())
-  
-  @@map("rooms")
-}
-
-// Round management with analytics
-model Round {
-  id            String   @id @default(cuid())
-  roundNumber   Int
-  
-  // Round configuration
-  duration      Int      // minutes
-  status        RoundStatus @default(PLANNED)
-  
-  // Timestamps
-  startTime     DateTime?
-  endTime       DateTime?
-  createdAt     DateTime @default(now())
-  
-  // Event relationship
-  eventId       String
-  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
-  // Relationships
-  roundTopics   RoundTopic[]
-  participants  RoundParticipation[]
-  
-  @@unique([eventId, roundNumber])
-  @@map("rounds")
+  FIRST_CHOICE
+  SECOND_CHOICE
 }
 
 enum RoundStatus {
@@ -307,159 +75,10 @@ enum RoundStatus {
   CANCELLED
 }
 
-// Junction table for round-topic relationships
-model RoundTopic {
-  id       String @id @default(cuid())
-  
-  roundId  String
-  round    Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
-  
-  topicId  String
-  topic    Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  
-  finalScore Int  @default(0) // Score when topic was selected
-  
-  @@unique([roundId, topicId])
-  @@map("round_topics")
-}
-
-// Participant assignments to rooms/topics in rounds
-model RoundParticipation {
-  id       String @id @default(cuid())
-  
-  roundId  String
-  round    Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
-  
-  userId   String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  roomId   String?
-  room     Room?  @relation(fields: [roomId], references: [id])
-  
-  assignedAt DateTime @default(now())
-  checkedIn  Boolean  @default(false)
-  checkedInAt DateTime?
-  
-  @@unique([roundId, userId])
-  @@map("round_participations")
-}
-
-// Subscription and billing management
-model Subscription {
-  id                String    @id @default(cuid())
-  stripeSubscriptionId String @unique
-  stripeCustomerId    String
-  stripePriceId       String
-  
-  tier              SubscriptionTier
-  status            SubscriptionStatus
-  
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-  cancelAtPeriodEnd  Boolean @default(false)
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  @@map("subscriptions")
-}
-
-// Audit log for important actions
-model AuditLog {
-  id          String   @id @default(cuid())
-  
-  userId      String?
-  eventId     String?
-  
-  action      String   // e.g., "round_started", "user_upgraded", "payment_processed"
-  details     String?  // JSON string with additional data
-  ipAddress   String?
-  userAgent   String?
-  
-  createdAt   DateTime @default(now())
-  
-  @@map("audit_logs")
-}
-
-// System settings and feature flags
-model SystemSetting {
-  id     String @id
-  value  String
-  
-  updatedAt DateTime @updatedAt
-  
-  @@map("system_settings")
-}
-
-// Phase 1: Connection & Collaboration Models
-
-// Track connections between event participants
-model EventConnection {
-  id               String   @id @default(cuid())
-  eventId          String
-  participantAId   String
-  participantBId   String
-  
-  participantA     User     @relation("ConnectionParticipantA", fields: [participantAId], references: [id])
-  participantB     User     @relation("ConnectionParticipantB", fields: [participantBId], references: [id])
-  
-  sharedTopics     String? // JSON array
-  collaboratedOn   String? // JSON array
-  contactExchanged Boolean  @default(false)
-  connectionStrength Int    @default(1) // 1-5 scale
-  meetingNotes     String?
-  followUpPlanned  Boolean  @default(false)
-  followUpDate     DateTime?
-  
-  createdAt        DateTime @default(now())
-  
-  @@unique([eventId, participantAId, participantBId])
-  @@map("event_connections")
-}
-
-// Collaboration spaces for topics/rooms
-model CollaborationSpace {
-  id           String   @id @default(cuid())
-  eventId      String
-  topicId      String?
-  roomId       String?
-  name         String
-  description  String?
-  contributors String? // JSON array of User IDs
-  sharedNotes  String   @default("")
-  status       CollaborationStatus @default(ACTIVE)
-  
-  resources    CollaborationResource[]
-  actionItems  ActionItem[]
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  @@map("collaboration_spaces")
-}
-
 enum CollaborationStatus {
   ACTIVE
   COMPLETED
   ON_HOLD
-}
-
-// Resources shared in collaborations
-model CollaborationResource {
-  id               String   @id @default(cuid())
-  collaborationId  String
-  collaboration    CollaborationSpace @relation(fields: [collaborationId], references: [id], onDelete: Cascade)
-  
-  url              String
-  title            String
-  description      String?
-  resourceType     ResourceType @default(LINK)
-  addedBy          String // User ID
-  votes            Int      @default(0)
-  
-  addedAt          DateTime @default(now())
-  
-  @@map("collaboration_resources")
 }
 
 enum ResourceType {
@@ -467,26 +86,6 @@ enum ResourceType {
   DOCUMENT
   TOOL
   ARTICLE
-}
-
-// Action items from collaborations
-model ActionItem {
-  id               String   @id @default(cuid())
-  collaborationId  String
-  collaboration    CollaborationSpace @relation(fields: [collaborationId], references: [id], onDelete: Cascade)
-  
-  task             String
-  description      String?
-  assignedTo       String // User ID
-  dueDate          DateTime?
-  status           ActionStatus @default(PENDING)
-  priority         Priority @default(MEDIUM)
-  createdBy        String // User ID
-  
-  createdAt        DateTime @default(now())
-  completedAt      DateTime?
-  
-  @@map("action_items")
 }
 
 enum ActionStatus {
@@ -501,53 +100,11 @@ enum Priority {
   HIGH
 }
 
-// Work showcases from events
-model WorkShowcase {
-  id            String   @id @default(cuid())
-  eventId       String
-  projectName   String
-  description   String
-  contributors  String? // JSON array of User IDs
-  skillsUsed    String? // JSON array
-  skillsNeeded  String? // JSON array
-  status        ProjectStatus @default(IDEATION)
-  contactEmail  String?
-  repositoryUrl String?
-  demoUrl       String?
-  images        String? // JSON array
-  tags          String? // JSON array
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  @@map("work_showcases")
-}
-
 enum ProjectStatus {
   IDEATION
   ACTIVE
   COMPLETED
   SEEKING_COLLABORATORS
-}
-
-// User achievements
-model UserAchievement {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
-  
-  achievementType AchievementType
-  name            String
-  description     String
-  icon            String   @default("mdi-trophy")
-  badgeUrl        String?
-  eventId         String? // NULL for global achievements
-  metadata        String? // JSON string with counts, scores, etc.
-  
-  earnedAt        DateTime @default(now())
-  
-  @@unique([userId, achievementType, name, eventId])
-  @@map("user_achievements")
 }
 
 enum AchievementType {
@@ -557,27 +114,6 @@ enum AchievementType {
   COMMUNITY
 }
 
-// Introduction requests
-model IntroductionRequest {
-  id              String   @id @default(cuid())
-  eventId         String
-  requesterId     String
-  targetPersonId  String
-  
-  requester       User     @relation("IntroductionRequester", fields: [requesterId], references: [id])
-  targetPerson    User     @relation("IntroductionTarget", fields: [targetPersonId], references: [id])
-  
-  reason          String
-  commonInterests String? // JSON array
-  status          IntroductionStatus @default(PENDING)
-  facilitatedBy   String? // User ID, NULL for system
-  
-  createdAt       DateTime @default(now())
-  completedAt     DateTime?
-  
-  @@map("introduction_requests")
-}
-
 enum IntroductionStatus {
   PENDING
   ACCEPTED
@@ -585,29 +121,375 @@ enum IntroductionStatus {
   COMPLETED
 }
 
-// Skill matches for connections
-model SkillMatch {
-  id                 String   @id @default(cuid())
-  eventId            String
-  personAId          String
-  personBId          String
-  
-  personA            User     @relation("SkillMatchPersonA", fields: [personAId], references: [id])
-  personB            User     @relation("SkillMatchPersonB", fields: [personBId], references: [id])
-  
-  matchType          MatchType
-  skills             String? // JSON array
-  compatibilityScore Float    // 0.0 to 1.0
-  reason             String
-  
-  createdAt          DateTime @default(now())
-  
-  @@unique([eventId, personAId, personBId])
-  @@map("skill_matches")
-}
-
 enum MatchType {
   COMPLEMENT
   SHARED_INTEREST
   MENTOR_MENTEE
+}
+
+model User {
+  id                   String                @id @default(cuid())
+  email                String                @unique
+  name                 String?
+  nickname             String?
+  passwordHash         String?
+  avatar               String?
+  isEmailVerified      Boolean               @default(false)
+  emailVerifyPin       String?
+  emailVerifyExpires   DateTime?
+  githubId             String?               @unique
+  googleId             String?               @unique
+  globalRole           GlobalRole            @default(USER)
+  isActive             Boolean               @default(true)
+  isGuest              Boolean               @default(false)
+  bio                  String?
+  skills               String?
+  interests            String?
+  lookingFor           String?
+  linkedinUrl          String?
+  twitterHandle        String?
+  websiteUrl           String?
+  allowContactSharing  Boolean               @default(false)
+  subscriptionTier     SubscriptionTier      @default(FREE)
+  subscriptionId       String?               @unique
+  customerId           String?               @unique
+  subscriptionStatus   SubscriptionStatus    @default(ACTIVE)
+  subscriptionStart    DateTime?
+  subscriptionEnd      DateTime?
+  participantLimit     Int                   @default(50)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  lastLoginAt          DateTime?
+  connectionsB         EventConnection[]     @relation("ConnectionParticipantB")
+  connectionsA         EventConnection[]     @relation("ConnectionParticipantA")
+  eventMemberships     EventMembership[]
+  ownedEvents          Event[]               @relation("EventOwner")
+  introductionTargets  IntroductionRequest[] @relation("IntroductionTarget")
+  introductionRequests IntroductionRequest[] @relation("IntroductionRequester")
+  roundParticipations  RoundParticipation[]
+  skillMatchesB        SkillMatch[]          @relation("SkillMatchPersonB")
+  skillMatchesA        SkillMatch[]          @relation("SkillMatchPersonA")
+  createdTopics        Topic[]
+  achievements         UserAchievement[]
+  votes                Vote[]
+
+  @@map("users")
+}
+
+model Event {
+  id                   String             @id @default(cuid())
+  title                String
+  description          String?
+  code                 String             @unique
+  maxParticipants      Int                @default(50)
+  allowGuestAccess     Boolean            @default(true)
+  requireApproval      Boolean            @default(false)
+  status               EventStatus        @default(DRAFT)
+  statusReason         String?
+  paymentType          EventPaymentType   @default(SUBSCRIPTION)
+  paymentStatus        EventPaymentStatus @default(FREE)
+  stripePaymentId      String?            @unique
+  paidAmount           Int                @default(0)
+  paidAt               DateTime?
+  maxVotesPerTopic     Int                @default(12)
+  maxTopicsPerRound    Int                @default(10)
+  defaultRoundDuration Int                @default(20)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  startsAt             DateTime?
+  endsAt               DateTime?
+  ownerId              String
+  memberships          EventMembership[]
+  owner                User               @relation("EventOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  rooms                Room[]
+  rounds               Round[]
+  topics               Topic[]
+
+  @@map("events")
+}
+
+model EventMembership {
+  id       String           @id @default(cuid())
+  userId   String
+  eventId  String
+  role     EventRole        @default(PARTICIPANT)
+  status   MembershipStatus @default(ACTIVE)
+  joinedAt DateTime         @default(now())
+  event    Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@map("event_memberships")
+}
+
+model Topic {
+  id              String       @id @default(cuid())
+  title           String
+  description     String
+  isActive        Boolean      @default(true)
+  isFrozen        Boolean      @default(false)
+  totalVotes      Int          @default(0)
+  preferenceScore Int          @default(0)
+  badges          Int          @default(0)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  eventId         String
+  createdById     String
+  roundTopics     RoundTopic[]
+  createdBy       User         @relation(fields: [createdById], references: [id])
+  event           Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  votes           Vote[]
+
+  @@map("topics")
+}
+
+model Vote {
+  id         String         @id @default(cuid())
+  userId     String
+  topicId    String
+  preference VotePreference
+  createdAt  DateTime       @default(now())
+  topic      Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@map("votes")
+}
+
+model Room {
+  id                  String               @id @default(cuid())
+  name                String
+  description         String?
+  capacity            Int                  @default(20)
+  location            String?
+  isActive            Boolean              @default(true)
+  eventId             String
+  createdAt           DateTime             @default(now())
+  event               Event                @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  roundParticipations RoundParticipation[]
+
+  @@map("rooms")
+}
+
+model Round {
+  id           String               @id @default(cuid())
+  roundNumber  Int
+  duration     Int
+  status       RoundStatus          @default(PLANNED)
+  startTime    DateTime?
+  endTime      DateTime?
+  createdAt    DateTime             @default(now())
+  eventId      String
+  participants RoundParticipation[]
+  roundTopics  RoundTopic[]
+  event        Event                @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, roundNumber])
+  @@map("rounds")
+}
+
+model RoundTopic {
+  id         String @id @default(cuid())
+  roundId    String
+  topicId    String
+  finalScore Int    @default(0)
+  topic      Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  round      Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@unique([roundId, topicId])
+  @@map("round_topics")
+}
+
+model RoundParticipation {
+  id          String    @id @default(cuid())
+  roundId     String
+  userId      String
+  roomId      String?
+  assignedAt  DateTime  @default(now())
+  checkedIn   Boolean   @default(false)
+  checkedInAt DateTime?
+  room        Room?     @relation(fields: [roomId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  round       Round     @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@unique([roundId, userId])
+  @@map("round_participations")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  stripeSubscriptionId String             @unique
+  stripeCustomerId     String
+  stripePriceId        String
+  tier                 SubscriptionTier
+  status               SubscriptionStatus
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@map("subscriptions")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  eventId   String?
+  action    String
+  details   String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  id        String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model EventConnection {
+  id                 String    @id @default(cuid())
+  eventId            String
+  participantAId     String
+  participantBId     String
+  sharedTopics       String?
+  collaboratedOn     String?
+  contactExchanged   Boolean   @default(false)
+  connectionStrength Int       @default(1)
+  meetingNotes       String?
+  followUpPlanned    Boolean   @default(false)
+  followUpDate       DateTime?
+  createdAt          DateTime  @default(now())
+  participantB       User      @relation("ConnectionParticipantB", fields: [participantBId], references: [id])
+  participantA       User      @relation("ConnectionParticipantA", fields: [participantAId], references: [id])
+
+  @@unique([eventId, participantAId, participantBId])
+  @@map("event_connections")
+}
+
+model CollaborationSpace {
+  id           String                  @id @default(cuid())
+  eventId      String
+  topicId      String?
+  roomId       String?
+  name         String
+  description  String?
+  contributors String?
+  sharedNotes  String                  @default("")
+  status       CollaborationStatus     @default(ACTIVE)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  actionItems  ActionItem[]
+  resources    CollaborationResource[]
+
+  @@map("collaboration_spaces")
+}
+
+model CollaborationResource {
+  id              String             @id @default(cuid())
+  collaborationId String
+  url             String
+  title           String
+  description     String?
+  resourceType    ResourceType       @default(LINK)
+  addedBy         String
+  votes           Int                @default(0)
+  addedAt         DateTime           @default(now())
+  collaboration   CollaborationSpace @relation(fields: [collaborationId], references: [id], onDelete: Cascade)
+
+  @@map("collaboration_resources")
+}
+
+model ActionItem {
+  id              String             @id @default(cuid())
+  collaborationId String
+  task            String
+  description     String?
+  assignedTo      String
+  dueDate         DateTime?
+  status          ActionStatus       @default(PENDING)
+  priority        Priority           @default(MEDIUM)
+  createdBy       String
+  createdAt       DateTime           @default(now())
+  completedAt     DateTime?
+  collaboration   CollaborationSpace @relation(fields: [collaborationId], references: [id], onDelete: Cascade)
+
+  @@map("action_items")
+}
+
+model WorkShowcase {
+  id            String        @id @default(cuid())
+  eventId       String
+  projectName   String
+  description   String
+  contributors  String?
+  skillsUsed    String?
+  skillsNeeded  String?
+  status        ProjectStatus @default(IDEATION)
+  contactEmail  String?
+  repositoryUrl String?
+  demoUrl       String?
+  images        String?
+  tags          String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("work_showcases")
+}
+
+model UserAchievement {
+  id              String          @id @default(cuid())
+  userId          String
+  achievementType AchievementType
+  name            String
+  description     String
+  icon            String          @default("mdi-trophy")
+  badgeUrl        String?
+  eventId         String?
+  metadata        String?
+  earnedAt        DateTime        @default(now())
+  user            User            @relation(fields: [userId], references: [id])
+
+  @@unique([userId, achievementType, name, eventId])
+  @@map("user_achievements")
+}
+
+model IntroductionRequest {
+  id              String             @id @default(cuid())
+  eventId         String
+  requesterId     String
+  targetPersonId  String
+  reason          String
+  commonInterests String?
+  status          IntroductionStatus @default(PENDING)
+  facilitatedBy   String?
+  createdAt       DateTime           @default(now())
+  completedAt     DateTime?
+  targetPerson    User               @relation("IntroductionTarget", fields: [targetPersonId], references: [id])
+  requester       User               @relation("IntroductionRequester", fields: [requesterId], references: [id])
+
+  @@map("introduction_requests")
+}
+
+model SkillMatch {
+  id                 String    @id @default(cuid())
+  eventId            String
+  personAId          String
+  personBId          String
+  matchType          MatchType
+  skills             String?
+  compatibilityScore Float
+  reason             String
+  createdAt          DateTime  @default(now())
+  personB            User      @relation("SkillMatchPersonB", fields: [personBId], references: [id])
+  personA            User      @relation("SkillMatchPersonA", fields: [personAId], references: [id])
+
+  @@unique([eventId, personAId, personBId])
+  @@map("skill_matches")
 }

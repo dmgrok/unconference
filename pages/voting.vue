@@ -86,6 +86,37 @@ const isVotingDisabled = computed(() => {
   return activeRound.value?.isActive && activeRound.value?.votingDisabled
 })
 
+// Phase 1: Get voters who voted for same topics as current user (for connection tracking)
+const getAllVotersForSameTopics = () => {
+  const currentUserEmail = (user.value as User)?.email
+  if (!currentUserEmail) return []
+  
+  const userFirstChoiceId = userFirstChoice.value?.id
+  const userSecondChoiceId = userSecondChoice.value?.id
+  
+  const sameTopicVoters = new Set<string>()
+  
+  topics.value.forEach(topic => {
+    if (topic.id === userFirstChoiceId || topic.id === userSecondChoiceId) {
+      // Add other voters who voted for the same topics
+      topic.firstChoiceVoters?.forEach(email => {
+        if (email !== currentUserEmail) sameTopicVoters.add(email)
+      })
+      topic.secondChoiceVoters?.forEach(email => {
+        if (email !== currentUserEmail) sameTopicVoters.add(email)
+      })
+    }
+  })
+  
+  return Array.from(sameTopicVoters)
+}
+
+// Phase 1: Handle connection creation from invisible tracker
+const onConnectionCreated = (connection: any) => {
+  console.log('New connection created during voting:', connection)
+  // You could show a subtle notification here
+}
+
 const canEditTopic = (topic: DiscussionTopic) => {
   return isAdmin.value || topic.createdBy === (user.value as User)?.email
 }
@@ -534,6 +565,14 @@ function closeTour() {
   </div>
 
   <v-container v-else>
+    <!-- Phase 1: Connection Tracking (invisible) -->
+    <InvisibleConnectionTracker
+      v-if="currentEventId && topics.length > 0"
+      context="voting"
+      :participants="getAllVotersForSameTopics()"
+      @connection-created="onConnectionCreated"
+    />
+
     <!-- Active Round Display -->
     <v-row v-if="activeRound?.isActive" class="mb-4">
       <v-col>

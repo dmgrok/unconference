@@ -11,13 +11,16 @@ logger.info('USERS_FILE_PATH:', process.env.USERS_FILE_PATH)
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
+  devServer: {
+    port: 3001
+  },
   build: {
     transpile: ['vuetify'],
   },
   hooks: {
     'pages:extend' (pages: NuxtPage[]) {
       function setMiddleware (pages: NuxtPage[]) {
-        const publicPages = ['index', 'login', 'register', 'test-admin', 'demo-admin', 'organizer', 'super-admin-guide', 'quick-join']
+        const publicPages = ['index', 'login', 'register', 'test-admin', 'demo-admin', 'organizer', 'super-admin-guide', 'quick-join', 'recap-demo']
         const adminPages = ['admin', 'settings'] // Add admin-only pages here
         
         for (const page of pages) {

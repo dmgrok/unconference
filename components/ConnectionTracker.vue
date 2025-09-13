@@ -26,7 +26,7 @@
               class="connection-suggestion" 
               variant="outlined"
               hover
-              @click="requestIntroduction(suggestion)"
+              @click="requestIntroductionToUser(suggestion)"
             >
               <v-card-text class="py-3">
                 <div class="d-flex align-center mb-2">
@@ -109,7 +109,7 @@
                     size="small"
                     color="primary"
                     prepend-icon="mdi-plus"
-                    @click="addActionItem(collab)"
+                    @click="addActionItemToCollab(collab)"
                   >
                     Add Task
                   </v-btn>
@@ -144,7 +144,7 @@
                     size="small"
                     color="success"
                     prepend-icon="mdi-link"
-                    @click="addResource(collab)"
+                    @click="addResourceToCollab(collab)"
                   >
                     Add Link
                   </v-btn>
@@ -266,7 +266,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import type { 
   EventConnection, 
   CollaborationSpace, 
@@ -277,84 +277,78 @@ import type {
 
 // Props
 interface Props {
-  eventId: string
-  currentUserId: string
+  eventId?: string
+  currentUserId?: string
 }
 const props = defineProps<Props>()
 
+// Get connections API
+const { 
+  getConnectionsOverview,
+  requestIntroduction,
+  createCollaboration,
+  addResource,
+  addActionItem
+} = useConnections()
+
 // Reactive data
-const connections = ref<EventConnection[]>([])
-const collaborations = ref<CollaborationSpace[]>([])
-const participants = ref<Participant[]>([])
-const skillMatches = ref<SkillMatch[]>([])
+const loading = ref(false)
+const connectionsData = ref<any>(null)
 
 // Computed
-const totalConnections = computed(() => connections.value.length)
+const totalConnections = computed(() => 
+  connectionsData.value?.connections?.length || 0
+)
 
 const myConnections = computed(() => {
-  return connections.value
-    .filter(conn => 
-      conn.participantA === props.currentUserId || 
-      conn.participantB === props.currentUserId
-    )
-    .map(conn => {
-      const otherPersonId = conn.participantA === props.currentUserId 
-        ? conn.participantB 
-        : conn.participantA
-      const person = participants.value.find(p => p.id === otherPersonId)
-      return {
-        id: conn.id,
-        person,
-        sharedTopics: conn.sharedTopics,
-        collaboratedOn: conn.collaboratedOn,
-        strength: conn.connectionStrength,
-        contactExchanged: conn.contactExchanged
-      }
-    })
-    .filter(conn => conn.person)
+  if (!connectionsData.value?.connections) return []
+  
+  return connectionsData.value.connections.map((conn: any) => ({
+    id: conn.connectionId,
+    person: conn.otherPerson,
+    sharedTopics: conn.sharedTopics || [],
+    collaboratedOn: conn.collaboratedOn || [],
+    strength: conn.connectionStrength || 1,
+    contactExchanged: conn.contactExchanged || false
+  }))
 })
 
 const suggestedConnections = computed(() => {
-  return skillMatches.value
-    .filter(match => 
-      match.personA === props.currentUserId || 
-      match.personB === props.currentUserId
-    )
-    .slice(0, 6) // Show top 6 suggestions
-    .map(match => {
-      const otherPersonId = match.personA === props.currentUserId 
-        ? match.personB 
-        : match.personA
-      const person = participants.value.find(p => p.id === otherPersonId)
-      return {
-        person,
-        matchType: match.matchType,
-        commonInterests: match.skills,
-        reason: match.reason,
-        score: match.compatibilityScore
-      }
-    })
-    .filter(suggestion => suggestion.person)
+  if (!connectionsData.value?.suggestions) return []
+  
+  return connectionsData.value.suggestions.slice(0, 6).map((suggestion: any) => ({
+    person: suggestion.user,
+    matchType: 'Shared interests',
+    commonInterests: suggestion.sharedTopics || [],
+    reason: `You both voted for similar topics`,
+    score: suggestion.compatibilityScore || 0
+  }))
 })
 
 const activeCollaborations = computed(() => {
-  return collaborations.value
-    .filter(collab => 
-      collab.contributors.includes(props.currentUserId) && 
-      collab.status === 'active'
-    )
-    .map(collab => ({
-      ...collab,
-      contributors: collab.contributors
-        .map(id => participants.value.find(p => p.id === id))
-        .filter(Boolean)
-    }))
+  if (!connectionsData.value?.collaborations) return []
+  
+  return connectionsData.value.collaborations.filter((collab: any) => 
+    collab.status === 'ACTIVE'
+  )
 })
 
 // Methods
+const loadData = async () => {
+  loading.value = true
+  try {
+    const data = await getConnectionsOverview()
+    connectionsData.value = data
+  } catch (error) {
+    console.error('Failed to load connections data:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
 const getParticipantName = (participantId: string) => {
-  const participant = participants.value.find(p => p.id === participantId)
-  return participant?.name || 'Unknown'
+  // This would typically come from a participants lookup
+  return participantId || 'Unknown'
 }
 
 const getConnectionStrengthColor = (strength: number) => {
@@ -369,59 +363,94 @@ const getConnectionStrengthText = (strength: number) => {
   return 'New connection'
 }
 
-const formatDate = (date: Date) => {
+const formatDate = (date: Date | string) => {
   return new Date(date).toLocaleDateString()
 }
 
-const requestIntroduction = async (suggestion: any) => {
-  // Implementation for requesting introductions
-  console.log('Requesting introduction to:', suggestion.person.name)
+const requestIntroductionToUser = async (suggestion: any) => {
+  try {
+    await requestIntroduction({
+      targetPersonId: suggestion.person.id,
+      reason: `I'd like to connect based on our shared interests: ${suggestion.commonInterests.join(', ')}`,
+      commonInterests: suggestion.commonInterests
+    })
+    // Show success message
+    console.log('Introduction requested successfully')
+    // Refresh data
+    await loadData()
+  } catch (error) {
+    console.error('Failed to request introduction:', error)
+  }
 }
 
-const updateCollaboration = async (collab: CollaborationSpace) => {
-  // Save collaboration updates
+const updateCollaboration = async (collab: any) => {
+  // Implementation for updating collaboration notes
   console.log('Updating collaboration:', collab.id)
 }
 
-const addActionItem = (collab: CollaborationSpace) => {
-  // Add new action item
-  console.log('Adding action item to:', collab.name)
+const addActionItemToCollab = async (collab: any) => {
+  // This would open a dialog to add a new action item
+  try {
+    await addActionItem({
+      collaborationId: collab.id,
+      task: 'New task', // This should come from user input
+      assignedTo: 'current-user-id', // This should be selectable
+      priority: 'MEDIUM'
+    })
+    await loadData()
+  } catch (error) {
+    console.error('Failed to add action item:', error)
+  }
 }
 
-const toggleActionItem = (item: any) => {
-  item.status = item.status === 'completed' ? 'pending' : 'completed'
+const toggleActionItem = async (item: any) => {
+  item.status = item.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED'
+  // This would typically make an API call to update the item
 }
 
-const addResource = (collab: CollaborationSpace) => {
-  // Add new resource
-  console.log('Adding resource to:', collab.name)
+const addResourceToCollab = async (collab: any) => {
+  // This would open a dialog to add a new resource
+  try {
+    await addResource({
+      collaborationId: collab.id,
+      url: 'https://example.com', // This should come from user input
+      title: 'Resource title', // This should come from user input
+      resourceType: 'LINK'
+    })
+    await loadData()
+  } catch (error) {
+    console.error('Failed to add resource:', error)
+  }
 }
 
-const createSlackChannel = async (collab: CollaborationSpace) => {
-  // Create Slack channel for collaboration
+const createSlackChannel = async (collab: any) => {
+  // Implementation for creating Slack channels
   console.log('Creating Slack channel for:', collab.name)
 }
 
-const scheduleFollowUp = (item: any) => {
-  // Schedule follow-up meeting
-  console.log('Scheduling follow-up for:', item)
+const scheduleFollowUp = (connection: any) => {
+  // Implementation for scheduling follow-ups
+  console.log('Scheduling follow-up for:', connection.person?.name)
 }
 
 const shareContact = (connection: any) => {
-  // Share contact information
-  console.log('Sharing contact for:', connection.person.name)
+  // Implementation for sharing contact info
+  console.log('Sharing contact for:', connection.person?.name)
 }
 
 const addToLinkedIn = (connection: any) => {
   // Generate LinkedIn connection URL
-  console.log('Adding to LinkedIn:', connection.person.name)
+  const linkedinUrl = connection.person?.linkedinUrl
+  if (linkedinUrl) {
+    window.open(linkedinUrl, '_blank')
+  } else {
+    console.log('No LinkedIn URL available for:', connection.person?.name)
+  }
 }
 
-// Load data on mount
-onMounted(async () => {
-  // Load connections, collaborations, participants, and skill matches
-  // This would typically come from API calls
-})
+// Load data on mount and when eventId changes
+onMounted(loadData)
+watch(() => props.eventId, loadData)
 </script>
 
 <style scoped>

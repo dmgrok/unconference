@@ -66,6 +66,14 @@
       adminOnly: false
     },
     
+    // Phase 1: Connections & Collaborations
+    {
+      icon: 'mdi-account-heart',
+      title: 'Connections',
+      to: '/connections',
+      adminOnly: false
+    },
+    
     // Organizer Hub - Consolidated admin functions
     {
       icon: 'mdi-account-star',

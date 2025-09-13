@@ -1,6 +1,9 @@
 // Phase 1 API: Connections and Collaboration
 import prisma from '~/lib/database'
 
+// Type assertion for new Prisma models until TypeScript catches up
+const db = prisma as any
+
 export default defineEventHandler(async (event) => {
   const method = getMethod(event)
   const query = getQuery(event)
@@ -96,7 +99,7 @@ function parseJsonField(field: string | null): any[] {
 
 // Connection management functions
 async function getUserConnections(userId: string, eventId: string) {
-  const connections = await prisma.eventConnection.findMany({
+  const connections = await db.eventConnection.findMany({
     where: {
       eventId,
       OR: [
@@ -131,7 +134,7 @@ async function getUserConnections(userId: string, eventId: string) {
 
 async function getConnectionSuggestions(userId: string, eventId: string) {
   // Find users who voted for similar topics
-  const userVotes = await prisma.vote.findMany({
+  const userVotes = await db.vote.findMany({
     where: {
       userId,
       topic: {
@@ -143,17 +146,17 @@ async function getConnectionSuggestions(userId: string, eventId: string) {
     }
   })
 
-  const userTopicIds = userVotes.map(v => v.topicId)
+  const userTopicIds = userVotes.map((v: any) => v.topicId)
 
   // Find other users who voted for the same topics
-  const similarVotes = await prisma.vote.findMany({
+  const similarVotes = await db.vote.findMany({
     where: {
       topicId: { in: userTopicIds },
       userId: { not: userId }
     },
     include: {
       user: {
-        select: { id: true, name: true, avatar: true, skills: true, interests: true }
+        select: { id: true, name: true, avatar: true }
       },
       topic: true
     }
@@ -162,7 +165,7 @@ async function getConnectionSuggestions(userId: string, eventId: string) {
   // Group by user and calculate compatibility
   const userCompatibility: Record<string, any> = {}
   
-  similarVotes.forEach(vote => {
+  similarVotes.forEach((vote: any) => {
     const otherUserId = vote.userId
     if (!userCompatibility[otherUserId]) {
       userCompatibility[otherUserId] = {
@@ -186,7 +189,7 @@ async function createConnection(eventId: string, userId: string, body: any) {
   const { otherPersonId, sharedTopics = [], collaboratedOn = [], connectionStrength = 1 } = body
   
   // Check if connection already exists
-  const existing = await prisma.eventConnection.findFirst({
+  const existing = await db.eventConnection.findFirst({
     where: {
       eventId,
       OR: [
@@ -198,7 +201,7 @@ async function createConnection(eventId: string, userId: string, body: any) {
   
   if (existing) {
     // Update existing connection
-    const updated = await prisma.eventConnection.update({
+    const updated = await db.eventConnection.update({
       where: { id: existing.id },
       data: {
         sharedTopics: JSON.stringify(sharedTopics),
@@ -209,7 +212,7 @@ async function createConnection(eventId: string, userId: string, body: any) {
     return { id: updated.id, updated: true }
   } else {
     // Create new connection
-    const connection = await prisma.eventConnection.create({
+    const connection = await db.eventConnection.create({
       data: {
         eventId,
         participantAId: userId,
@@ -226,7 +229,7 @@ async function createConnection(eventId: string, userId: string, body: any) {
 async function requestIntroduction(eventId: string, userId: string, body: any) {
   const { targetPersonId, reason, commonInterests = [] } = body
   
-  const introduction = await prisma.introductionRequest.create({
+  const introduction = await db.introductionRequest.create({
     data: {
       eventId,
       requesterId: userId,
@@ -240,7 +243,7 @@ async function requestIntroduction(eventId: string, userId: string, body: any) {
 }
 
 async function getUserCollaborations(userId: string, eventId: string) {
-  const collaborations = await prisma.collaborationSpace.findMany({
+  const collaborations = await db.collaborationSpace.findMany({
     where: {
       eventId,
       // Using JSON search for SQLite - this is a simplified approach
@@ -257,7 +260,7 @@ async function getUserCollaborations(userId: string, eventId: string) {
   })
 
   // Filter collaborations where user is a contributor
-  const userCollaborations = collaborations.filter(collab => {
+  const userCollaborations = collaborations.filter((collab: any) => {
     const contributors = parseJsonField(collab.contributors)
     return contributors.includes(userId)
   })
@@ -270,7 +273,7 @@ async function getUserCollaborations(userId: string, eventId: string) {
 async function createCollaborationSpace(eventId: string, userId: string, body: any) {
   const { name, description, topicId, roomId, contributors = [userId] } = body
   
-  const collaboration = await prisma.collaborationSpace.create({
+  const collaboration = await db.collaborationSpace.create({
     data: {
       eventId,
       topicId,
@@ -287,7 +290,7 @@ async function createCollaborationSpace(eventId: string, userId: string, body: a
 async function addCollaborationResource(userId: string, body: any) {
   const { collaborationId, url, title, description, resourceType = 'LINK' } = body
   
-  const resource = await prisma.collaborationResource.create({
+  const resource = await db.collaborationResource.create({
     data: {
       collaborationId,
       url,
@@ -304,7 +307,7 @@ async function addCollaborationResource(userId: string, body: any) {
 async function addActionItem(userId: string, body: any) {
   const { collaborationId, task, description, assignedTo, dueDate, priority = 'MEDIUM' } = body
   
-  const actionItem = await prisma.actionItem.create({
+  const actionItem = await db.actionItem.create({
     data: {
       collaborationId,
       task,
@@ -334,7 +337,7 @@ async function createWorkShowcase(eventId: string, userId: string, body: any) {
     tags = []
   } = body
   
-  const showcase = await prisma.workShowcase.create({
+  const showcase = await db.workShowcase.create({
     data: {
       eventId,
       projectName,
@@ -355,7 +358,7 @@ async function createWorkShowcase(eventId: string, userId: string, body: any) {
 }
 
 async function getNetworkStats(eventId: string) {
-  const connections = await prisma.eventConnection.findMany({
+  const connections = await db.eventConnection.findMany({
     where: { eventId },
     include: {
       participantA: { select: { id: true, name: true, avatar: true } },
@@ -366,7 +369,7 @@ async function getNetworkStats(eventId: string) {
   const participantConnections: Record<string, number> = {}
   let totalConnectionStrength = 0
 
-  connections.forEach(conn => {
+  connections.forEach((conn: any) => {
     participantConnections[conn.participantAId] = (participantConnections[conn.participantAId] || 0) + 1
     participantConnections[conn.participantBId] = (participantConnections[conn.participantBId] || 0) + 1
     totalConnectionStrength += conn.connectionStrength
@@ -376,7 +379,7 @@ async function getNetworkStats(eventId: string) {
     .sort(([,a], [,b]) => b - a)
     .slice(0, 5)
     .map(([participantId, connectionCount]) => {
-      const connection = connections.find(c => 
+      const connection = connections.find((c: any) => 
         c.participantAId === participantId || c.participantBId === participantId
       )
       const participant = connection?.participantAId === participantId ? 

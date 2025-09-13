@@ -73,6 +73,11 @@ const canStartRound = computed(() =>
   canEditEvent.value
 )
 
+// Phase 1: Handle connection creation from invisible tracker
+const onConnectionCreated = (connection: any) => {
+  console.log('New connection created during group discussion:', connection)
+}
+
 async function loadGroups() {
   loading.value = true
   error.value = ''
@@ -310,6 +315,15 @@ onBeforeUnmount(() => {
 
 <template>
   <v-container>
+    <!-- Phase 1: Connection Tracking (invisible) -->
+    <InvisibleConnectionTracker
+      v-if="userGroup && activeRound?.isActive"
+      context="discussion"
+      :topic-id="userGroup.topicId"
+      :room-id="userGroup.roomAssignment"
+      :participants="userGroup.participants"
+      @connection-created="onConnectionCreated"
+    />
     <!-- Event Status Warning -->
     <v-alert
       v-if="isEventInactive"

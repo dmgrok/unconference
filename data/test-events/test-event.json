@@ -1,0 +1,9 @@
+{
+  "eventId": "test-event-001",
+  "eventCode": "TEST2025",
+  "name": "Testing Event",
+  "status": "active",
+  "participants": [],
+  "connections": [],
+  "achievements": []
+}

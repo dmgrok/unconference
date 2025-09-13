@@ -1,0 +1,49 @@
+{
+  "eventId": "test-event-001",
+  "participants": [
+    {
+      "id": "user-001",
+      "name": "Storm Trooper",
+      "online": true
+    },
+    {
+      "id": "user-002",
+      "name": "Luke Skywalker",
+      "online": true
+    },
+    {
+      "id": "user-003",
+      "name": "Princess Leia",
+      "online": false
+    }
+  ],
+  "connections": [
+    {
+      "from": "user-001",
+      "to": "user-002",
+      "strength": 3,
+      "timestamp": "2025-09-13T17:47:11.589Z"
+    },
+    {
+      "from": "user-002",
+      "to": "user-003",
+      "strength": 2,
+      "timestamp": "2025-09-13T17:47:11.589Z"
+    }
+  ],
+  "achievements": [
+    {
+      "userId": "user-001",
+      "type": "connection_maker",
+      "level": 1,
+      "timestamp": "2025-09-13T17:47:11.589Z"
+    },
+    {
+      "userId": "user-002",
+      "type": "topic_creator",
+      "level": 1,
+      "timestamp": "2025-09-13T17:47:11.589Z"
+    }
+  ],
+  "lastUpdate": "2025-09-13T17:47:11.589Z"
+}
