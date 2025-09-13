@@ -63,6 +63,7 @@ const activeRound = ref<ActiveRound | null>(null)
 const userAssignment = ref<UserAssignment | null>(null)
 const timeRemaining = ref(0)
 const timerInterval = ref<NodeJS.Timeout | null>(null)
+const participantCount = ref(0)
 
 // User permissions
 const isAdmin = computed(() => {
@@ -177,6 +178,22 @@ async function fetchTopics() {
   }
 }
 
+async function fetchParticipantCount() {
+  const { currentEventId } = useEventContext()
+  if (!currentEventId.value) {
+    participantCount.value = 0
+    return
+  }
+  
+  try {
+    const response = await $fetch(`/api/events/${currentEventId.value}/participants`)
+    participantCount.value = response.participants?.length || 0
+  } catch (error) {
+    console.error('Failed to fetch participant count:', error)
+    participantCount.value = 0
+  }
+}
+
 async function loadActiveRound() {
   try {
     const data = await $fetch('/api/active-round') as ActiveRound | null
@@ -236,6 +253,44 @@ function formatTime(seconds: number): string {
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = seconds % 60
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+}
+
+function handleUpgradeRequest() {
+  // Navigate to pricing page or show upgrade modal
+  navigateTo('/pricing')
+}
+
+function handleMilestone(milestoneCount: number) {
+  // Could emit analytics event, show toast, etc.
+  console.log(`Milestone reached: ${milestoneCount} participants!`)
+}
+
+async function handleUpdatePreferences(preferences: { firstChoice?: string; secondChoice?: string }) {
+  if (isVotingDisabled.value) {
+    alert('Voting is disabled during active rounds')
+    return
+  }
+  
+  if (!canEditEvent.value) {
+    alert('Voting is disabled when the event is not active')
+    return
+  }
+  
+  try {
+    await $fetch('/api/topics/preferences', {
+      method: 'POST',
+      body: {
+        firstChoice: preferences.firstChoice,
+        secondChoice: preferences.secondChoice
+      }
+    })
+    
+    // Refresh topics to get updated voting data
+    await fetchTopics()
+  } catch (error: any) {
+    console.error('Error updating preferences:', error)
+    alert('Failed to update voting preferences. Please try again.')
+  }
 }
 
 async function voteForTopic(topicId: string) {
@@ -475,13 +530,14 @@ onMounted(async () => {
   }
   
   await loadSettings()
-  await Promise.all([fetchTopics(), loadActiveRound()])
+  await Promise.all([fetchTopics(), loadActiveRound(), fetchParticipantCount()])
   
   // Set up polling for active round updates every 5 seconds
   const pollInterval = setInterval(async () => {
     await loadActiveRound()
     // Also refresh topics to get updated voting status
     await fetchTopics()
+    await fetchParticipantCount()
   }, 5000)
   
   // Store interval reference for cleanup
@@ -631,6 +687,17 @@ function formatParticipantName(participantEmail: string) {
       <!-- Overview Tab -->
       <v-window-item value="overview">
         <v-row class="mb-6">
+          <!-- Participant Counter -->
+          <v-col cols="12" md="4">
+            <ParticipantCounter
+              :participant-count="participantCount"
+              :max-participants="49"
+              :show-upgrade="true"
+              @upgrade="handleUpgradeRequest"
+              @milestone="handleMilestone"
+            />
+          </v-col>
+          
           <!-- Event Status Card -->
           <v-col cols="12" md="8">
             <v-card elevation="3">
@@ -980,246 +1047,14 @@ function formatParticipantName(participantEmail: string) {
           </v-col>
         </v-row>
 
-        <!-- Topics List -->
-        <v-row>
-          <v-col
-            v-for="topic in topics"
-            :key="topic.id"
-            cols="12"
-            sm="6"
-            lg="4"
-            class="d-flex"
-          >
-            <v-card 
-              class="flex-grow-1 topic-card"
-              :class="{
-                'border-warning border-lg': userFirstChoice && userFirstChoice.id === topic.id,
-                'border-info border-lg': userSecondChoice && userSecondChoice.id === topic.id,
-                'first-choice-glow': userFirstChoice && userFirstChoice.id === topic.id,
-                'second-choice-glow': userSecondChoice && userSecondChoice.id === topic.id,
-                'topic-card--frozen': topic.frozen,
-                'topic-card--selected': topic.selectedForRound
-              }"
-              :elevation="(userFirstChoice && userFirstChoice.id === topic.id) || (userSecondChoice && userSecondChoice.id === topic.id) ? 12 : 3"
-            >
-              <!-- Topic Header -->
-              <v-card-title class="pa-4 pb-2">
-                <div class="topic-title-container w-100">
-                  <h3 class="text-h6 font-weight-bold mb-1 topic-title">{{ topic.title }}</h3>
-                  <div class="topic-chips d-flex flex-wrap gap-1">
-                    <!-- User's Choice Indicators -->
-                    <v-chip
-                      v-if="userFirstChoice && userFirstChoice.id === topic.id"
-                      size="small"
-                      color="warning"
-                      prepend-icon="mdi-star"
-                      variant="elevated"
-                      class="choice-indicator"
-                    >
-                      Your 1st Choice
-                    </v-chip>
-                    <v-chip
-                      v-else-if="userSecondChoice && userSecondChoice.id === topic.id"
-                      size="small"
-                      color="info"
-                      prepend-icon="mdi-star-half-full"
-                      variant="elevated"
-                      class="choice-indicator"
-                    >
-                      Your 2nd Choice
-                    </v-chip>
-                    
-                    <!-- Status Chips -->
-                    <v-chip
-                      v-if="topic.badges > 0"
-                      size="small"
-                      color="success"
-                      prepend-icon="mdi-medal"
-                      variant="tonal"
-                    >
-                      {{ topic.badges }} Badge{{ topic.badges > 1 ? 's' : '' }}
-                    </v-chip>
-                    <v-chip
-                      v-if="topic.selectedForRound"
-                      size="small"
-                      color="success"
-                      prepend-icon="mdi-check-circle"
-                      variant="tonal"
-                    >
-                      Selected for round
-                    </v-chip>
-                    <v-chip
-                      v-if="topic.frozen"
-                      size="small"
-                      color="error"
-                      prepend-icon="mdi-snowflake"
-                      variant="tonal"
-                    >
-                      Frozen
-                    </v-chip>
-                  </div>
-                </div>
-              </v-card-title>
-
-              <!-- Topic Description -->
-              <v-card-text class="px-4 py-2">
-                <p class="text-body-1 mb-3 topic-description">{{ topic.description }}</p>
-                
-                <!-- Voting Score Display -->
-                <div class="voting-score-section">
-                  <div class="d-flex align-center justify-space-between mb-3">
-                    <div class="score-display">
-                      <v-chip
-                        :color="topic.frozen ? 'error' : 'primary'"
-                        size="large"
-                        prepend-icon="mdi-trophy"
-                        variant="elevated"
-                      >
-                        {{ topic.totalPreferenceScore || 0 }} points
-                      </v-chip>
-                    </div>
-                    <div class="vote-count text-caption text-grey">
-                      {{ topic.votes || 0 }} total votes
-                    </div>
-                  </div>
-                  
-                  <!-- Progress Bar -->
-                  <v-progress-linear
-                    :model-value="Math.min(((topic.totalPreferenceScore || 0) / (VOTE_LIMIT * 2)) * 100, 100)"
-                    :color="topic.frozen ? 'error' : 'primary'"
-                    height="12"
-                    rounded
-                    class="mb-3"
-                  >
-                    <template v-slot:default="{ value }">
-                      <small class="text-white font-weight-bold">{{ Math.ceil(value) }}%</small>
-                    </template>
-                  </v-progress-linear>
-                  
-                  <!-- Vote Breakdown -->
-                  <div class="d-flex justify-space-between">
-                    <div class="vote-breakdown">
-                      <v-icon size="small" color="warning" class="mr-1">mdi-star</v-icon>
-                      <span class="text-caption">
-                        {{ topic.firstChoiceVoters?.length || 0 }} × 2pts = {{ (topic.firstChoiceVoters?.length || 0) * 2 }}
-                      </span>
-                    </div>
-                    <div class="vote-breakdown">
-                      <v-icon size="small" color="info" class="mr-1">mdi-star-half-full</v-icon>
-                      <span class="text-caption">
-                        {{ topic.secondChoiceVoters?.length || 0 }} × 1pt = {{ topic.secondChoiceVoters?.length || 0 }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Voter Names Section (if enabled by admin) -->
-                <div v-if="adminSettings.showVoterNames && ((topic.firstChoiceVoters?.length || 0) + (topic.secondChoiceVoters?.length || 0) > 0)" class="mt-4">
-                  <v-divider class="mb-3"></v-divider>
-                  
-                  <!-- First Choice Voters -->
-                  <div v-if="topic.firstChoiceVoters?.length" class="mb-3">
-                    <div class="text-caption text-grey-darken-1 mb-2 d-flex align-center">
-                      <v-icon size="small" color="warning" class="mr-1">mdi-star</v-icon>
-                      <strong>1st Choice Voters:</strong>
-                    </div>
-                    <v-chip-group>
-                      <v-chip
-                        v-for="voterEmail in topic.firstChoiceVoters"
-                        :key="`first-${voterEmail}`"
-                        size="small"
-                        :color="voterEmail === (user as User)?.email ? 'warning' : 'default'"
-                        :variant="voterEmail === (user as User)?.email ? 'elevated' : 'outlined'"
-                        prepend-icon="mdi-star"
-                      >
-                        {{ voterEmail.includes('@unconference.guest') ? 
-                             `Guest ${voterEmail.split('_')[1]?.substring(0, 6).toUpperCase()}` :
-                             voterEmail.split('@')[0] }}
-                      </v-chip>
-                    </v-chip-group>
-                  </div>
-                  
-                  <!-- Second Choice Voters -->
-                  <div v-if="topic.secondChoiceVoters?.length">
-                    <div class="text-caption text-grey-darken-1 mb-2 d-flex align-center">
-                      <v-icon size="small" color="info" class="mr-1">mdi-star-half-full</v-icon>
-                      <strong>2nd Choice Voters:</strong>
-                    </div>
-                    <v-chip-group>
-                      <v-chip
-                        v-for="voterEmail in topic.secondChoiceVoters"
-                        :key="`second-${voterEmail}`"
-                        size="small"
-                        :color="voterEmail === (user as User)?.email ? 'info' : 'default'"
-                        :variant="voterEmail === (user as User)?.email ? 'elevated' : 'outlined'"
-                        prepend-icon="mdi-star-half-full"
-                      >
-                        {{ voterEmail.includes('@unconference.guest') ? 
-                             `Guest ${voterEmail.split('_')[1]?.substring(0, 6).toUpperCase()}` :
-                             voterEmail.split('@')[0] }}
-                      </v-chip>
-                    </v-chip-group>
-                  </div>
-                </div>
-              </v-card-text>
-
-              <!-- Topic Actions -->
-              <v-card-actions class="px-4 pt-0 pb-4">
-                <div class="d-flex justify-space-between align-center w-100">
-                  <!-- Edit/Delete Actions -->
-                  <div class="topic-management-actions">
-                    <v-btn
-                      v-if="canEditTopic(topic) && canEditEvent"
-                      color="primary"
-                      variant="text"
-                      size="small"
-                      prepend-icon="mdi-pencil"
-                      @click="startEdit(topic)"
-                    >
-                      Edit
-                    </v-btn>
-                    <v-btn
-                      v-if="canDeleteTopic(topic) && canEditEvent"
-                      color="error"
-                      variant="text"
-                      size="small"
-                      prepend-icon="mdi-delete"
-                      @click="deleteTopic(topic)"
-                    >
-                      Delete
-                    </v-btn>
-                    <v-btn
-                      v-if="isAdmin && !topic.frozen && canEditEvent"
-                      color="error"
-                      variant="text"
-                      size="small"
-                      prepend-icon="mdi-snowflake"
-                      @click="topicToFreeze = topic; freezeConfirmDialog = true"
-                    >
-                      Freeze
-                    </v-btn>
-                  </div>
-
-                  <!-- Vote Button -->
-                  <v-btn
-                    :color="getVoteStatus(topic).color"
-                    :variant="getVoteStatus(topic).variant"
-                    :disabled="getVoteStatus(topic).disabled"
-                    @click="voteForTopic(topic.id)"
-                    class="vote-btn-enhanced"
-                    size="large"
-                    elevation="4"
-                  >
-                    <template v-slot:prepend>
-                      <v-icon>{{ getVoteStatus(topic).icon }}</v-icon>
-                    </template>
-                    {{ getVoteStatus(topic).text }}
-                  </v-btn>
-                </div>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
+        <!-- Drag & Drop Voting Interface -->
+        <DragDropVoting
+          :topics="topics"
+          :first-choice="userFirstChoice"
+          :second-choice="userSecondChoice"
+          :is-voting-disabled="isVotingDisabled || !canEditEvent"
+          @update-preferences="handleUpdatePreferences"
+        />
       </v-window-item>
 
       <!-- Groups Tab -->

@@ -35,6 +35,25 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    // Check participant limit (49 for free tier)
+    const currentParticipants = await eventService.getEventParticipants(eventId)
+    const participantCount = currentParticipants.length
+    
+    // TODO: Check if event has commercial license - for now, enforce 49 limit
+    const maxParticipants = 49
+    
+    if (participantCount >= maxParticipants) {
+      throw createError({
+        statusCode: 403,
+        message: `Event has reached the maximum participant limit (${maxParticipants}). Upgrade to commercial license for unlimited participants.`,
+        data: {
+          participantCount,
+          maxParticipants,
+          upgradeRequired: true
+        }
+      })
+    }
+
     // Add user as participant
     await eventService.addEventMembership(eventId, userId, 'Participant')
     

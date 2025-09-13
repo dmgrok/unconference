@@ -33,6 +33,16 @@ model User {
   isActive    Boolean    @default(true)
   isGuest     Boolean    @default(false)
   
+  // Phase 1: Connection Profile
+  bio         String?
+  skills      String? // JSON string array
+  interests   String? // JSON string array
+  lookingFor  String? // JSON string array
+  linkedinUrl String?
+  twitterHandle String?
+  websiteUrl  String?
+  allowContactSharing Boolean @default(false)
+  
   // Subscription management
   subscriptionTier    SubscriptionTier @default(FREE)
   subscriptionId      String?          @unique // Stripe subscription ID
@@ -53,6 +63,15 @@ model User {
   createdTopics   Topic[]
   votes          Vote[]
   roundParticipations RoundParticipation[]
+  
+  // Phase 1: Connection Relationships
+  connectionsA    EventConnection[]  @relation("ConnectionParticipantA")
+  connectionsB    EventConnection[]  @relation("ConnectionParticipantB")
+  achievements    UserAchievement[]
+  introductionRequests IntroductionRequest[] @relation("IntroductionRequester")
+  introductionTargets  IntroductionRequest[] @relation("IntroductionTarget")
+  skillMatchesA   SkillMatch[]       @relation("SkillMatchPersonA")
+  skillMatchesB   SkillMatch[]       @relation("SkillMatchPersonB")
   
   @@map("users")
 }
@@ -370,4 +389,225 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
   
   @@map("system_settings")
+}
+
+// Phase 1: Connection & Collaboration Models
+
+// Track connections between event participants
+model EventConnection {
+  id               String   @id @default(cuid())
+  eventId          String
+  participantAId   String
+  participantBId   String
+  
+  participantA     User     @relation("ConnectionParticipantA", fields: [participantAId], references: [id])
+  participantB     User     @relation("ConnectionParticipantB", fields: [participantBId], references: [id])
+  
+  sharedTopics     String? // JSON array
+  collaboratedOn   String? // JSON array
+  contactExchanged Boolean  @default(false)
+  connectionStrength Int    @default(1) // 1-5 scale
+  meetingNotes     String?
+  followUpPlanned  Boolean  @default(false)
+  followUpDate     DateTime?
+  
+  createdAt        DateTime @default(now())
+  
+  @@unique([eventId, participantAId, participantBId])
+  @@map("event_connections")
+}
+
+// Collaboration spaces for topics/rooms
+model CollaborationSpace {
+  id           String   @id @default(cuid())
+  eventId      String
+  topicId      String?
+  roomId       String?
+  name         String
+  description  String?
+  contributors String? // JSON array of User IDs
+  sharedNotes  String   @default("")
+  status       CollaborationStatus @default(ACTIVE)
+  
+  resources    CollaborationResource[]
+  actionItems  ActionItem[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@map("collaboration_spaces")
+}
+
+enum CollaborationStatus {
+  ACTIVE
+  COMPLETED
+  ON_HOLD
+}
+
+// Resources shared in collaborations
+model CollaborationResource {
+  id               String   @id @default(cuid())
+  collaborationId  String
+  collaboration    CollaborationSpace @relation(fields: [collaborationId], references: [id], onDelete: Cascade)
+  
+  url              String
+  title            String
+  description      String?
+  resourceType     ResourceType @default(LINK)
+  addedBy          String // User ID
+  votes            Int      @default(0)
+  
+  addedAt          DateTime @default(now())
+  
+  @@map("collaboration_resources")
+}
+
+enum ResourceType {
+  LINK
+  DOCUMENT
+  TOOL
+  ARTICLE
+}
+
+// Action items from collaborations
+model ActionItem {
+  id               String   @id @default(cuid())
+  collaborationId  String
+  collaboration    CollaborationSpace @relation(fields: [collaborationId], references: [id], onDelete: Cascade)
+  
+  task             String
+  description      String?
+  assignedTo       String // User ID
+  dueDate          DateTime?
+  status           ActionStatus @default(PENDING)
+  priority         Priority @default(MEDIUM)
+  createdBy        String // User ID
+  
+  createdAt        DateTime @default(now())
+  completedAt      DateTime?
+  
+  @@map("action_items")
+}
+
+enum ActionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// Work showcases from events
+model WorkShowcase {
+  id            String   @id @default(cuid())
+  eventId       String
+  projectName   String
+  description   String
+  contributors  String? // JSON array of User IDs
+  skillsUsed    String? // JSON array
+  skillsNeeded  String? // JSON array
+  status        ProjectStatus @default(IDEATION)
+  contactEmail  String?
+  repositoryUrl String?
+  demoUrl       String?
+  images        String? // JSON array
+  tags          String? // JSON array
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("work_showcases")
+}
+
+enum ProjectStatus {
+  IDEATION
+  ACTIVE
+  COMPLETED
+  SEEKING_COLLABORATORS
+}
+
+// User achievements
+model UserAchievement {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  
+  achievementType AchievementType
+  name            String
+  description     String
+  icon            String   @default("mdi-trophy")
+  badgeUrl        String?
+  eventId         String? // NULL for global achievements
+  metadata        String? // JSON string with counts, scores, etc.
+  
+  earnedAt        DateTime @default(now())
+  
+  @@unique([userId, achievementType, name, eventId])
+  @@map("user_achievements")
+}
+
+enum AchievementType {
+  CONNECTION
+  COLLABORATION
+  KNOWLEDGE
+  COMMUNITY
+}
+
+// Introduction requests
+model IntroductionRequest {
+  id              String   @id @default(cuid())
+  eventId         String
+  requesterId     String
+  targetPersonId  String
+  
+  requester       User     @relation("IntroductionRequester", fields: [requesterId], references: [id])
+  targetPerson    User     @relation("IntroductionTarget", fields: [targetPersonId], references: [id])
+  
+  reason          String
+  commonInterests String? // JSON array
+  status          IntroductionStatus @default(PENDING)
+  facilitatedBy   String? // User ID, NULL for system
+  
+  createdAt       DateTime @default(now())
+  completedAt     DateTime?
+  
+  @@map("introduction_requests")
+}
+
+enum IntroductionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  COMPLETED
+}
+
+// Skill matches for connections
+model SkillMatch {
+  id                 String   @id @default(cuid())
+  eventId            String
+  personAId          String
+  personBId          String
+  
+  personA            User     @relation("SkillMatchPersonA", fields: [personAId], references: [id])
+  personB            User     @relation("SkillMatchPersonB", fields: [personBId], references: [id])
+  
+  matchType          MatchType
+  skills             String? // JSON array
+  compatibilityScore Float    // 0.0 to 1.0
+  reason             String
+  
+  createdAt          DateTime @default(now())
+  
+  @@unique([eventId, personAId, personBId])
+  @@map("skill_matches")
+}
+
+enum MatchType {
+  COMPLEMENT
+  SHARED_INTEREST
+  MENTOR_MENTEE
 }

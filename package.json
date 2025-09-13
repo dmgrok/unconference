@@ -23,6 +23,7 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "@nuxt/schema": "^3.17.3",
+    "@playwright/test": "^1.55.0",
     "@prisma/client": "^6.15.0",
     "@stripe/stripe-js": "^7.9.0",
     "@types/bcryptjs": "^2.4.6",

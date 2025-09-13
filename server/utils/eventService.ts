@@ -119,6 +119,34 @@ export class EventService {
     }
   }
 
+  async getEventParticipants(eventId: string): Promise<Array<User & { role: string; joinedAt: Date }>> {
+    try {
+      const membershipsPath = join(this.platformBasePath, 'memberships.json')
+      const membershipsData = await fs.readFile(membershipsPath, 'utf-8')
+      const memberships = JSON.parse(membershipsData) as UserEventRole[]
+      
+      const eventMemberships = memberships.filter(m => m.eventId === eventId)
+      
+      const users = await this.getPlatformUsers()
+      const participants = eventMemberships.map(membership => {
+        const user = users.find(u => u.id === membership.userId)
+        return {
+          ...user,
+          id: membership.userId,
+          name: user?.name || 'Unknown User',
+          email: user?.email || 'unknown@example.com',
+          role: membership.role,
+          joinedAt: membership.joinedAt
+        }
+      }).filter(p => p.name !== 'Unknown User') // Filter out invalid users
+      
+      return participants
+    } catch (error) {
+      logger.error('Error getting event participants:', error)
+      return []
+    }
+  }
+
   async getPlatformUsers(): Promise<User[]> {
     try {
       const usersPath = join(this.platformBasePath, 'users.json')
