@@ -171,7 +171,33 @@
         Contact Team
       </v-btn>
       <v-spacer></v-spacer>
-      <div class="text-caption text-medium-emphasis">
+
+      <!-- Action Menu -->
+      <v-menu>
+        <template #activator="{ props: menuProps }">
+          <v-btn
+            icon="mdi-dots-vertical"
+            variant="text"
+            size="small"
+            v-bind="menuProps"
+          />
+        </template>
+        <v-list density="compact">
+          <v-list-item
+            prepend-icon="mdi-pencil"
+            title="Edit Project"
+            @click="editProject"
+          />
+          <v-list-item
+            prepend-icon="mdi-delete"
+            title="Delete Project"
+            base-color="error"
+            @click="deleteProject"
+          />
+        </v-list>
+      </v-menu>
+
+      <div class="text-caption text-medium-emphasis ml-2">
         Created {{ formatDate(showcase.createdAt) }}
       </div>
     </v-card-actions>
@@ -214,6 +240,8 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   joinProject: [showcaseId: string]
   contactTeam: [showcaseId: string]
+  editProject: [showcase: any]
+  deleteProject: [showcase: any]
 }>()
 
 // Computed
@@ -255,6 +283,14 @@ const joinProject = () => {
 
 const contactTeam = () => {
   emit('contactTeam', props.showcase.id)
+}
+
+const editProject = () => {
+  emit('editProject', props.showcase)
+}
+
+const deleteProject = () => {
+  emit('deleteProject', props.showcase)
 }
 </script>
 
