@@ -150,6 +150,7 @@ model User {
   twitterHandle        String?
   websiteUrl           String?
   allowContactSharing  Boolean               @default(false)
+  emailPreferences     String?               @default("{\"eventSummaries\":true,\"collaborationReminders\":true,\"networkingFollowUp\":true,\"weeklyDigest\":true,\"eventInvitations\":true}")
   subscriptionTier     SubscriptionTier      @default(FREE)
   subscriptionId       String?               @unique
   customerId           String?               @unique
@@ -172,6 +173,10 @@ model User {
   createdTopics        Topic[]
   achievements         UserAchievement[]
   votes                Vote[]
+  connections          Connection[]          @relation("UserConnections")
+  connectedTo          Connection[]          @relation("ConnectedUserConnections")
+  newAchievements      Achievement[]
+  networkingInsights   NetworkingInsight[]
 
   @@map("users")
 }
@@ -343,6 +348,108 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@map("audit_logs")
+}
+
+// Phase 1: Connection & Networking Models
+model Connection {
+  id                String           @id @default(cuid())
+  userId            String
+  connectedUserId   String
+  eventId           String
+  qualityScore      Int              @default(50) // 0-100 scale
+  connectionStrength String          @default("WEAK") // WEAK, MEDIUM, STRONG
+  conversationTopics String?         // JSON string of topics discussed
+  sharedInterests   String?         // JSON string of common interests discovered
+  mutualGoals       String?         // JSON string of shared professional goals
+  followUpStatus    String          @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  lastContactDate   DateTime?
+  nextFollowUpDate  DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  user              User            @relation("UserConnections", fields: [userId], references: [id], onDelete: Cascade)
+  connectedUser     User            @relation("ConnectedUserConnections", fields: [connectedUserId], references: [id], onDelete: Cascade)
+  notes             ConnectionNote[]
+  followUpTasks     FollowUpTask[]
+  collaborations    ConnectionCollaboration[]
+
+  @@unique([userId, connectedUserId, eventId])
+  @@map("connections")
+}
+
+model ConnectionNote {
+  id           String     @id @default(cuid())
+  connectionId String
+  content      String
+  isPrivate    Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+
+  connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@map("connection_notes")
+}
+
+model FollowUpTask {
+  id           String     @id @default(cuid())
+  connectionId String
+  task         String
+  description  String?
+  dueDate      DateTime
+  status       String     @default("PENDING") // PENDING, COMPLETED, SKIPPED
+  completedAt  DateTime?
+  createdAt    DateTime   @default(now())
+
+  connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@map("follow_up_tasks")
+}
+
+model ConnectionCollaboration {
+  id           String     @id @default(cuid())
+  connectionId String
+  projectName  String
+  description  String
+  status       String     @default("PROPOSED") // PROPOSED, ACTIVE, COMPLETED
+  outcome      String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@map("connection_collaborations")
+}
+
+// Achievement System Models
+model Achievement {
+  id              String           @id @default(cuid())
+  userId          String
+  eventId         String
+  type            String           // SUPER_CONNECTOR, FOLLOW_UP_CHAMPION, etc.
+  title           String
+  description     String
+  iconEmoji       String?
+  points          Int              @default(10)
+  unlockedAt      DateTime         @default(now())
+  metadata        String?          // JSON string for additional data
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("achievements")
+}
+
+model NetworkingInsight {
+  id              String     @id @default(cuid())
+  userId          String
+  eventId         String
+  insightType     String     // TOP_CONNECTOR, RISING_INFLUENCER, etc.
+  title           String
+  description     String
+  value           String?    // Metric value if applicable
+  createdAt       DateTime   @default(now())
+
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("networking_insights")
 }
 
 model SystemSetting {

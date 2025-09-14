@@ -120,6 +120,168 @@
           </v-col>
         </v-row>
 
+        <!-- Strategic Connections Section (Professional & Summary Views) -->
+        <v-row v-if="viewMode === 'professional' || viewMode === 'summary'" class="mb-6">
+          <v-col cols="12">
+            <v-card class="strategic-connections-card" elevation="4">
+              <v-card-title class="text-h5 font-weight-bold success white--text">
+                <v-icon left color="white">mdi-account-network</v-icon>
+                Strategic Connections
+                <v-spacer />
+                <v-btn
+                  color="white"
+                  text
+                  small
+                  @click="viewAllConnections"
+                >
+                  <v-icon small left>mdi-eye</v-icon>
+                  View All
+                </v-btn>
+              </v-card-title>
+
+              <v-card-text class="pa-4">
+                <!-- Connection Quality Overview -->
+                <v-row class="mb-4">
+                  <v-col cols="6" md="3" class="text-center">
+                    <div class="connection-metric">
+                      <div class="text-h4 font-weight-bold success--text">{{ strategicConnections?.highValue || 0 }}</div>
+                      <div class="text-caption">High-Value</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="6" md="3" class="text-center">
+                    <div class="connection-metric">
+                      <div class="text-h4 font-weight-bold primary--text">{{ strategicConnections?.total || 0 }}</div>
+                      <div class="text-caption">Total Connections</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="6" md="3" class="text-center">
+                    <div class="connection-metric">
+                      <div class="text-h4 font-weight-bold warning--text">{{ strategicConnections?.followUpPending || 0 }}</div>
+                      <div class="text-caption">Follow-up Needed</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="6" md="3" class="text-center">
+                    <div class="connection-metric">
+                      <div class="text-h4 font-weight-bold info--text">{{ strategicConnections?.avgQualityScore || 0 }}</div>
+                      <div class="text-caption">Avg Quality Score</div>
+                    </div>
+                  </v-col>
+                </v-row>
+
+                <!-- Top Strategic Connections -->
+                <div v-if="strategicConnections?.topConnections?.length > 0">
+                  <h4 class="text-subtitle-1 font-weight-bold mb-3">Top Strategic Connections:</h4>
+                  <v-row>
+                    <v-col
+                      v-for="connection in strategicConnections.topConnections.slice(0, viewMode === 'summary' ? 2 : 4)"
+                      :key="connection.id"
+                      cols="12"
+                      :md="viewMode === 'summary' ? 6 : 3"
+                    >
+                      <v-card outlined class="connection-card pa-3">
+                        <div class="d-flex align-center mb-2">
+                          <v-avatar size="32" class="mr-2" :color="getConnectionColor(connection.qualityScore)">
+                            <span class="white--text text-caption">{{ getConnectionInitials(connection.name) }}</span>
+                          </v-avatar>
+                          <div class="flex-grow-1">
+                            <div class="text-body-2 font-weight-medium">{{ connection.name }}</div>
+                            <div class="text-caption text--secondary">{{ connection.role }}</div>
+                          </div>
+                          <v-chip
+                            x-small
+                            :color="getConnectionColor(connection.qualityScore)"
+                            text-color="white"
+                          >
+                            {{ connection.qualityScore }}
+                          </v-chip>
+                        </div>
+
+                        <div v-if="connection.sharedTopics?.length > 0" class="mb-2">
+                          <div class="text-caption text--secondary mb-1">Shared Interests:</div>
+                          <v-chip
+                            v-for="topic in connection.sharedTopics.slice(0, 2)"
+                            :key="topic"
+                            x-small
+                            outlined
+                            color="primary"
+                            class="mr-1"
+                          >
+                            {{ topic }}
+                          </v-chip>
+                        </div>
+
+                        <div class="d-flex justify-space-between align-center">
+                          <v-chip
+                            x-small
+                            :color="connection.followUpStatus === 'completed' ? 'success' : 'warning'"
+                            outlined
+                          >
+                            {{ getFollowUpStatusText(connection.followUpStatus) }}
+                          </v-chip>
+                          <v-btn
+                            x-small
+                            text
+                            color="primary"
+                            @click="quickFollowUp(connection)"
+                          >
+                            Follow Up
+                          </v-btn>
+                        </div>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </div>
+
+                <!-- Business Value Statement -->
+                <v-alert
+                  v-if="strategicConnections?.businessValue"
+                  type="success"
+                  class="mt-4"
+                  outlined
+                  prominent
+                >
+                  <div class="font-weight-bold">Strategic Networking Impact:</div>
+                  <div>{{ strategicConnections.businessValue }}</div>
+                </v-alert>
+
+                <!-- Quick Actions -->
+                <div class="mt-4">
+                  <v-btn
+                    color="success"
+                    outlined
+                    small
+                    class="mr-2"
+                    @click="scheduleFollowUps"
+                  >
+                    <v-icon small left>mdi-calendar-plus</v-icon>
+                    Schedule Follow-ups
+                  </v-btn>
+                  <v-btn
+                    color="primary"
+                    outlined
+                    small
+                    @click="exportConnections"
+                  >
+                    <v-icon small left>mdi-download</v-icon>
+                    Export Contacts
+                  </v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- Network Visualization (All Views) -->
+        <v-row class="mb-6">
+          <v-col cols="12">
+            <NetworkVisualization
+              :network-data="networkData"
+              :user-id="userId"
+              :height="viewMode === 'summary' ? 400 : viewMode === 'professional' ? 500 : 600"
+            />
+          </v-col>
+        </v-row>
+
         <!-- Impact Scores (Personal View Only) -->
         <v-row v-if="viewMode === 'personal'" class="mb-6">
           <v-col cols="12">
@@ -1146,11 +1308,21 @@ import { ref, onMounted } from 'vue'
 import SankeyFlowChart from './SankeyFlowChart.vue'
 import DivergingStackedBar from './DivergingStackedBar.vue'
 import TreeMapChart from './TreeMapChart.vue'
+import NetworkVisualization from './NetworkVisualization.vue'
+import { useConnectionIntelligence } from '~/composables/useConnectionIntelligence'
 
 const props = defineProps<{
   eventId: string
   userId: string
 }>()
+
+// Connection Intelligence System
+const {
+  calculateConnectionQuality,
+  calculateConnectionStrength,
+  generateFollowUpRecommendations,
+  analyzeNetworkHealth
+} = useConnectionIntelligence()
 
 // View mode state
 const viewMode = ref<'professional' | 'personal' | 'summary'>('professional')
@@ -1179,6 +1351,16 @@ const generatedIdeas = ref<any[]>([])
 const promisingTopics = ref<any[]>([])
 const followUpCommitments = ref<any[]>([])
 const showAllIdeas = ref(false)
+
+// Strategic connections data
+const strategicConnections = ref<any>(null)
+
+// Network visualization data
+const networkData = ref<any>(null)
+
+// Professional metrics and ROI data
+const professionalMetrics = ref<any>(null)
+const executiveInsights = ref<any>(null)
 
 // Survey and discussion analytics data
 const surveyData = ref<any[]>([])
@@ -1487,6 +1669,79 @@ function getAchievementColor(type: string) {
     COMMUNITY: 'error'
   }
   return colors[type] || 'grey'
+}
+
+// Strategic Connections methods
+function getConnectionColor(qualityScore: number) {
+  if (qualityScore >= 80) return 'success'
+  if (qualityScore >= 60) return 'warning'
+  if (qualityScore >= 40) return 'primary'
+  return 'grey'
+}
+
+function getConnectionInitials(name: string) {
+  return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)
+}
+
+function getFollowUpStatusText(status: string) {
+  const statusMap: Record<string, string> = {
+    'pending': 'Follow-up needed',
+    'in_progress': 'In progress',
+    'completed': 'Connected'
+  }
+  return statusMap[status] || status
+}
+
+function getQualityScoreText(score: number) {
+  if (score >= 90) return 'Exceptional'
+  if (score >= 80) return 'High Value'
+  if (score >= 70) return 'Strong Potential'
+  if (score >= 60) return 'Good Match'
+  return 'Developing'
+}
+
+function getConnectionPriorityIcon(priority: string) {
+  switch (priority) {
+    case 'high': return 'mdi-priority-high'
+    case 'medium': return 'mdi-equal'
+    case 'low': return 'mdi-priority-low'
+    default: return 'mdi-circle'
+  }
+}
+
+function getBusinessValueDisplay(value: number) {
+  if (value >= 10000) return `$${(value / 1000).toFixed(0)}K+`
+  if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`
+  return `$${value}`
+}
+
+function getConnectionStrengthColor(strength: string) {
+  switch (strength?.toLowerCase()) {
+    case 'strong': return 'success'
+    case 'medium': return 'warning'
+    case 'weak': return 'grey'
+    default: return 'grey'
+  }
+}
+
+function viewAllConnections() {
+  // Navigate to connections page or open detailed view
+  showSnackbar('Opening detailed connections view...', 'info')
+}
+
+function quickFollowUp(connection: any) {
+  // Open follow-up dialog or quick action
+  showSnackbar(`Preparing follow-up with ${connection.name}...`, 'info')
+}
+
+function scheduleFollowUps() {
+  // Open scheduling interface
+  showSnackbar('Opening follow-up scheduler...', 'info')
+}
+
+function exportConnections() {
+  // Export connections data
+  showSnackbar('Exporting connection data...', 'info')
 }
 
 // New helper methods for ideas and insights
@@ -1908,6 +2163,138 @@ function showSnackbar(text: string, color: string = 'success') {
   snackbar.value = true
 }
 
+// Professional metrics for executive-level reporting
+function loadProfessionalMetrics() {
+  professionalMetrics.value = {
+    participationROI: {
+      timeInvested: 8, // hours
+      businessValueGenerated: 247500, // dollars
+      hourlyROI: 30937.50,
+      description: 'Time investment generated significant returns through strategic connections and collaboration opportunities'
+    },
+    networkingEfficiency: {
+      connectionsPerHour: 1.5,
+      qualityScore: 87,
+      industryBenchmark: 65,
+      improvement: '+34% above industry standard',
+      description: 'Highly efficient networking with above-average connection quality'
+    },
+    knowledgeCapture: {
+      ideasGenerated: 8,
+      actionableInsights: 6,
+      implementationProbability: 75,
+      potentialImpact: 'High',
+      description: 'Strong idea generation with high implementation potential'
+    },
+    collaborationIndex: {
+      activeProjects: 3,
+      pendingOpportunities: 2,
+      crossFunctionalConnections: 8,
+      leadershipAlignment: 92,
+      description: 'Multiple collaboration streams with strong leadership buy-in'
+    },
+    competitiveAdvantage: {
+      uniqueInsights: 4,
+      industryTrends: 3,
+      firstMoverOpportunities: 2,
+      marketIntelligence: 'High',
+      description: 'Gained competitive intelligence and first-mover advantages'
+    }
+  }
+}
+
+// Executive insights for C-level reporting
+function loadExecutiveInsights() {
+  executiveInsights.value = {
+    strategicRecommendations: [
+      {
+        priority: 'high',
+        category: 'Innovation',
+        insight: 'AI Ethics Framework Implementation',
+        description: 'Industry leaders are prioritizing ethical AI frameworks. Recommend accelerating our responsible AI initiative to maintain competitive positioning.',
+        timeframe: '3 months',
+        businessImpact: '$500K+ revenue protection',
+        confidence: 95
+      },
+      {
+        priority: 'high',
+        category: 'Partnership',
+        insight: 'Cross-Industry Collaboration Opportunity',
+        description: 'Identified 3 strategic partnership opportunities with complementary technology leaders that could accelerate market penetration.',
+        timeframe: '6 months',
+        businessImpact: '$1.2M+ revenue potential',
+        confidence: 85
+      },
+      {
+        priority: 'medium',
+        category: 'Market Intelligence',
+        insight: 'Emerging Technology Trend',
+        description: 'Early signals indicate quantum computing applications will disrupt current approaches. Recommend exploratory investment.',
+        timeframe: '12-18 months',
+        businessImpact: 'Market positioning advantage',
+        confidence: 70
+      }
+    ],
+    riskMitigation: [
+      {
+        risk: 'Competitive Technology Gap',
+        description: 'Competitors are advancing faster in ML infrastructure. Need to accelerate hiring and R&D investment.',
+        severity: 'Medium',
+        mitigationPlan: 'Fast-track technical hiring, strategic partnerships'
+      },
+      {
+        risk: 'Regulatory Compliance',
+        description: 'New AI governance regulations expected. Early preparation provides competitive advantage.',
+        severity: 'High',
+        mitigationPlan: 'Implement ethical AI framework, compliance training'
+      }
+    ],
+    industryBenchmarks: {
+      networkingEfficiency: {
+        ourScore: 87,
+        industryAverage: 65,
+        topQuartile: 78,
+        position: 'Top 10%'
+      },
+      collaborationRate: {
+        ourScore: 75,
+        industryAverage: 45,
+        topQuartile: 62,
+        position: 'Top 15%'
+      },
+      innovationIndex: {
+        ourScore: 82,
+        industryAverage: 58,
+        topQuartile: 71,
+        position: 'Top 20%'
+      }
+    },
+    actionItems: [
+      {
+        priority: 'urgent',
+        action: 'Schedule strategic partnership meetings',
+        owner: 'Business Development',
+        deadline: '2 weeks',
+        businessValue: 'Revenue acceleration'
+      },
+      {
+        priority: 'high',
+        action: 'Initiate AI ethics framework development',
+        owner: 'Product/Engineering',
+        deadline: '1 month',
+        businessValue: 'Risk mitigation & competitive advantage'
+      },
+      {
+        priority: 'medium',
+        action: 'Analyze quantum computing market opportunity',
+        owner: 'Strategy Team',
+        deadline: '3 months',
+        businessValue: 'Future market positioning'
+      }
+    ]
+  }
+}
+
 // Load data on mount
 onMounted(() => {
   fetchRecap()
@@ -2012,6 +2399,221 @@ function loadEnhancedJourneyData() {
     ]
   }
 }
+
+// Load Network Visualization sample data
+function loadNetworkVisualizationData() {
+  networkData.value = {
+    nodes: [
+      { id: 'user', name: 'You', role: 'Your Position', type: 'user', qualityScore: 100, x: 400, y: 250 },
+      { id: '1', name: 'Dr. Sarah Chen', role: 'AI Ethics Lead at TechCorp', type: 'connection', qualityScore: 92, category: 'professional', sharedTopics: ['AI Ethics', 'Bias Detection', 'Governance'], connectionStrength: 'strong', mutualConnections: 3, influenceScore: 87 },
+      { id: '2', name: 'Marcus Rodriguez', role: 'CTO at InnovateLabs', type: 'connection', qualityScore: 88, category: 'professional', sharedTopics: ['ML Infrastructure', 'Team Leadership', 'Technology Strategy'], connectionStrength: 'medium', mutualConnections: 5, influenceScore: 92 },
+      { id: '3', name: 'Lisa Thompson', role: 'Product Manager at DataFlow', type: 'connection', qualityScore: 79, category: 'professional', sharedTopics: ['Product Strategy', 'User Research', 'Market Analysis'], connectionStrength: 'medium', mutualConnections: 2, influenceScore: 74 },
+      { id: '4', name: 'Alex Kim', role: 'Founder at StartupVenture', type: 'connection', qualityScore: 85, category: 'industry', sharedTopics: ['Entrepreneurship', 'Venture Capital', 'Innovation'], connectionStrength: 'strong', mutualConnections: 4, influenceScore: 89 },
+      { id: '5', name: 'Jordan Walsh', role: 'Senior Data Scientist', type: 'connection', qualityScore: 67, category: 'professional', sharedTopics: ['Data Science', 'ML', 'Analytics'], connectionStrength: 'weak', mutualConnections: 1, influenceScore: 58 },
+      { id: '6', name: 'Emily Park', role: 'Principal UX Designer', type: 'connection', qualityScore: 74, category: 'professional', sharedTopics: ['Design', 'UX Research', 'User Psychology'], connectionStrength: 'medium', mutualConnections: 3, influenceScore: 71 },
+      { id: '7', name: 'David Brown', role: 'VP Engineering', type: 'connection', qualityScore: 91, category: 'professional', sharedTopics: ['Engineering Leadership', 'System Architecture', 'Team Building'], connectionStrength: 'strong', mutualConnections: 6, influenceScore: 94 },
+      { id: '8', name: 'Maria Garcia', role: 'Research Lead at Innovation Lab', type: 'connection', qualityScore: 83, category: 'industry', sharedTopics: ['Research', 'Innovation', 'Technology Trends'], connectionStrength: 'medium', mutualConnections: 2, influenceScore: 81 },
+      { id: '9', name: 'James Wilson', role: 'Business Development', type: 'connection', qualityScore: 72, category: 'professional', sharedTopics: ['Business Strategy', 'Partnerships'], connectionStrength: 'weak', mutualConnections: 1, influenceScore: 65 },
+      { id: '10', name: 'Anna Schmidt', role: 'Technical Writer', type: 'connection', qualityScore: 61, category: 'professional', sharedTopics: ['Documentation', 'Technical Communication'], connectionStrength: 'weak', mutualConnections: 0, influenceScore: 52 }
+    ],
+    links: [
+      { source: 'user', target: '1', strength: 92, type: 'direct' },
+      { source: 'user', target: '2', strength: 88, type: 'direct' },
+      { source: 'user', target: '3', strength: 79, type: 'direct' },
+      { source: 'user', target: '4', strength: 85, type: 'direct' },
+      { source: 'user', target: '5', strength: 67, type: 'direct' },
+      { source: 'user', target: '6', strength: 74, type: 'direct' },
+      { source: 'user', target: '7', strength: 91, type: 'direct' },
+      { source: 'user', target: '8', strength: 83, type: 'direct' },
+      { source: 'user', target: '9', strength: 72, type: 'direct' },
+      { source: 'user', target: '10', strength: 61, type: 'direct' },
+      // Mutual connections showing network clustering
+      { source: '1', target: '2', strength: 45, type: 'mutual' },
+      { source: '2', target: '7', strength: 67, type: 'mutual' },
+      { source: '3', target: '6', strength: 52, type: 'mutual' },
+      { source: '4', target: '8', strength: 38, type: 'mutual' },
+      { source: '1', target: '8', strength: 41, type: 'mutual' },
+      { source: '7', target: '2', strength: 73, type: 'mutual' },
+      { source: '6', target: '5', strength: 29, type: 'mutual' },
+      { source: '4', target: '9', strength: 34, type: 'mutual' }
+    ]
+  }
+}
+
+// Load Strategic Connections sample data
+// Enhanced Strategic Connections with AI-powered intelligence
+function loadStrategicConnectionsData() {
+  // Sample connection data with enhanced intelligence metrics
+  const rawConnections = [
+    {
+      id: 'conn1',
+      name: 'Dr. Sarah Chen',
+      role: 'AI Ethics Lead at TechCorp',
+      company: 'TechCorp',
+      industry: 'Technology',
+      companySize: 'large',
+      title: 'AI Ethics Lead',
+      sharedInterests: ['AI Ethics', 'Bias Detection', 'Governance', 'Machine Learning', 'Policy Development'],
+      conversationTopics: 'Discussed comprehensive AI governance frameworks, bias detection methodologies in ML models, industry collaboration standards, and potential joint research opportunities on ethical AI implementation in healthcare.',
+      mutualGoals: ['Open-source standards', 'Industry collaboration', 'Ethical AI development'],
+      contactExchanged: true,
+      followUpPlanned: true,
+      followUpStatus: 'in_progress',
+      collaborationDiscussed: true,
+      topicsDiscussed: 4,
+      questionsAsked: 3,
+      resourcesShared: 2,
+      collaborationProposed: true,
+      lastContact: '2024-01-15',
+      nextFollowUp: '2024-01-22',
+      professionalAlignment: { score: 88 },
+      collaborationPotential: { score: 92 }
+    },
+    {
+      id: 'conn2',
+      name: 'Marcus Rodriguez',
+      role: 'CTO at InnovateLabs',
+      company: 'InnovateLabs',
+      industry: 'Technology',
+      companySize: 'medium',
+      title: 'CTO',
+      sharedInterests: ['ML Infrastructure', 'Team Leadership', 'Technical Architecture', 'Scaling'],
+      conversationTopics: 'Deep technical discussion on ML infrastructure scaling, team management strategies, and technical architecture decisions for high-growth environments.',
+      mutualGoals: ['Technical best practices', 'Team scaling', 'Infrastructure optimization'],
+      contactExchanged: true,
+      followUpPlanned: false,
+      followUpStatus: 'pending',
+      collaborationDiscussed: true,
+      topicsDiscussed: 3,
+      questionsAsked: 2,
+      resourcesShared: 1,
+      collaborationProposed: false,
+      lastContact: '2024-01-10',
+      nextFollowUp: '2024-01-17',
+      professionalAlignment: { score: 85 },
+      collaborationPotential: { score: 80 }
+    },
+    {
+      id: 'conn3',
+      name: 'Lisa Thompson',
+      role: 'Product Manager at DataFlow',
+      company: 'DataFlow',
+      industry: 'Technology',
+      companySize: 'enterprise',
+      title: 'Senior Product Manager',
+      sharedInterests: ['Product Strategy', 'User Research', 'Data-Driven Decisions'],
+      conversationTopics: 'Explored user-centered product development methodologies, data analytics for product decisions, and cross-functional collaboration strategies.',
+      mutualGoals: ['User-centric design', 'Market insights', 'Product excellence'],
+      contactExchanged: true,
+      followUpPlanned: true,
+      followUpStatus: 'completed',
+      collaborationDiscussed: false,
+      topicsDiscussed: 2,
+      questionsAsked: 2,
+      resourcesShared: 1,
+      collaborationProposed: false,
+      lastContact: '2024-01-12',
+      nextFollowUp: null,
+      professionalAlignment: { score: 72 },
+      collaborationPotential: { score: 65 }
+    },
+    {
+      id: 'conn4',
+      name: 'Alex Kim',
+      role: 'Founder at StartupVenture',
+      company: 'StartupVenture',
+      industry: 'Technology',
+      companySize: 'startup',
+      title: 'Founder & CEO',
+      sharedInterests: ['Entrepreneurship', 'Venture Capital', 'Startup Growth', 'Innovation'],
+      conversationTopics: 'Discussed startup scaling strategies, venture capital landscape, and innovative approaches to market penetration and customer acquisition.',
+      mutualGoals: ['Startup growth', 'Funding strategies', 'Innovation acceleration'],
+      contactExchanged: true,
+      followUpPlanned: false,
+      followUpStatus: 'pending',
+      collaborationDiscussed: true,
+      topicsDiscussed: 3,
+      questionsAsked: 4,
+      resourcesShared: 2,
+      collaborationProposed: true,
+      lastContact: '2024-01-08',
+      nextFollowUp: '2024-01-18',
+      professionalAlignment: { score: 78 },
+      collaborationPotential: { score: 88 }
+    }
+  ]
+
+  // Apply connection intelligence to each connection
+  const intelligentConnections = rawConnections.map(conn => {
+    const qualityAnalysis = calculateConnectionQuality(conn)
+    const strengthAnalysis = calculateConnectionStrength(conn)
+    const followUpRecs = generateFollowUpRecommendations(conn, qualityAnalysis.overallScore)
+
+    return {
+      ...conn,
+      qualityScore: qualityAnalysis.overallScore,
+      qualityFactors: qualityAnalysis.factors,
+      businessValue: qualityAnalysis.businessValue,
+      connectionStrength: strengthAnalysis.strength,
+      strengthScore: strengthAnalysis.score,
+      followUpRecommendations: followUpRecs,
+      priorityLevel: qualityAnalysis.priorityLevel,
+      recommendation: qualityAnalysis.recommendation
+    }
+  })
+
+  // Analyze overall network health
+  const networkHealth = analyzeNetworkHealth(intelligentConnections)
+
+  strategicConnections.value = {
+    total: intelligentConnections.length,
+    highValue: intelligentConnections.filter(c => c.qualityScore >= 80).length,
+    followUpPending: intelligentConnections.filter(c => c.followUpStatus === 'pending').length,
+    avgQualityScore: networkHealth.averageQuality,
+    businessValue: `Connected with ${intelligentConnections.length} strategic professionals, generating $${Math.round(networkHealth.businessValue.total / 1000)}K+ in identified business value. ${networkHealth.qualityDistribution.high} high-quality connections established with strong collaboration potential and ${intelligentConnections.filter(c => c.followUpRecommendations?.length > 0).length} active follow-up opportunities for strategic partnerships and knowledge exchange.`,
+    topConnections: intelligentConnections.sort((a, b) => b.qualityScore - a.qualityScore),
+    networkInsights: networkHealth.insights,
+    qualityDistribution: networkHealth.qualityDistribution,
+    strengthDistribution: networkHealth.strengthDistribution,
+    totalBusinessValue: networkHealth.businessValue.total
+  }
+}
+
+// Initialize data on component mount
+onMounted(async () => {
+  // Load sample data for demo
+  loadStrategicConnectionsData()
+  loadNetworkVisualizationData()
+  loadSampleIdeaData()
+  loadSampleSurveyData()
+  loadSampleDiscussionData()
+  loadEnhancedJourneyData()
+  loadProfessionalMetrics()
+  loadExecutiveInsights()
+
+  // Set sample personal impact data
+  personalImpact.value = {
+    overallImpact: 87,
+    contributionScore: 92,
+    networkingScore: 78,
+    collaborationScore: 85
+  }
+
+  // Set sample event data
+  event.value = {
+    title: 'AI & Future of Work Summit 2025',
+    date: '2024-01-10'
+  }
+
+  // Set sample metrics
+  metrics.value = {
+    activeProjects: 3,
+    newConnections: 12,
+    ideasGenerated: 8,
+    activeMinutes: 127,
+    businessImpact: 'High'
+  }
+})
 </script>
 
 <style scoped>
@@ -2065,6 +2667,31 @@ function loadEnhancedJourneyData() {
   background: rgba(25, 118, 210, 0.05);
   border-radius: 8px;
   border: 1px solid rgba(25, 118, 210, 0.1);
+}
+
+/* Strategic Connections Styles */
+.strategic-connections-card {
+  border-radius: 12px;
+  border-left: 4px solid #4caf50;
+}
+
+.connection-metric {
+  padding: 12px;
+  background: rgba(76, 175, 80, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.1);
+}
+
+.connection-card {
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.connection-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  border-color: rgba(76, 175, 80, 0.3);
 }
 
 /* Professional View Enhancements */
