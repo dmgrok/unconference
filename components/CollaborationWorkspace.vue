@@ -43,14 +43,13 @@
       <!-- Shared Notes -->
       <div class="mb-4">
         <h4 class="text-subtitle-1 mb-2">Shared Notes</h4>
-        <v-textarea
-          v-model="sharedNotes"
-          label="Collaborative notes - everyone can edit"
-          variant="outlined"
-          rows="4"
-          @blur="saveNotes"
-          :loading="savingNotes"
-        ></v-textarea>
+        <CollaborativeEditor
+          :collaboration-id="props.workspaceId"
+          :initial-content="sharedNotes"
+          placeholder="Start collaborating on shared notes..."
+          @content-change="onNotesContentChange"
+          @ready="onEditorReady"
+        />
       </div>
 
       <!-- Action Items -->
@@ -213,7 +212,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="showAddActionDialog = false">Cancel</v-btn>
-          <v-btn color="primary" @click="addActionItem">Add</v-btn>
+          <v-btn color="primary" @click="handleAddActionItem">Add</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -289,7 +288,7 @@ const contributors = ref<any[]>([])
 const actionItems = ref<any[]>([])
 const resources = ref<any[]>([])
 const sharedNotes = ref('')
-const savingNotes = ref(false)
+const editorReady = ref(false)
 
 // Dialog states
 const showAddActionDialog = ref(false)
@@ -339,20 +338,17 @@ const loadWorkspace = async () => {
   }
 }
 
-const saveNotes = async () => {
-  savingNotes.value = true
-  try {
-    // API call to save notes would go here
-    await new Promise(resolve => setTimeout(resolve, 500)) // Simulated delay
-    emit('updated', workspace.value)
-  } catch (error) {
-    console.error('Failed to save notes:', error)
-  } finally {
-    savingNotes.value = false
-  }
+const onNotesContentChange = (content: string) => {
+  sharedNotes.value = content
+  // Emit update to parent component
+  emit('updated', { ...workspace.value, sharedNotes: content })
 }
 
-const addActionItem = async () => {
+const onEditorReady = () => {
+  editorReady.value = true
+}
+
+const handleAddActionItem = async () => {
   try {
     await addActionItem({
       collaborationId: workspace.value.id,

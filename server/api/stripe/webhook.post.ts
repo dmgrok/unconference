@@ -34,6 +34,14 @@ export default defineEventHandler(async (event) => {
       case 'invoice.payment_failed':
         await handlePaymentFailed(stripeEvent)
         break
+
+      case 'invoice.payment_succeeded':
+        await handlePaymentSucceeded(stripeEvent)
+        break
+
+      case 'customer.subscription.trial_will_end':
+        await handleTrialWillEnd(stripeEvent)
+        break
       
       default:
         console.log(`Unhandled Stripe event: ${stripeEvent.type}`)
@@ -144,20 +152,80 @@ async function handleEventPaymentCompleted(session: any) {
 async function handleSubscriptionUpdated(stripeEvent: any) {
   const subscription = stripeEvent.data.object
   const userId = subscription.metadata?.userId
-  
+
   if (!userId) {
     console.log('No userId in subscription metadata')
     return
   }
 
   try {
+    // Detect tier change from price ID
+    const priceId = subscription.items?.data[0]?.price?.id
+    let newTier = null
+
+    // Map price IDs to tiers
+    const priceToTierMap: Record<string, string> = {
+      'price_community_monthly': 'COMMUNITY',
+      'price_organizer_monthly': 'ORGANIZER',
+      'price_unlimited_monthly': 'UNLIMITED'
+    }
+
+    // Check environment variables for price IDs
+    if (priceId === process.env.STRIPE_COMMUNITY_PRICE_ID) newTier = 'COMMUNITY'
+    else if (priceId === process.env.STRIPE_ORGANIZER_PRICE_ID) newTier = 'ORGANIZER'
+    else if (priceId === process.env.STRIPE_UNLIMITED_PRICE_ID) newTier = 'UNLIMITED'
+    else newTier = priceToTierMap[priceId]
+
+    // Get current user to compare tiers
+    const currentUser = await prisma.user.findUnique({ where: { id: userId } })
+    const isUpgrade = newTier && currentUser &&
+      (['FREE', 'COMMUNITY', 'ORGANIZER', 'UNLIMITED'].indexOf(newTier) >
+       ['FREE', 'COMMUNITY', 'ORGANIZER', 'UNLIMITED'].indexOf(currentUser.subscriptionTier))
+
+    const updateData: any = {
+      subscriptionStatus: mapStripeStatus(subscription.status),
+      subscriptionStart: new Date(subscription.current_period_start * 1000),
+      subscriptionEnd: new Date(subscription.current_period_end * 1000)
+    }
+
+    // Update tier and limits if tier changed
+    if (newTier && currentUser?.subscriptionTier !== newTier) {
+      const limits = {
+        'COMMUNITY': { tier: 'COMMUNITY', limit: 150 },
+        'ORGANIZER': { tier: 'ORGANIZER', limit: 300 },
+        'UNLIMITED': { tier: 'UNLIMITED', limit: 999999 }
+      }
+
+      const tierLimits = limits[newTier as keyof typeof limits]
+      if (tierLimits) {
+        updateData.subscriptionTier = tierLimits.tier
+        updateData.participantLimit = tierLimits.limit
+      }
+    }
+
     await prisma.user.update({
       where: { id: userId },
-      data: {
-        subscriptionStatus: mapStripeStatus(subscription.status),
-        subscriptionEnd: new Date(subscription.current_period_end * 1000)
-      }
+      data: updateData
     })
+
+    // Log tier changes
+    if (newTier && currentUser?.subscriptionTier !== newTier) {
+      await prisma.auditLog.create({
+        data: {
+          userId,
+          action: isUpgrade ? 'subscription_upgraded' : 'subscription_downgraded',
+          details: JSON.stringify({
+            fromTier: currentUser?.subscriptionTier,
+            toTier: newTier,
+            priceId,
+            amount: subscription.items?.data[0]?.price?.unit_amount / 100
+          })
+        }
+      })
+
+      console.log(`Subscription ${isUpgrade ? 'upgraded' : 'downgraded'}: ${currentUser?.subscriptionTier} -> ${newTier} for user ${userId}`)
+    }
+
   } catch (error) {
     console.error('Error updating subscription:', error)
   }
@@ -240,6 +308,68 @@ function mapStripeStatus(stripeStatus: string): any {
   }
   
   return statusMap[stripeStatus] || 'ACTIVE'
+}
+
+async function handlePaymentSucceeded(stripeEvent: any) {
+  const invoice = stripeEvent.data.object
+  const customerId = invoice.customer
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: { customerId: customerId as string }
+    })
+
+    if (user && user.subscriptionStatus === 'PAST_DUE') {
+      // Payment recovery successful - reactivate subscription
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          subscriptionStatus: 'ACTIVE'
+        }
+      })
+
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: 'payment_recovered',
+          details: JSON.stringify({
+            invoiceId: invoice.id,
+            amount: invoice.amount_paid / 100
+          })
+        }
+      })
+
+      console.log(`Payment recovered for user ${user.id}`)
+    }
+  } catch (error) {
+    console.error('Error handling payment success:', error)
+  }
+}
+
+async function handleTrialWillEnd(stripeEvent: any) {
+  const subscription = stripeEvent.data.object
+  const userId = subscription.metadata?.userId
+
+  if (!userId) {
+    return
+  }
+
+  try {
+    await prisma.auditLog.create({
+      data: {
+        userId,
+        action: 'trial_ending',
+        details: JSON.stringify({
+          trialEndDate: new Date(subscription.trial_end * 1000),
+          subscriptionId: subscription.id
+        })
+      }
+    })
+
+    console.log(`Trial ending soon for user ${userId}`)
+  } catch (error) {
+    console.error('Error handling trial end warning:', error)
+  }
 }
 
 function getAmountFromTier(tier: string): number {

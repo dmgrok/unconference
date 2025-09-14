@@ -94,8 +94,10 @@ export default defineNuxtConfig({
   },
   nitro: {
     experimental: {
-      wasm: true
-    }
+      wasm: true,
+      websocket: true
+    },
+    plugins: ['~/server/plugins/websocket.ts']
   },
   // Security configuration
   ssr: true,
