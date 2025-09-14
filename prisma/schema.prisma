@@ -600,3 +600,63 @@ model SkillMatch {
   @@unique([eventId, personAId, personBId])
   @@map("skill_matches")
 }
+
+// Analytics and Reporting Models
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  eventType   String   // PAGE_VIEW, USER_ACTION, EVENT_JOIN, etc.
+  userId      String?
+  eventId     String?
+  sessionId   String?
+  properties  String?  // JSON string for event properties
+  timestamp   DateTime @default(now())
+  ipAddress   String?
+  userAgent   String?
+
+  @@map("analytics_events")
+}
+
+model EventAnalytics {
+  id                    String   @id @default(cuid())
+  eventId               String   @unique
+  totalParticipants     Int      @default(0)
+  totalConnections      Int      @default(0)
+  totalCollaborations   Int      @default(0)
+  avgConnectionQuality  Float    @default(0)
+  participantRetention  Float    @default(0)
+  engagementScore       Float    @default(0)
+  successScore          Float    @default(0)
+  calculatedAt          DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("event_analytics")
+}
+
+model UserEngagement {
+  id               String   @id @default(cuid())
+  userId           String
+  eventId          String?
+  pageViews        Int      @default(0)
+  timeOnPlatform   Int      @default(0) // in minutes
+  actionsCount     Int      @default(0)
+  connectionsMade  Int      @default(0)
+  followUpsCompleted Int    @default(0)
+  engagementScore  Float    @default(0)
+  date             DateTime @default(now())
+
+  @@unique([userId, eventId, date])
+  @@map("user_engagement")
+}
+
+model AnalyticsReport {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  reportType  String   // SUBSCRIPTION, EVENT, USER_ENGAGEMENT, etc.
+  filters     String?  // JSON string for report filters
+  data        String   // JSON string for report data
+  generatedBy String
+  createdAt   DateTime @default(now())
+
+  @@map("analytics_reports")
+}
