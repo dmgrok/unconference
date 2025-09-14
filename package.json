@@ -13,6 +13,13 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare && npm run db:generate",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:all": "npm run test && npm run test:e2e",
     "db:setup": "npm run db:generate && npm run db:migrate",
     "db:generate": "npx prisma generate",
     "db:migrate": "npx prisma db push",
@@ -46,7 +53,9 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.0.0",
     "@nuxt/test-utils": "^3.19.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "@vue/test-utils": "^2.4.6",
     "vite-plugin-vuetify": "^2.1.1",
     "vitest": "^3.1.4",
