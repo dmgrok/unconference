@@ -88,6 +88,7 @@ npm run docker
 ## [0.1.0] - 2025-09-15
 
 ### ✨ Added
+- update changelog and README with new features and fixes for version 0.1.0
 - Update README
 - Revise action plan to enhance revenue protection and knowledge capture features
 - Add comprehensive licensing comparison and optimal strategy documentation
@@ -109,7 +110,6 @@ npm run docker
 
 ### 🐛 Fixed
 - update research modelId and maxTokens for improved performance (config)
-- Update event location and adjust badge counts in topics sample
 
 
 
