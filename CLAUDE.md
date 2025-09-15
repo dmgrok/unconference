@@ -10,6 +10,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run preview` - Preview production build locally
 - `npm install` - Install dependencies
 
+### Documentation Management
+- `npm run docs:update` - Update all documentation (organize, README, changelog)
+- `npm run docs:organize` - Organize docs folder structure and create category READMEs
+- `npm run docs:readme` - Update main README with latest information
+- `npm run docs:changelog` - Generate changelog entries from conventional commits
+- `npm run docs:setup` - Set up git hooks for automated documentation updates
+
 ### Specialized Build Commands
 - `npm run build:azure` - Build for Azure deployment
 - `npm run build:docker` - Build Docker image
@@ -19,6 +26,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Testing
 - Tests are configured with Vitest (`@nuxt/test-utils`, `@vue/test-utils`)
 - No test files currently exist in the project structure
+
+## Documentation System
+
+This project uses an automated documentation system that:
+
+### 🔄 **Automated Updates**
+- **Git Hooks Integration**: Pre-commit hooks automatically update documentation
+- **Conventional Commits**: Changelog generation from conventional commit messages
+- **README Sync**: Automatic README updates with latest project information
+- **Organization**: Auto-organized docs folder with category-based structure
+
+### 📚 **Documentation Structure**
+- `docs/guides/` - User guides, deployment, and setup documentation
+- `docs/features/` - Feature specifications and architecture documents
+- `docs/api/` - API documentation and examples
+- `docs/security/` - Security configuration and monitoring documentation
+- `docs/improvements/` - Development improvements and update logs
+- `docs/reviews/` - Experience reviews and assessments
+
+### 🎯 **Key Features**
+- **Changelog Automation**: Generates changelog entries from git commits using conventional commit format
+- **README Generation**: Creates comprehensive README with badges, quick start, and documentation links
+- **Cross-referencing**: Automatic linking between related documentation
+- **Category READMEs**: Each documentation category has its own index and quick links
+
+### 💻 **Commit Message Format**
+Use conventional commits for automatic changelog generation:
+- `feat: add new feature` - New features
+- `fix: resolve issue` - Bug fixes  
+- `docs: update documentation` - Documentation changes
+- `style: formatting changes` - Code style changes
+- `refactor: code refactoring` - Code restructuring
+- `perf: performance improvements` - Performance optimizations
+- `test: add tests` - Testing additions
+- `build: build system changes` - Build/deploy changes
+- `ci: CI/CD changes` - Continuous integration
+- `chore: maintenance tasks` - General maintenance
 
 ## Architecture Overview
 

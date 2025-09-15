@@ -5,8 +5,14 @@
     variant="elevated"
     @dragstart="handleDragStart"
     @click="$emit('click')"
+    @keydown.enter="$emit('click')"
+    @keydown.space="$emit('click')"
     class="topic-card"
     :elevation="isVoted ? 4 : 2"
+    role="article"
+    :tabindex="draggable ? 0 : undefined"
+    :aria-label="`Topic: ${topic.title}. ${topic.votes || 0} votes. Created by ${getCreatorName(topic.createdBy)}. ${isVoted ? `You have voted for this topic with your ${voteType} choice` : 'Click to interact with this topic'}`"
+    :aria-grabbed="isDragging"
   >
     <div v-if="isVoted" class="vote-badge">
       <v-chip
@@ -22,14 +28,14 @@
     </div>
 
     <v-card-title class="d-flex align-start justify-space-between">
-      <div class="flex-grow-1">
+      <header class="flex-grow-1">
         <h3 class="text-h6 mb-2">{{ topic.title }}</h3>
         <p class="text-body-2 text-grey-darken-1">{{ topic.description }}</p>
-      </div>
-      
-      <div class="card-actions ml-2">
+      </header>
+
+      <div class="card-actions ml-2" role="group" aria-label="Topic actions">
         <slot name="actions" />
-        
+
         <!-- Drag handle for touch devices -->
         <v-btn
           v-if="draggable && isTouchDevice"
@@ -38,6 +44,8 @@
           color="grey"
           variant="text"
           class="drag-handle"
+          aria-label="Drag to reorder topic"
+          @click.stop
         />
       </div>
     </v-card-title>
@@ -45,25 +53,25 @@
     <v-card-text v-if="showDetails" class="pt-0">
       <v-divider class="mb-3" />
       
-      <div class="topic-meta d-flex flex-wrap gap-2 align-center">
+      <footer class="topic-meta d-flex flex-wrap gap-2 align-center" role="contentinfo" aria-label="Topic statistics">
         <!-- Vote counts -->
-        <v-chip size="small" color="success" variant="outlined">
-          <v-icon start size="small">mdi-thumb-up</v-icon>
+        <v-chip size="small" color="success" variant="outlined" :aria-label="`${topic.votes || 0} people voted for this topic`">
+          <v-icon start size="small" aria-hidden="true">mdi-thumb-up</v-icon>
           {{ topic.votes || 0 }} votes
         </v-chip>
-        
+
         <!-- Points from preferences -->
-        <v-chip v-if="topic.totalPreferenceScore" size="small" color="info" variant="outlined">
-          <v-icon start size="small">mdi-star</v-icon>
+        <v-chip v-if="topic.totalPreferenceScore" size="small" color="info" variant="outlined" :aria-label="`${topic.totalPreferenceScore} preference points from voting`">
+          <v-icon start size="small" aria-hidden="true">mdi-star</v-icon>
           {{ topic.totalPreferenceScore }} points
         </v-chip>
-        
+
         <!-- Created by -->
-        <v-chip size="small" color="grey" variant="outlined">
-          <v-icon start size="small">mdi-account</v-icon>
+        <v-chip size="small" color="grey" variant="outlined" :aria-label="`Created by ${getCreatorName(topic.createdBy)}`">
+          <v-icon start size="small" aria-hidden="true">mdi-account</v-icon>
           {{ getCreatorName(topic.createdBy) }}
         </v-chip>
-      </div>
+      </footer>
     </v-card-text>
 
     <!-- Loading overlay for actions -->

@@ -298,7 +298,7 @@ export class AuthService {
   /**
    * Create or update OAuth user
    */
-  static async upsertOAuthUser(provider: 'github' | 'google', profile: any) {
+  static async upsertOAuthUser(provider: 'github' | 'google' | 'linkedin' | 'twitter', profile: any) {
     const email = profile.email?.toLowerCase()
     
     if (!email) {
@@ -322,6 +322,10 @@ export class AuthService {
         updateData.githubId = profile.id?.toString()
       } else if (provider === 'google') {
         updateData.googleId = profile.id?.toString()
+      } else if (provider === 'linkedin') {
+        updateData.linkedinId = profile.id?.toString()
+      } else if (provider === 'twitter') {
+        updateData.twitterId = profile.id?.toString()
       }
 
       user = await prisma.user.update({
@@ -345,6 +349,10 @@ export class AuthService {
         createData.githubId = profile.id?.toString()
       } else if (provider === 'google') {
         createData.googleId = profile.id?.toString()
+      } else if (provider === 'linkedin') {
+        createData.linkedinId = profile.id?.toString()
+      } else if (provider === 'twitter') {
+        createData.twitterId = profile.id?.toString()
       }
 
       user = await prisma.user.create({

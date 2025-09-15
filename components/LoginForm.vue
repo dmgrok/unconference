@@ -234,15 +234,15 @@
 
 <template>
     <div class="login-container">
-        <v-card class="login-card" elevation="12">
+        <v-card class="login-card" elevation="12" role="main" aria-labelledby="login-title">
             <!-- Header -->
-            <div class="login-header">
-                <div class="header-icon">
+            <header class="login-header">
+                <div class="header-icon" aria-hidden="true">
                     <v-icon size="64" color="white">mdi-forum</v-icon>
                 </div>
-                <h1 class="header-title">Welcome to Unconference</h1>
+                <h1 id="login-title" class="header-title">Welcome to Unconference</h1>
                 <p class="header-subtitle">Choose your preferred way to join the conversation</p>
-            </div>
+            </header>
 
             <div class="login-content">
                 <!-- Existing Guest Welcome -->
@@ -264,14 +264,21 @@
                 </div>
 
                 <!-- Mode Toggle -->
-                <div class="mode-toggle" v-if="!existingGuestData">
-                    <div class="method-cards">
-                        <v-card 
+                <section class="mode-toggle" v-if="!existingGuestData" aria-labelledby="access-methods-title">
+                    <h2 id="access-methods-title" class="sr-only">Choose Access Method</h2>
+                    <div class="method-cards" role="group" aria-label="Login method options">
+                        <v-card
                             :class="['method-card', { 'method-card--active': !isGuestMode }]"
                             @click="switchToLogin"
+                            @keydown.enter="switchToLogin"
+                            @keydown.space="switchToLogin"
                             elevation="2"
+                            role="button"
+                            tabindex="0"
+                            :aria-pressed="!isGuestMode"
+                            aria-label="Select OAuth login method"
                         >
-                            <div class="method-icon oauth-icon">
+                            <div class="method-icon oauth-icon" aria-hidden="true">
                                 <div class="oauth-icons">
                                     <v-icon size="24" color="#4285F4">mdi-google</v-icon>
                                     <v-icon size="24">mdi-github</v-icon>
@@ -282,13 +289,19 @@
                                 Google, GitHub, or email/password
                             </p>
                         </v-card>
-                        
-                        <v-card 
+
+                        <v-card
                             :class="['method-card', { 'method-card--active': isGuestMode }]"
                             @click="switchToGuest"
+                            @keydown.enter="switchToGuest"
+                            @keydown.space="switchToGuest"
                             elevation="2"
+                            role="button"
+                            tabindex="0"
+                            :aria-pressed="isGuestMode"
+                            aria-label="Select guest access method"
                         >
-                            <div class="method-icon guest-icon">
+                            <div class="method-icon guest-icon" aria-hidden="true">
                                 <v-icon size="40">mdi-account-question</v-icon>
                             </div>
                             <h3 class="method-title">Guest Access</h3>
@@ -320,8 +333,9 @@
                 </div>
 
                 <!-- Regular Login Form -->
-                <div v-if="!isGuestMode && !existingGuestData" class="login-form">
-                    <v-form @submit.prevent="login" ref="loginForm" v-model="formValid">
+                <section v-if="!isGuestMode && !existingGuestData" class="login-form" aria-labelledby="login-form-title">
+                    <h2 id="login-form-title" class="sr-only">Sign in to your account</h2>
+                    <v-form @submit.prevent="login" ref="loginForm" v-model="formValid" role="form" aria-label="Login form">
                         <v-text-field
                             v-model="credentials.email"
                             label="Email Address"
@@ -332,8 +346,12 @@
                             :rules="[v => !!v || 'Email is required', v => /.+@.+\..+/.test(v) || 'E-mail must be valid']"
                             class="form-field"
                             prepend-inner-icon="mdi-email"
+                            autocomplete="email"
+                            aria-describedby="email-help"
+                            :error-messages="loginError ? 'Please check your email and try again' : ''"
                         ></v-text-field>
-                        
+                        <div id="email-help" class="sr-only">Enter the email address associated with your account</div>
+
                         <v-text-field
                             v-model="credentials.password"
                             label="Password"
@@ -344,7 +362,11 @@
                             :rules="[v => !!v || 'Password is required', v => v.length >= 6 || 'Password must be at least 6 characters']"
                             class="form-field"
                             prepend-inner-icon="mdi-lock"
+                            autocomplete="current-password"
+                            aria-describedby="password-help"
+                            :error-messages="loginError ? 'Please check your password and try again' : ''"
                         ></v-text-field>
+                        <div id="password-help" class="sr-only">Enter your account password. Must be at least 6 characters long</div>
                         
                         <!-- Test Buttons for Development -->
                         <div v-if="devMode" class="dev-section">
@@ -476,14 +498,15 @@
                 </div>
 
                 <!-- Guest Join Form -->
-                <div v-if="isGuestMode && !existingGuestData" class="guest-form">
-                    <v-alert type="info" class="guest-info" variant="tonal">
+                <section v-if="isGuestMode && !existingGuestData" class="guest-form" aria-labelledby="guest-form-title">
+                    <h2 id="guest-form-title" class="sr-only">Join as Guest</h2>
+                    <v-alert type="info" class="guest-info" variant="tonal" role="region" aria-labelledby="guest-info-title">
                         <template #prepend>
-                            <v-icon>mdi-rocket-launch</v-icon>
+                            <v-icon aria-hidden="true">mdi-rocket-launch</v-icon>
                         </template>
-                        <v-alert-title class="guest-info-title">Quick Access to Any Event</v-alert-title>
+                        <v-alert-title id="guest-info-title" class="guest-info-title">Quick Access to Any Event</v-alert-title>
                         <p class="guest-info-text">
-                            Enter your event code to join instantly! You can vote, propose topics, and participate 
+                            Enter your event code to join instantly! You can vote, propose topics, and participate
                             in discussions without creating any accounts.
                         </p>
                     </v-alert>
@@ -615,6 +638,19 @@
 </template>
 
 <style scoped>
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .login-container {
   display: flex;
   align-items: center;
@@ -1132,5 +1168,24 @@
 
 .v-theme--dark .oauth-divider-text {
   color: #CBD5E1;
+}
+
+/* Enhanced focus states for accessibility */
+.v-btn:focus-visible,
+.method-card:focus-visible {
+  outline: 2px solid #6366F1;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* Keyboard navigation improvements */
+.method-card:focus {
+  outline: none;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.15), 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+.method-card[aria-pressed="true"]:focus {
+  box-shadow: 0 12px 25px rgba(99, 102, 241, 0.3), 0 0 0 2px rgba(99, 102, 241, 0.5);
 }
 </style>

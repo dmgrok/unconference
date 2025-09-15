@@ -1,0 +1,346 @@
+/* =============================================================================
+   ACCESSIBILITY STYLES
+   ============================================================================= */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 9999;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* =============================================================================
+   HIGH CONTRAST MODE
+   ============================================================================= */
+
+.high-contrast {
+  --color-background: #000000;
+  --color-surface: #000000;
+  --color-text: #ffffff;
+  --color-text-secondary: #ffffff;
+  --color-primary: #00ffff;
+  --color-secondary: #ffff00;
+  --color-success: #00ff00;
+  --color-warning: #ffff00;
+  --color-error: #ff0000;
+  --color-info: #00ffff;
+  --color-border: #ffffff;
+  --color-focus: #ffff00;
+}
+
+.high-contrast * {
+  background-color: var(--color-background) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+.high-contrast a,
+.high-contrast button,
+.high-contrast .v-btn {
+  color: var(--color-primary) !important;
+  text-decoration: underline !important;
+}
+
+.high-contrast a:hover,
+.high-contrast button:hover,
+.high-contrast .v-btn:hover {
+  color: var(--color-secondary) !important;
+  background-color: var(--color-background) !important;
+}
+
+.high-contrast :focus,
+.high-contrast :focus-visible {
+  outline: 3px solid var(--color-focus) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px var(--color-focus) !important;
+}
+
+.high-contrast .v-card,
+.high-contrast .v-sheet {
+  border: 2px solid var(--color-border) !important;
+}
+
+.high-contrast img,
+.high-contrast svg,
+.high-contrast .v-icon {
+  filter: contrast(200%) brightness(200%) !important;
+}
+
+/* =============================================================================
+   REDUCED MOTION
+   ============================================================================= */
+
+.reduced-motion,
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduced-motion .v-carousel__controls,
+.reduced-motion .v-slide-group__prev,
+.reduced-motion .v-slide-group__next {
+  display: none !important;
+}
+
+/* =============================================================================
+   FONT SIZE SCALING
+   ============================================================================= */
+
+.font-small {
+  font-size: 12px;
+}
+
+.font-small .text-h1 { font-size: 1.8rem !important; }
+.font-small .text-h2 { font-size: 1.6rem !important; }
+.font-small .text-h3 { font-size: 1.4rem !important; }
+.font-small .text-h4 { font-size: 1.2rem !important; }
+.font-small .text-h5 { font-size: 1.1rem !important; }
+.font-small .text-h6 { font-size: 1rem !important; }
+
+.font-normal {
+  font-size: 14px;
+}
+
+.font-large {
+  font-size: 16px;
+}
+
+.font-large .text-h1 { font-size: 2.5rem !important; }
+.font-large .text-h2 { font-size: 2.2rem !important; }
+.font-large .text-h3 { font-size: 2rem !important; }
+.font-large .text-h4 { font-size: 1.8rem !important; }
+.font-large .text-h5 { font-size: 1.6rem !important; }
+.font-large .text-h6 { font-size: 1.4rem !important; }
+
+.font-x-large {
+  font-size: 18px;
+}
+
+.font-x-large .text-h1 { font-size: 3rem !important; }
+.font-x-large .text-h2 { font-size: 2.7rem !important; }
+.font-x-large .text-h3 { font-size: 2.4rem !important; }
+.font-x-large .text-h4 { font-size: 2.1rem !important; }
+.font-x-large .text-h5 { font-size: 1.8rem !important; }
+.font-x-large .text-h6 { font-size: 1.6rem !important; }
+
+/* =============================================================================
+   FOCUS MANAGEMENT
+   ============================================================================= */
+
+/* Enhanced focus styles */
+*:focus-visible {
+  outline: 2px solid #6366F1 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Focus trap styles */
+.focus-trap {
+  position: relative;
+}
+
+.focus-trap:before,
+.focus-trap:after {
+  content: '';
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* =============================================================================
+   KEYBOARD NAVIGATION
+   ============================================================================= */
+
+/* Skip navigation menu styles */
+.keyboard-navigation:focus-within .skip-links {
+  display: block;
+}
+
+.skip-links {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  background: #000;
+  padding: 8px;
+}
+
+.skip-links a {
+  color: #fff;
+  text-decoration: none;
+  padding: 4px 8px;
+  display: block;
+  border-radius: 4px;
+}
+
+.skip-links a:focus {
+  background: #fff;
+  color: #000;
+}
+
+/* Clickable elements should be tabbable */
+[role="button"]:not([tabindex]) {
+  tabindex: 0;
+}
+
+/* Interactive elements focus styles */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #6366F1;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* =============================================================================
+   ARIA LIVE REGIONS
+   ============================================================================= */
+
+/* Screen reader announcements */
+[aria-live] {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Status and error announcements */
+.status-announcement,
+.error-announcement {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* =============================================================================
+   RESPONSIVE ACCESSIBILITY
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  /* Larger touch targets on mobile */
+  button,
+  a,
+  input,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px;
+  }
+
+  /* Increased font size on mobile for better readability */
+  .font-small {
+    font-size: 14px;
+  }
+
+  .font-normal {
+    font-size: 16px;
+  }
+
+  .font-large {
+    font-size: 18px;
+  }
+
+  .font-x-large {
+    font-size: 20px;
+  }
+}
+
+/* =============================================================================
+   COLOR AND CONTRAST
+   ============================================================================= */
+
+/* Ensure minimum contrast ratios */
+.low-contrast-text {
+  color: #666;
+}
+
+@media (prefers-contrast: high) {
+  .low-contrast-text {
+    color: #000;
+  }
+}
+
+/* Error states with better contrast */
+.error-text {
+  color: #d32f2f;
+  font-weight: 500;
+}
+
+.success-text {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.warning-text {
+  color: #f57c00;
+  font-weight: 500;
+}
+
+/* =============================================================================
+   PRINT STYLES
+   ============================================================================= */
+
+@media print {
+  .sr-only {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    clip: auto !important;
+    overflow: visible !important;
+    white-space: normal !important;
+  }
+
+  /* Hide decorative elements */
+  .decorative,
+  [aria-hidden="true"] {
+    display: none !important;
+  }
+
+  /* Ensure good contrast for printing */
+  * {
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  a::after {
+    content: " (" attr(href) ")";
+  }
+}

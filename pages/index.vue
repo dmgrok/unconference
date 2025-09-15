@@ -193,11 +193,12 @@ function shareEvent(event: any) {
 <template>
   <div class="landing-page">
     <!-- Hero Section -->
-    <section class="hero-section">
+    <main>
+    <section class="hero-section" role="banner" aria-labelledby="main-heading">
       <v-container class="py-16">
         <v-row align="center" justify="center">
           <v-col cols="12" lg="10" xl="8" class="text-center">
-            <div class="hero-content" role="main">
+            <div class="hero-content">
               <h1 class="hero-title mb-6" id="main-heading">
                 {{ siteConfig.tagline }}
               </h1>
@@ -207,7 +208,7 @@ function shareEvent(event: any) {
                 <strong>Try organizing your own</strong> to see how it works, or <strong>join an active event</strong> right now.
               </p>
               
-              <div class="hero-actions mb-8">
+              <nav class="hero-actions mb-8" aria-label="Main navigation options">
                 <div class="action-row primary-actions">
                   <v-btn
                     color="primary"
@@ -216,10 +217,11 @@ function shareEvent(event: any) {
                     @click="joinEvent(demoEvent)"
                     class="hero-btn-primary"
                     elevation="8"
+                    aria-describedby="demo-description"
                   >
                     Try Organizing
                   </v-btn>
-                  
+
                   <v-btn
                     color="secondary"
                     size="x-large"
@@ -227,6 +229,7 @@ function shareEvent(event: any) {
                     to="/quick-join"
                     class="hero-btn-secondary"
                     elevation="6"
+                    aria-describedby="join-description"
                   >
                     Join Event
                   </v-btn>
@@ -253,8 +256,12 @@ function shareEvent(event: any) {
                     Sign In
                   </v-btn>
                 </div>
-              </div>
-              
+              </nav>
+
+              <!-- Hidden descriptions for screen readers -->
+              <div id="demo-description" class="sr-only">Experience organizing an unconference with our interactive demo</div>
+              <div id="join-description" class="sr-only">Join an existing unconference event with an event code</div>
+
               <div class="quick-join-section mt-8 mb-6">
                 <p class="quick-join-label">Have an event code? Join instantly:</p>
                 <v-form class="quick-join-form" @submit.prevent="quickJoinWithCode">
@@ -1597,6 +1604,19 @@ function shareEvent(event: any) {
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Enhanced focus states for accessibility */
