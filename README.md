@@ -272,6 +272,7 @@ All users must include: **"Powered by [Unconference Platform](https://github.com
 
 ## 🙏 Acknowledgments
 
+- **Special thanks to [@helaili](https://github.com/helaili)** for the original [unconference repository](https://github.com/helaili/unconference) that sparked the foundation of this project 🌟
 - Built with [Nuxt 3](https://nuxt.com/) and [Vue 3](https://vuejs.org/)
 - UI powered by [Vuetify](https://vuetifyjs.com/)
 - Icons from [Material Design Icons](https://materialdesignicons.com/)

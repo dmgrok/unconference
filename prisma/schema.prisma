@@ -139,6 +139,8 @@ model User {
   emailVerifyExpires   DateTime?
   githubId             String?               @unique
   googleId             String?               @unique
+  linkedinId           String?               @unique
+  twitterId            String?               @unique
   globalRole           GlobalRole            @default(USER)
   isActive             Boolean               @default(true)
   isGuest              Boolean               @default(false)
