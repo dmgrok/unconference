@@ -158,27 +158,27 @@
                       <v-icon color="error" class="mr-2">mdi-close-circle</v-icon>
                       Old Personal Recap (Information Overload)
                     </h4>
-                    <v-list dense>
+                    <v-list density="compact">
                       <v-list-item>
-                        <v-list-item-icon><v-icon small color="error">mdi-alert</v-icon></v-list-item-icon>
-                        <v-list-item-content>
-                          <v-list-item-title>Overwhelming personal metrics</v-list-item-title>
-                          <v-list-item-subtitle>Vanity scores that colleagues don't care about</v-list-item-subtitle>
-                        </v-list-item-content>
+                        <template v-slot:prepend>
+                          <v-icon small color="error">mdi-alert</v-icon>
+                        </template>
+                        <v-list-item-title>Overwhelming personal metrics</v-list-item-title>
+                        <v-list-item-subtitle>Vanity scores that colleagues don't care about</v-list-item-subtitle>
                       </v-list-item>
                       <v-list-item>
-                        <v-list-item-icon><v-icon small color="error">mdi-alert</v-icon></v-list-item-icon>
-                        <v-list-item-content>
-                          <v-list-item-title>Granular timeline details</v-list-item-title>
-                          <v-list-item-subtitle>Too much personal activity data</v-list-item-subtitle>
-                        </v-list-item-content>
+                        <template v-slot:prepend>
+                          <v-icon small color="error">mdi-alert</v-icon>
+                        </template>
+                        <v-list-item-title>Granular timeline details</v-list-item-title>
+                        <v-list-item-subtitle>Too much personal activity data</v-list-item-subtitle>
                       </v-list-item>
                       <v-list-item>
-                        <v-list-item-icon><v-icon small color="error">mdi-alert</v-icon></v-list-item-icon>
-                        <v-list-item-content>
-                          <v-list-item-title>Generic sharing options</v-list-item-title>
-                          <v-list-item-subtitle>Not colleague-appropriate content</v-list-item-subtitle>
-                        </v-list-item-content>
+                        <template v-slot:prepend>
+                          <v-icon small color="error">mdi-alert</v-icon>
+                        </template>
+                        <v-list-item-title>Generic sharing options</v-list-item-title>
+                        <v-list-item-subtitle>Not colleague-appropriate content</v-list-item-subtitle>
                       </v-list-item>
                     </v-list>
                   </div>
@@ -189,27 +189,27 @@
                       <v-icon color="success" class="mr-2">mdi-check-circle</v-icon>
                       New Professional Recap (Business Focused)
                     </h4>
-                    <v-list dense>
+                    <v-list density="compact">
                       <v-list-item>
-                        <v-list-item-icon><v-icon small color="success">mdi-check</v-icon></v-list-item-icon>
-                        <v-list-item-content>
-                          <v-list-item-title>Executive summary with ROI</v-list-item-title>
-                          <v-list-item-subtitle>Clear business impact and value metrics</v-list-item-subtitle>
-                        </v-list-item-content>
+                        <template v-slot:prepend>
+                          <v-icon small color="success">mdi-check</v-icon>
+                        </template>
+                        <v-list-item-title>Executive summary with ROI</v-list-item-title>
+                        <v-list-item-subtitle>Clear business impact and value metrics</v-list-item-subtitle>
                       </v-list-item>
                       <v-list-item>
-                        <v-list-item-icon><v-icon small color="success">mdi-check</v-icon></v-list-item-icon>
-                        <v-list-item-content>
-                          <v-list-item-title>Project-focused outcomes</v-list-item-title>
-                          <v-list-item-subtitle>Follow-up commitments with timelines</v-list-item-subtitle>
-                        </v-list-item-content>
+                        <template v-slot:prepend>
+                          <v-icon small color="success">mdi-check</v-icon>
+                        </template>
+                        <v-list-item-title>Project-focused outcomes</v-list-item-title>
+                        <v-list-item-subtitle>Follow-up commitments with timelines</v-list-item-subtitle>
                       </v-list-item>
                       <v-list-item>
-                        <v-list-item-icon><v-icon small color="success">mdi-check</v-icon></v-list-item-icon>
-                        <v-list-item-content>
-                          <v-list-item-title>Professional sharing templates</v-list-item-title>
-                          <v-list-item-subtitle>Colleague-appropriate content selection</v-list-item-subtitle>
-                        </v-list-item-content>
+                        <template v-slot:prepend>
+                          <v-icon small color="success">mdi-check</v-icon>
+                        </template>
+                        <v-list-item-title>Professional sharing templates</v-list-item-title>
+                        <v-list-item-subtitle>Colleague-appropriate content selection</v-list-item-subtitle>
                       </v-list-item>
                     </v-list>
                   </div>
@@ -354,14 +354,12 @@
                   <p class="text-body-2 mb-3">{{ mode.description }}</p>
                   
                   <h4 class="text-subtitle-2 font-weight-bold mb-2">Key Features:</h4>
-                  <v-list dense>
+                  <v-list density="compact">
                     <v-list-item v-for="feature in mode.features" :key="feature" class="px-0">
-                      <v-list-item-icon class="mr-2">
+                      <template v-slot:prepend>
                         <v-icon small color="success">mdi-check</v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-content>
-                        <v-list-item-title class="text-body-2">{{ feature }}</v-list-item-title>
-                      </v-list-item-content>
+                      </template>
+                      <v-list-item-title class="text-body-2">{{ feature }}</v-list-item-title>
                     </v-list-item>
                   </v-list>
                   

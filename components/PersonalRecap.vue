@@ -93,24 +93,24 @@
                   <!-- Top 3 Outcomes (Summary View) -->
                   <div v-if="viewMode === 'summary'">
                     <h4 class="text-subtitle-1 font-weight-bold mb-3">Top 3 Outcomes:</h4>
-                    <v-list dense>
+                    <v-list density="compact">
                       <v-list-item>
-                        <v-list-item-icon><v-icon color="success">mdi-check-circle</v-icon></v-list-item-icon>
-                        <v-list-item-content>
-                          <v-list-item-title>{{ getTopOutcome(1) }}</v-list-item-title>
-                        </v-list-item-content>
+                        <template v-slot:prepend>
+                          <v-icon color="success">mdi-check-circle</v-icon>
+                        </template>
+                        <v-list-item-title>{{ getTopOutcome(1) }}</v-list-item-title>
                       </v-list-item>
                       <v-list-item>
-                        <v-list-item-icon><v-icon color="success">mdi-check-circle</v-icon></v-list-item-icon>
-                        <v-list-item-content>
-                          <v-list-item-title>{{ getTopOutcome(2) }}</v-list-item-title>
-                        </v-list-item-content>
+                        <template v-slot:prepend>
+                          <v-icon color="success">mdi-check-circle</v-icon>
+                        </template>
+                        <v-list-item-title>{{ getTopOutcome(2) }}</v-list-item-title>
                       </v-list-item>
                       <v-list-item>
-                        <v-list-item-icon><v-icon color="success">mdi-check-circle</v-icon></v-list-item-icon>
-                        <v-list-item-content>
-                          <v-list-item-title>{{ getTopOutcome(3) }}</v-list-item-title>
-                        </v-list-item-content>
+                        <template v-slot:prepend>
+                          <v-icon color="success">mdi-check-circle</v-icon>
+                        </template>
+                        <v-list-item-title>{{ getTopOutcome(3) }}</v-list-item-title>
                       </v-list-item>
                     </v-list>
                   </div>
@@ -801,15 +801,13 @@
                               :key="step.id"
                               class="px-0"
                             >
-                              <v-list-item-icon class="mr-2">
+                              <template v-slot:prepend>
                                 <v-icon small>mdi-chevron-right</v-icon>
-                              </v-list-item-icon>
-                              <v-list-item-content>
-                                <v-list-item-title class="text-body-2">{{ step.action }}</v-list-item-title>
-                                <v-list-item-subtitle v-if="step.deadline">
-                                  Due: {{ formatDate(step.deadline) }}
-                                </v-list-item-subtitle>
-                              </v-list-item-content>
+                              </template>
+                              <v-list-item-title class="text-body-2">{{ step.action }}</v-list-item-title>
+                              <v-list-item-subtitle v-if="step.deadline">
+                                Due: {{ formatDate(step.deadline) }}
+                              </v-list-item-subtitle>
                             </v-list-item>
                           </v-list>
                         </div>
@@ -915,14 +913,12 @@
                   <h4 class="text-subtitle-1 font-weight-bold mb-2">Key Insights:</h4>
                   <v-list dense>
                     <v-list-item v-for="insight in surveyInsights" :key="insight.id">
-                      <v-list-item-icon>
+                      <template v-slot:prepend>
                         <v-icon :color="insight.type === 'positive' ? 'success' : insight.type === 'negative' ? 'error' : 'warning'">
                           {{ insight.type === 'positive' ? 'mdi-trending-up' : insight.type === 'negative' ? 'mdi-trending-down' : 'mdi-information' }}
                         </v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-content>
-                        <v-list-item-title class="text-body-2">{{ insight.message }}</v-list-item-title>
-                      </v-list-item-content>
+                      </template>
+                      <v-list-item-title class="text-body-2">{{ insight.message }}</v-list-item-title>
                     </v-list-item>
                   </v-list>
                 </div>
@@ -2917,7 +2913,7 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.share-text-field >>> .v-input__slot {
+.share-text-field :deep(.v-input__slot) {
   background: rgba(255, 255, 255, 0.9);
 }
 

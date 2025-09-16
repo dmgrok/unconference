@@ -144,7 +144,7 @@ async function handleGuestJoin() {
   }
 }
 
-function handleOAuthLogin(provider: 'github' | 'google') {
+function handleOAuthLogin(provider: 'github' | 'google' | 'linkedin') {
   const authUrl = `/api/auth/${provider}?redirect=${encodeURIComponent(redirectUrl.value)}`
   window.location.href = authUrl
 }
@@ -240,9 +240,21 @@ useSeoMeta({
                     variant="outlined"
                     prepend-icon="mdi-google"
                     block
+                    class="mb-3"
                     @click="handleOAuthLogin('google')"
                   >
                     Google
+                  </v-btn>
+
+                  <v-btn
+                    color="primary"
+                    size="large"
+                    variant="outlined"
+                    prepend-icon="mdi-linkedin"
+                    block
+                    @click="handleOAuthLogin('linkedin')"
+                  >
+                    LinkedIn
                   </v-btn>
                 </div>
               </div>

@@ -258,19 +258,19 @@
               :key="followUp.id"
               class="border rounded mb-2"
             >
-              <v-list-item-avatar>
-                <img v-if="followUp.connection.avatar" :src="followUp.connection.avatar" alt="Avatar">
-                <v-icon v-else>mdi-account</v-icon>
-              </v-list-item-avatar>
-              <v-list-item-content>
-                <v-list-item-title>{{ followUp.connection.name }}</v-list-item-title>
-                <v-list-item-subtitle>{{ followUp.task }}</v-list-item-subtitle>
-              </v-list-item-content>
-              <v-list-item-action>
+              <template v-slot:prepend>
+                <v-avatar>
+                  <img v-if="followUp.connection.avatar" :src="followUp.connection.avatar" alt="Avatar">
+                  <v-icon v-else>mdi-account</v-icon>
+                </v-avatar>
+              </template>
+              <v-list-item-title>{{ followUp.connection.name }}</v-list-item-title>
+              <v-list-item-subtitle>{{ followUp.task }}</v-list-item-subtitle>
+              <template v-slot:append>
                 <v-btn icon @click="markCompleted(followUp)">
                   <v-icon color="success">mdi-check</v-icon>
                 </v-btn>
-              </v-list-item-action>
+              </template>
             </v-list-item>
           </v-list>
 
@@ -289,16 +289,16 @@
               :key="followUp.id"
               class="border rounded mb-2"
             >
-              <v-list-item-avatar>
-                <v-icon color="success">mdi-check-circle</v-icon>
-              </v-list-item-avatar>
-              <v-list-item-content>
-                <v-list-item-title>{{ followUp.connection.name }}</v-list-item-title>
-                <v-list-item-subtitle>{{ followUp.task }}</v-list-item-subtitle>
-                <div class="text-caption grey--text">
-                  Completed: {{ formatDate(followUp.completedAt) }}
-                </div>
-              </v-list-item-content>
+              <template v-slot:prepend>
+                <v-avatar>
+                  <v-icon color="success">mdi-check-circle</v-icon>
+                </v-avatar>
+              </template>
+              <v-list-item-title>{{ followUp.connection.name }}</v-list-item-title>
+              <v-list-item-subtitle>{{ followUp.task }}</v-list-item-subtitle>
+              <div class="text-caption grey--text">
+                Completed: {{ formatDate(followUp.completedAt) }}
+              </div>
             </v-list-item>
           </v-list>
         </v-tab-item>

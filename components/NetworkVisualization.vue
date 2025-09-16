@@ -158,24 +158,20 @@
 
           <div class="detail-section">
             <h4 class="text-subtitle-1 font-weight-bold mb-2">Network Insights</h4>
-            <v-list dense>
+            <v-list density="compact">
               <v-list-item>
-                <v-list-item-icon>
+                <template v-slot:prepend>
                   <v-icon color="info">mdi-account-network</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>Bridge Connections: {{ selectedNode.bridgeConnections || 0 }}</v-list-item-title>
-                  <v-list-item-subtitle>Connects different network clusters</v-list-item-subtitle>
-                </v-list-item-content>
+                </template>
+                <v-list-item-title>Bridge Connections: {{ selectedNode.bridgeConnections || 0 }}</v-list-item-title>
+                <v-list-item-subtitle>Connects different network clusters</v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
-                <v-list-item-icon>
+                <template v-slot:prepend>
                   <v-icon color="warning">mdi-trending-up</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>Influence Score: {{ selectedNode.influenceScore || 0 }}</v-list-item-title>
-                  <v-list-item-subtitle>Network positioning strength</v-list-item-subtitle>
-                </v-list-item-content>
+                </template>
+                <v-list-item-title>Influence Score: {{ selectedNode.influenceScore || 0 }}</v-list-item-title>
+                <v-list-item-subtitle>Network positioning strength</v-list-item-subtitle>
               </v-list-item>
             </v-list>
           </div>

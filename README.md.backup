@@ -108,6 +108,9 @@ npm run docker
 - Implement organizer management system with invitation and removal functionalities
 - Implement topic deletion feature with permissions and restrictions
 
+### 📚 Documentation
+- update changelog with automated documentation system entry
+
 ### 🐛 Fixed
 - update research modelId and maxTokens for improved performance (config)
 

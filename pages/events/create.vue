@@ -444,7 +444,7 @@ useSeoMeta({
   gap: 12px;
 }
 
-.v-radio >>> .v-selection-control__wrapper {
+.v-radio :deep(.v-selection-control__wrapper) {
   margin-right: 0;
 }
 

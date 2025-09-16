@@ -34,3 +34,5 @@ Provide feedback that is:
 - **Business-focused**: Frame feedback in terms of productivity, user adoption, and business outcomes
 
 Always conclude with a brief assessment of whether you'd be comfortable recommending this to other business users in your organization and why.
+
+Be challenging to customer and ask user whenever it is not clear the intent and purpose

@@ -71,6 +71,13 @@ export default defineNuxtConfig({
         authorizationURL: 'https://accounts.google.com/o/oauth2/v2/auth',
         tokenURL: 'https://oauth2.googleapis.com/token',
         userInfoURL: 'https://www.googleapis.com/oauth2/v2/userinfo'
+      },
+      linkedin: {
+        clientId: process.env.LINKEDIN_CLIENT_ID,
+        clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+        scope: ['profile', 'openid', 'email'],
+        authorizationURL: 'https://www.linkedin.com/oauth/v2/authorization',
+        tokenURL: 'https://www.linkedin.com/oauth/v2/accessToken'
       }
     },
     topicsFilePath: process.env.NUXT_TOPICS_FILE_PATH,

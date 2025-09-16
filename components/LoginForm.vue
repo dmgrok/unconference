@@ -230,6 +230,29 @@
             loginError.value = true
         }
     }
+
+    async function signInWithLinkedIn() {
+        try {
+            const eventCode = guestForm.eventCode || (route.query.code as string) || (route.query.eventCode as string)
+            const redirectTo = route.query.redirect as string
+            
+            // Build OAuth URL with state parameters for event context
+            let oauthUrl = '/api/auth/linkedin'
+            
+            if (eventCode || redirectTo) {
+                const params = new URLSearchParams()
+                if (eventCode) params.set('state', eventCode.toUpperCase())
+                if (redirectTo) params.set('redirect_uri', redirectTo)
+                oauthUrl += '?' + params.toString()
+            }
+            
+            // Redirect to LinkedIn OAuth
+            await navigateTo(oauthUrl, { external: true })
+        } catch (error) {
+            console.error('LinkedIn OAuth error:', error)
+            loginError.value = true
+        }
+    }
 </script>
 
 <template>
@@ -478,6 +501,19 @@
                                 >
                                     <v-icon start>mdi-github</v-icon>
                                     GitHub
+                                </v-btn>
+
+                                <v-btn
+                                    @click="signInWithLinkedIn"
+                                    :disabled="loginLoading"
+                                    variant="outlined"
+                                    color="primary"
+                                    size="large"
+                                    class="oauth-btn linkedin-btn"
+                                    data-testid="linkedin-login-button"
+                                >
+                                    <v-icon start color="#0077B5">mdi-linkedin</v-icon>
+                                    LinkedIn
                                 </v-btn>
                             </div>
                         </div>
