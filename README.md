@@ -106,7 +106,6 @@ npm run docker
 - Add demo event section with testimonials, stats, and FAQs for enhanced user engagement
 - Implement user registration functionality with validation and error handling
 - Implement organizer management system with invitation and removal functionalities
-- Implement topic deletion feature with permissions and restrictions
 
 ### 📚 Documentation
 - organize documentation structure and update README
@@ -114,6 +113,9 @@ npm run docker
 
 ### 🐛 Fixed
 - update research modelId and maxTokens for improved performance (config)
+
+### 🔧 Maintenance
+- Update CHANGELOG with new features, documentation, and fixes for version 0.1.0
 
 
 

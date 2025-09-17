@@ -23,6 +23,39 @@ All notable changes to the Unconference application will be documented in this f
 - Add demo event section with testimonials, stats, and FAQs for enhanced user engagement
 - Implement user registration functionality with validation and error handling
 - Implement organizer management system with invitation and removal functionalities
+
+### 📚 Documentation
+- organize documentation structure and update README
+- update changelog with automated documentation system entry
+
+### 🐛 Fixed
+- update research modelId and maxTokens for improved performance (config)
+
+### 🔧 Maintenance
+- Update CHANGELOG with new features, documentation, and fixes for version 0.1.0
+
+
+## [0.1.0] - 2025-09-17
+
+### ✨ Added
+- update changelog and README with new features and fixes for version 0.1.0
+- Update README
+- Revise action plan to enhance revenue protection and knowledge capture features
+- Add comprehensive licensing comparison and optimal strategy documentation
+- Enhance event selection and context management with improved UI and navigation
+- update room management and participant handling with new endpoints and role management
+- implement room management with CRUD functionality and event status handling
+- implement room management with CRUD functionality and event status handling
+- implement read-only mode for inactive events with UI updates and access control
+- add event status management with reactivation functionality and access control for organizers and super admins
+- enhance event navigation with query parameters and error handling (super-admin)
+- Implement navigation isolation and access restrictions for Super Admin role
+- Enhance Super Admin role with improved navigation, redirection, and event management features
+- Update user data structure and enhance registration form validation with success messaging
+- Refactor site configuration and enhance navigation components for improved user experience
+- Add demo event section with testimonials, stats, and FAQs for enhanced user engagement
+- Implement user registration functionality with validation and error handling
+- Implement organizer management system with invitation and removal functionalities
 - Implement topic deletion feature with permissions and restrictions
 
 ### 📚 Documentation
