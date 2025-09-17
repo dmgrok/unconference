@@ -199,12 +199,6 @@
               @click="closeDrawer"
             />
 
-            <v-list-item
-              prepend-icon="mdi-chart-line"
-              title="Analytics"
-              to="/admin/analytics"
-              @click="closeDrawer"
-            />
           </template>
 
           <!-- Super Admin -->

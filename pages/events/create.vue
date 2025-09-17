@@ -109,7 +109,9 @@ async function handleCreateEvent() {
       if (selectedPaymentOption.value.type === 'pay_per_event') {
         await handleEventPayment(createResponse.event.id)
       } else if (selectedPaymentOption.value.type === 'subscription') {
-        await handleSubscriptionPayment()
+        // Subscription checkout not implemented in lean MVP - redirect to settings
+        error.value = 'Subscription upgrades are handled in account settings. Please upgrade your account first.'
+        await router.push('/settings/subscription')
       }
     } else {
       // No payment required, redirect to event
@@ -129,7 +131,7 @@ async function handleEventPayment(eventId: string) {
       method: 'POST',
       body: {
         eventId: eventId,
-        eventSize: selectedPaymentOption.value.eventSize,
+        eventTier: selectedPaymentOption.value.eventTier || selectedPaymentOption.value.eventSize, // Support both new and old naming
         successUrl: `${window.location.origin}/events/${eventId}?payment=success`,
         cancelUrl: `${window.location.origin}/events/create?payment=cancelled`
       }
@@ -142,23 +144,8 @@ async function handleEventPayment(eventId: string) {
   }
 }
 
-async function handleSubscriptionPayment() {
-  try {
-    const checkoutResponse = await $fetch('/api/stripe/checkout', {
-      method: 'POST',
-      body: {
-        tier: selectedPaymentOption.value.tier,
-        successUrl: `${window.location.origin}/events?upgrade=success`,
-        cancelUrl: `${window.location.origin}/events/create?payment=cancelled`
-      }
-    })
-
-    // Redirect to Stripe checkout
-    window.location.href = checkoutResponse.checkoutUrl
-  } catch (err: any) {
-    error.value = err.data?.message || 'Failed to process subscription'
-  }
-}
+// Subscription checkout removed in lean MVP
+// Users should upgrade via account settings instead
 
 function selectPaymentOption(option: any) {
   selectedPaymentOption.value = option

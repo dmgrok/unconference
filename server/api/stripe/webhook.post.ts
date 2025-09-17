@@ -61,8 +61,10 @@ async function handleCheckoutCompleted(stripeEvent: any) {
   try {
     const session = stripeEvent.data.object
     
-    // Check if this is a subscription or one-time payment
-    if (session.metadata?.paymentType === 'pay_per_event') {
+    // Check payment type from metadata
+    if (session.metadata?.type === 'event_upgrade') {
+      await handleEventUpgradeCompleted(session)
+    } else if (session.metadata?.paymentType === 'pay_per_event') {
       await handleEventPaymentCompleted(session)
     } else {
       await handleSubscriptionPaymentCompleted(session)
@@ -113,11 +115,14 @@ async function handleSubscriptionPaymentCompleted(session: any) {
 }
 
 async function handleEventPaymentCompleted(session: any) {
-  const { eventId, userId, eventSize, maxParticipants } = session.metadata
-  
+  const { eventId, userId, eventTier, maxParticipants } = session.metadata
+
   if (!eventId || !userId) {
     throw new Error('Missing required metadata for event payment')
   }
+
+  // Handle unlimited participants
+  const participantLimit = maxParticipants === 'unlimited' ? -1 : parseInt(maxParticipants)
 
   // Update event payment status
   await prisma.event.update({
@@ -127,7 +132,7 @@ async function handleEventPaymentCompleted(session: any) {
       stripePaymentId: session.payment_intent,
       paidAmount: session.amount_total,
       paidAt: new Date(),
-      maxParticipants: parseInt(maxParticipants)
+      maxParticipants: participantLimit
     }
   })
 
@@ -138,15 +143,61 @@ async function handleEventPaymentCompleted(session: any) {
       eventId,
       action: 'event_payment_completed',
       details: JSON.stringify({
-        eventSize,
+        eventTier,
         amount: session.amount_total / 100, // Convert from cents
-        maxParticipants: parseInt(maxParticipants),
+        maxParticipants: participantLimit,
         sessionId: session.id
       })
     }
   })
 
-  console.log(`Successfully processed payment for event ${eventId} (${eventSize} - $${session.amount_total / 100})`)
+  console.log(`Successfully processed payment for event ${eventId} (${eventTier} - $${session.amount_total / 100})`)
+}
+
+async function handleEventUpgradeCompleted(session: any) {
+  const { eventId, userId, tier } = session.metadata
+
+  if (!eventId || !userId || !tier) {
+    throw new Error('Missing required metadata for event upgrade')
+  }
+
+  // Get the pricing tier limits
+  const { PRICING_TIERS } = await import('~/types/pricing')
+  const tierConfig = PRICING_TIERS.find(t => t.id === tier)
+  
+  if (!tierConfig) {
+    throw new Error(`Invalid tier: ${tier}`)
+  }
+
+  // Update event with new participant limit and payment info
+  await prisma.event.update({
+    where: { id: eventId },
+    data: {
+      maxParticipants: tierConfig.participantLimit,
+      paymentStatus: 'PAID',
+      paymentType: 'PAY_PER_EVENT',
+      stripePaymentId: session.payment_intent,
+      paidAmount: session.amount_total,
+      paidAt: new Date()
+    }
+  })
+
+  // Log the upgrade
+  await prisma.auditLog.create({
+    data: {
+      userId,
+      eventId,
+      action: 'event_upgraded',
+      details: JSON.stringify({
+        tier,
+        amount: session.amount_total / 100,
+        maxParticipants: tierConfig.participantLimit,
+        sessionId: session.id
+      })
+    }
+  })
+
+  console.log(`Successfully upgraded event ${eventId} to ${tier} tier - $${session.amount_total / 100}`)
 }
 
 async function handleSubscriptionUpdated(stripeEvent: any) {

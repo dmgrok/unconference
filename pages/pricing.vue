@@ -1,192 +1,250 @@
-<script setup lang="ts">
-import { StripeService } from '~/lib/stripe'
-
-definePageMeta({
-  layout: 'public'
-})
-
-const { user } = useUserSession()
-const loading = ref(false)
-const selectedPlan = ref<string | null>(null)
-
-// Get pricing plans from Stripe service
-const pricingPlans = StripeService.getPricingPlans()
-
-useSeoMeta({
-  title: 'Pricing - Unconference',
-  description: 'Affordable pricing for community event organizers. Start free, upgrade as you grow your events.',
-})
-
-async function upgradeToPlan(tier: string) {
-  if (!user.value) {
-    await navigateTo('/login?redirect=/pricing')
-    return
-  }
-
-  if (tier === 'FREE') {
-    return // Already free
-  }
-
-  try {
-    loading.value = true
-    selectedPlan.value = tier
-
-    const response = await $fetch('/api/stripe/checkout', {
-      method: 'POST',
-      body: {
-        tier,
-        successUrl: `${window.location.origin}/pricing/success`,
-        cancelUrl: `${window.location.origin}/pricing`
-      }
-    })
-
-    // Redirect to Stripe checkout
-    window.location.href = response.checkoutUrl
-  } catch (error: any) {
-    console.error('Upgrade error:', error)
-    alert('Failed to start upgrade process. Please try again.')
-  } finally {
-    loading.value = false
-    selectedPlan.value = null
-  }
-}
-
-const features = {
-  community: [
-    '👥 Perfect for meetups and workshops',
-    '🎯 Replaces Klaxoon, Miro for agenda planning',
-    '📱 QR codes for instant participant access',
-    '🏷️ Custom branding for your events',
-    '📊 Basic analytics and export',
-    '✉️ Email templates for participants'
-  ],
-  organizer: [
-    '🏢 Great for conferences and series',
-    '👥 Multiple organizer collaboration', 
-    '📋 Advanced attendee management',
-    '📈 Detailed analytics and insights',
-    '💬 Feedback collection tools',
-    '⚡ Priority email support'
-  ],
-  unlimited: [
-    '🚀 Large conferences and companies',
-    '🌐 Custom domains and white-label',
-    '🔌 API access for integrations',
-    '☎️ Priority phone support',
-    '⚙️ Custom feature development',
-    '🛡️ Enterprise security options'
-  ]
-}
-</script>
-
 <template>
-  <div class="pricing-page">
+  <div class="pricing-landing-page">
     <!-- Hero Section -->
     <section class="hero-section">
       <v-container class="py-16">
         <div class="text-center">
-          <h1 class="hero-title mb-6">
-            Simple Pricing for Event Organizers
+          <h1 class="text-h2 font-weight-bold text-white mb-4">
+            Event Management at 90% Less Cost
           </h1>
-          <p class="hero-subtitle mb-8">
-            From community meetups to professional conferences. <br>
-            Start free, upgrade only when you need more capacity.
+          <p class="text-h5 text-blue-lighten-2 mb-8 mx-auto" style="max-width: 600px">
+            While Sessionize charges €500 per event, we deliver professional unconference management starting at just $29
           </p>
+          <v-btn
+            color="white"
+            size="x-large"
+            variant="flat"
+            class="text-primary"
+            to="/events/create"
+          >
+            Start Your Event Today
+            <v-icon end>mdi-arrow-right</v-icon>
+          </v-btn>
         </div>
       </v-container>
     </section>
 
-    <!-- Pricing Cards -->
-    <section class="pricing-section">
-      <v-container class="py-16">
-        <v-row justify="center">
-          <v-col
-            v-for="plan in pricingPlans"
-            :key="plan.tier"
-            cols="12"
-            md="6"
-            lg="3"
-          >
-            <v-card
-              :class="{ 'highlighted-plan': plan.highlighted }"
-              class="pricing-card h-100"
-              :elevation="plan.highlighted ? 8 : 2"
-            >
-              <!-- Popular Badge -->
-              <div v-if="plan.highlighted" class="popular-badge">
-                <v-chip color="primary" size="small">
-                  Most Popular
-                </v-chip>
-              </div>
+    <!-- Comparison Section -->
+    <section class="comparison-section py-16">
+      <v-container>
+        <h2 class="text-h3 font-weight-bold text-center mb-12">
+          See the Difference
+        </h2>
 
-              <v-card-title class="text-center pt-6">
-                <div class="plan-header">
-                  <h3 class="plan-name">{{ plan.name }}</h3>
-                  <div class="plan-price">
-                    <span v-if="plan.price === 0" class="price-large">Free</span>
-                    <template v-else>
-                      <span class="currency">$</span>
-                      <span class="price-large">{{ plan.price }}</span>
-                      <span class="period">/month</span>
-                    </template>
-                  </div>
-                  <p class="plan-description">{{ plan.description }}</p>
+        <v-row justify="center">
+          <v-col cols="12" md="10" lg="8">
+            <!-- Competitor Comparison -->
+            <v-card elevation="3" class="mb-8">
+              <v-card-title class="bg-red-lighten-4 text-center pa-6">
+                <div>
+                  <h3 class="text-h4 text-red-darken-2">Sessionize</h3>
+                  <div class="text-h3 font-weight-bold text-red-darken-3 mt-2">€500</div>
+                  <div class="text-subtitle-1 text-red-darken-1">Per Event</div>
                 </div>
               </v-card-title>
 
-              <v-card-text class="plan-features">
-                <!-- Key Limits -->
-                <div class="limits-section mb-4">
-                  <div class="limit-item">
-                    <v-icon color="primary" class="mr-2">mdi-account-group</v-icon>
-                    <strong>
-                      {{ plan.tier === 'FREE' ? '50' : plan.tier === 'COMMUNITY' ? '150' : plan.tier === 'ORGANIZER' ? '300' : 'Unlimited' }} 
-                      participants
-                    </strong>
-                  </div>
-                  <div class="limit-item">
-                    <v-icon color="primary" class="mr-2">mdi-calendar</v-icon>
-                    <strong>
-                      {{ plan.tier === 'FREE' ? '5' : plan.tier === 'COMMUNITY' ? '15' : plan.tier === 'ORGANIZER' ? '30' : 'Unlimited' }} 
-                      events/month
-                    </strong>
-                  </div>
+              <v-card-text class="pa-6">
+                <v-list density="compact">
+                  <v-list-item prepend-icon="mdi-check" class="text-red-darken-2">
+                    <v-list-item-title>Call for speakers management</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check" class="text-red-darken-2">
+                    <v-list-item-title>Speaker communication</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check" class="text-red-darken-2">
+                    <v-list-item-title>Agenda building</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-close" class="text-red-darken-1">
+                    <v-list-item-title class="text-decoration-line-through">Participant-driven topics</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-close" class="text-red-darken-1">
+                    <v-list-item-title class="text-decoration-line-through">Real-time voting</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-close" class="text-red-darken-1">
+                    <v-list-item-title class="text-decoration-line-through">Open Space Technology</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+
+                <v-alert type="error" variant="tonal" class="mt-4">
+                  <strong>€500 per event</strong> - Expensive for single events or small organizations
+                </v-alert>
+              </v-card-text>
+            </v-card>
+
+            <!-- Our Solution -->
+            <v-card elevation="5" class="border-primary" style="border-width: 3px">
+              <v-card-title class="bg-primary text-center pa-6">
+                <div>
+                  <h3 class="text-h4 text-white">Unconference Platform</h3>
+                  <div class="text-h3 font-weight-bold text-white mt-2">$29 - $99</div>
+                  <div class="text-subtitle-1 text-blue-lighten-2">Per Event</div>
                 </div>
+              </v-card-title>
 
-                <!-- Feature List -->
-                <v-divider class="mb-4"></v-divider>
-                <ul class="feature-list">
-                  <li v-for="feature in plan.features" :key="feature" class="feature-item">
-                    <v-icon color="success" size="small" class="mr-2">mdi-check</v-icon>
-                    {{ feature }}
-                  </li>
-                </ul>
+              <v-card-text class="pa-6">
+                <v-list density="compact">
+                  <v-list-item prepend-icon="mdi-check-circle" class="text-primary">
+                    <v-list-item-title class="font-weight-medium">Participant-driven topic creation</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check-circle" class="text-primary">
+                    <v-list-item-title class="font-weight-medium">Real-time voting system</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check-circle" class="text-primary">
+                    <v-list-item-title class="font-weight-medium">Open Space Technology methodology</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check-circle" class="text-primary">
+                    <v-list-item-title class="font-weight-medium">Round management & timers</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check-circle" class="text-primary">
+                    <v-list-item-title class="font-weight-medium">QR code access</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check-circle" class="text-primary">
+                    <v-list-item-title class="font-weight-medium">Simple networking</v-list-item-title>
+                  </v-list-item>
+                </v-list>
 
-                <!-- Community-focused features -->
-                <div v-if="plan.tier === 'COMMUNITY'" class="community-highlight mt-4">
-                  <v-alert type="info" variant="tonal" density="compact">
-                    <div class="d-flex align-center">
-                      <v-icon class="mr-2">mdi-heart</v-icon>
-                      <span class="text-caption">
-                        Perfect replacement for Klaxoon, Excel, or paper-based agenda planning
-                      </span>
-                    </div>
-                  </v-alert>
+                <v-alert type="success" variant="tonal" class="mt-4">
+                  <strong>94% cost savings</strong> - From €500 to $29-$99 per event
+                </v-alert>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </section>
+
+    <!-- Pricing Tiers -->
+    <section class="pricing-tiers py-16 bg-grey-lighten-5">
+      <v-container>
+        <h2 class="text-h3 font-weight-bold text-center mb-4">
+          Choose Your Event Size
+        </h2>
+        <p class="text-h6 text-center text-medium-emphasis mb-12">
+          Pay only for what you need, when you need it
+        </p>
+
+        <v-row>
+          <!-- Free Tier -->
+          <v-col cols="12" md="4">
+            <v-card elevation="2" class="h-100 text-center">
+              <v-card-title class="bg-grey-lighten-3 pa-6">
+                <div>
+                  <h3 class="text-h5">Free</h3>
+                  <div class="text-h3 font-weight-bold text-primary mt-2">$0</div>
+                  <div class="text-subtitle-2 text-medium-emphasis">Up to 50 participants</div>
+                </div>
+              </v-card-title>
+
+              <v-card-text class="pa-6">
+                <v-list density="compact" class="bg-transparent">
+                  <v-list-item prepend-icon="mdi-check">
+                    <v-list-item-title>Basic topic voting</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check">
+                    <v-list-item-title>Round management</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check">
+                    <v-list-item-title>QR code access</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check">
+                    <v-list-item-title>Simple networking</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-card-text>
+
+              <v-card-actions class="pa-6">
+                <v-btn color="grey" variant="outlined" block to="/events/create">
+                  Start Free Event
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+
+          <!-- Professional Tier -->
+          <v-col cols="12" md="4">
+            <v-card elevation="5" class="h-100 text-center border-primary position-relative" style="border-width: 2px">
+              <v-chip color="primary" class="position-absolute" style="top: -12px; left: 50%; transform: translateX(-50%)">
+                Most Popular
+              </v-chip>
+
+              <v-card-title class="bg-primary pa-6">
+                <div>
+                  <h3 class="text-h5 text-white">Professional</h3>
+                  <div class="text-h3 font-weight-bold text-white mt-2">$29</div>
+                  <div class="text-subtitle-2 text-blue-lighten-2">Up to 100 participants</div>
+                </div>
+              </v-card-title>
+
+              <v-card-text class="pa-6">
+                <v-list density="compact" class="bg-transparent">
+                  <v-list-item prepend-icon="mdi-check" class="text-primary">
+                    <v-list-item-title>Everything in Free</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check" class="text-primary">
+                    <v-list-item-title>Advanced analytics</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check" class="text-primary">
+                    <v-list-item-title>Data export</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check" class="text-primary">
+                    <v-list-item-title>Email support</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+
+                <div class="mt-4 pa-3 bg-primary rounded">
+                  <div class="text-white text-center">
+                    <strong>94% savings</strong><br>
+                    <small>vs. Sessionize €500</small>
+                  </div>
                 </div>
               </v-card-text>
 
-              <v-card-actions class="px-6 pb-6">
-                <v-btn
-                  :color="plan.highlighted ? 'primary' : 'outline'"
-                  :variant="plan.highlighted ? 'elevated' : 'outlined'"
-                  :loading="loading && selectedPlan === plan.tier"
-                  :disabled="loading"
-                  size="large"
-                  block
-                  @click="upgradeToPlan(plan.tier)"
-                >
-                  <span v-if="plan.price === 0">Get Started Free</span>
-                  <span v-else>Upgrade to {{ plan.name }}</span>
+              <v-card-actions class="pa-6">
+                <v-btn color="primary" variant="flat" block to="/events/create">
+                  Choose Professional
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+
+          <!-- Enterprise Tier -->
+          <v-col cols="12" md="4">
+            <v-card elevation="2" class="h-100 text-center">
+              <v-card-title class="bg-grey-lighten-2 pa-6">
+                <div>
+                  <h3 class="text-h5">Enterprise</h3>
+                  <div class="text-h3 font-weight-bold text-primary mt-2">$99</div>
+                  <div class="text-subtitle-2 text-medium-emphasis">Unlimited participants</div>
+                </div>
+              </v-card-title>
+
+              <v-card-text class="pa-6">
+                <v-list density="compact" class="bg-transparent">
+                  <v-list-item prepend-icon="mdi-check">
+                    <v-list-item-title>Everything in Professional</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check">
+                    <v-list-item-title>Priority support</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check">
+                    <v-list-item-title>Custom branding</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item prepend-icon="mdi-check">
+                    <v-list-item-title>Advanced integrations</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+
+                <div class="mt-4 pa-3 bg-orange rounded">
+                  <div class="text-white text-center">
+                    <strong>80% savings</strong><br>
+                    <small>vs. Sessionize €500</small>
+                  </div>
+                </div>
+              </v-card-text>
+
+              <v-card-actions class="pa-6">
+                <v-btn color="orange" variant="flat" block to="/events/create">
+                  Choose Enterprise
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -195,258 +253,201 @@ const features = {
       </v-container>
     </section>
 
-    <!-- FAQ Section -->
-    <section class="faq-section bg-grey-lighten-5">
-      <v-container class="py-16">
-        <div class="text-center mb-12">
-          <h2 class="section-title">Frequently Asked Questions</h2>
-          <p class="section-subtitle">
-            Common questions from community organizers
-          </p>
-        </div>
+    <!-- Value Proposition -->
+    <section class="value-prop py-16">
+      <v-container>
+        <v-row align="center">
+          <v-col cols="12" md="6">
+            <h2 class="text-h3 font-weight-bold mb-6">
+              Why Event Organizers Choose Us
+            </h2>
 
-        <v-row>
-          <v-col cols="12" md="8" class="mx-auto">
-            <v-expansion-panels variant="accordion">
-              <v-expansion-panel>
-                <v-expansion-panel-title>
-                  How is this better than using Klaxoon or Excel?
-                </v-expansion-panel-title>
-                <v-expansion-panel-text>
-                  Unlike static tools, our platform provides real-time voting, automatic group formation based on preferences, 
-                  and seamless participant interaction. No more manual counting or complex spreadsheet formulas - 
-                  everything happens automatically as participants vote and join.
-                </v-expansion-panel-text>
-              </v-expansion-panel>
+            <v-list class="bg-transparent">
+              <v-list-item prepend-icon="mdi-cash-multiple" class="mb-4">
+                <v-list-item-title class="text-h6 font-weight-medium">
+                  Affordable Per-Event Pricing
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-body-2">
+                  No monthly subscriptions. Pay only when you host an event.
+                </v-list-item-subtitle>
+              </v-list-item>
 
-              <v-expansion-panel>
-                <v-expansion-panel-title>
-                  What happens if I exceed my participant limit?
-                </v-expansion-panel-title>
-                <v-expansion-panel-text>
-                  We'll send you a notification when you're approaching your limit. You can easily upgrade before your event, 
-                  or we offer one-time overages for special occasions. No events will be shut down mid-session.
-                </v-expansion-panel-text>
-              </v-expansion-panel>
+              <v-list-item prepend-icon="mdi-account-group" class="mb-4">
+                <v-list-item-title class="text-h6 font-weight-medium">
+                  True Participant Engagement
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-body-2">
+                  Let participants create and vote on topics in real-time.
+                </v-list-item-subtitle>
+              </v-list-item>
 
-              <v-expansion-panel>
-                <v-expansion-panel-title>
-                  Can I try premium features before upgrading?
-                </v-expansion-panel-title>
-                <v-expansion-panel-text>
-                  Yes! All new accounts get a 14-day trial of Community features. You can also request a demo 
-                  for larger events to see all features in action.
-                </v-expansion-panel-text>
-              </v-expansion-panel>
+              <v-list-item prepend-icon="mdi-lightning-bolt" class="mb-4">
+                <v-list-item-title class="text-h6 font-weight-medium">
+                  Quick Setup
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-body-2">
+                  Create an event in minutes. No complex configuration required.
+                </v-list-item-subtitle>
+              </v-list-item>
 
-              <v-expansion-panel>
-                <v-expansion-panel-title>
-                  Is there a discount for non-profits?
-                </v-expansion-panel-title>
-                <v-expansion-panel-text>
-                  Absolutely! We offer 50% discounts for registered non-profits, educational institutions, 
-                  and community organizations. Contact us with your organization details.
-                </v-expansion-panel-text>
-              </v-expansion-panel>
+              <v-list-item prepend-icon="mdi-heart" class="mb-4">
+                <v-list-item-title class="text-h6 font-weight-medium">
+                  Built for Unconferences
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-body-2">
+                  Designed specifically for Open Space Technology and participant-driven events.
+                </v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+          </v-col>
 
-              <v-expansion-panel>
-                <v-expansion-panel-title>
-                  What if my events are irregular (not monthly)?
-                </v-expansion-panel-title>
-                <v-expansion-panel-text>
-                  You can upgrade and downgrade anytime. Many organizers upgrade just for their conference season 
-                  and downgrade afterwards. No long-term contracts required.
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-            </v-expansion-panels>
+          <v-col cols="12" md="6" class="text-center">
+            <v-card elevation="3" class="pa-8">
+              <v-icon size="80" color="primary" class="mb-4">mdi-calculator</v-icon>
+              <h3 class="text-h4 font-weight-bold mb-4">Cost Comparison</h3>
+
+              <div class="mb-6">
+                <div class="text-h6 text-red-darken-2 mb-2">
+                  <v-icon start color="red">mdi-close</v-icon>
+                  Sessionize: €500 per event
+                </div>
+                <div class="text-h6 text-primary">
+                  <v-icon start color="primary">mdi-check</v-icon>
+                  Our Platform: $29-$99 per event
+                </div>
+              </div>
+
+              <v-divider class="mb-4" />
+
+              <div class="text-h5 font-weight-bold text-success">
+                Save $400+ per event
+              </div>
+            </v-card>
           </v-col>
         </v-row>
+      </v-container>
+    </section>
 
-        <div class="text-center mt-12">
-          <p class="text-body-1 mb-4">
-            Still have questions? We're here to help!
+    <!-- CTA Section -->
+    <section class="cta-section bg-primary py-16">
+      <v-container>
+        <div class="text-center">
+          <h2 class="text-h3 font-weight-bold text-white mb-4">
+            Ready to Save 90% on Your Next Event?
+          </h2>
+          <p class="text-h6 text-blue-lighten-2 mb-8">
+            Start with our free tier or choose the plan that fits your event size
           </p>
-          <v-btn
-            color="primary"
-            size="large"
-            prepend-icon="mdi-email"
-            href="mailto:hello@unconference.app"
-          >
-            Contact Us
-          </v-btn>
+
+          <div class="d-flex justify-center gap-4 flex-wrap">
+            <v-btn
+              color="white"
+              size="x-large"
+              variant="flat"
+              class="text-primary"
+              to="/events/create"
+            >
+              Create Free Event
+            </v-btn>
+
+            <v-btn
+              color="transparent"
+              size="x-large"
+              variant="outlined"
+              class="text-white border-white"
+              href="mailto:hello@unconference.app"
+            >
+              Contact Sales
+            </v-btn>
+          </div>
         </div>
       </v-container>
     </section>
   </div>
 </template>
 
+<script setup lang="ts">
+// SEO Meta
+useSeoMeta({
+  title: 'Pricing - 90% Less Than Sessionize | Unconference Platform',
+  description: 'Professional event management starting at $29. Save $400+ per event compared to Sessionize. Perfect for unconferences and participant-driven events.',
+  keywords: 'event management pricing, sessionize alternative, unconference platform, open space technology, affordable event software'
+})
+
+// Structured data for pricing
+useJsonld({
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  'name': 'Unconference Platform',
+  'description': 'Participant-driven event management platform for unconferences',
+  'offers': [
+    {
+      '@type': 'Offer',
+      'name': 'Free Tier',
+      'price': '0',
+      'priceCurrency': 'USD',
+      'description': 'Up to 50 participants'
+    },
+    {
+      '@type': 'Offer',
+      'name': 'Professional',
+      'price': '29',
+      'priceCurrency': 'USD',
+      'description': 'Up to 100 participants'
+    },
+    {
+      '@type': 'Offer',
+      'name': 'Enterprise',
+      'price': '99',
+      'priceCurrency': 'USD',
+      'description': 'Unlimited participants'
+    }
+  ]
+})
+</script>
+
 <style scoped>
-.pricing-page {
-  min-height: 100vh;
+.pricing-landing-page {
+  background: white;
 }
 
-/* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #06B6D4 100%);
-  color: white;
-}
-
-.hero-title {
-  font-size: clamp(2.5rem, 5vw, 3.5rem);
-  font-weight: 800;
-  line-height: 1.2;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.hero-subtitle {
-  font-size: clamp(1.1rem, 2vw, 1.3rem);
-  opacity: 0.95;
-  line-height: 1.6;
-}
-
-/* Pricing Cards */
-.pricing-section {
-  background: linear-gradient(135deg, #FEFEFE 0%, #F8FAFC 100%);
-}
-
-.pricing-card {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 50%, #0d47a1 100%);
   position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 16px;
-  overflow: visible;
+  overflow: hidden;
 }
 
-.pricing-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
-}
-
-.highlighted-plan {
-  border: 2px solid #6366F1;
-  transform: scale(1.05);
-}
-
-.highlighted-plan:hover {
-  transform: scale(1.05) translateY(-4px);
-}
-
-.popular-badge {
+.hero-section::before {
+  content: '';
   position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
 }
 
-.plan-header {
-  padding: 1rem 0;
+.comparison-section {
+  background: white;
 }
 
-.plan-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1E293B;
-  margin-bottom: 1rem;
+.value-prop {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 }
 
-.plan-price {
-  margin-bottom: 1rem;
+.border-primary {
+  border-color: rgb(var(--v-theme-primary)) !important;
 }
 
-.currency {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #6366F1;
-  vertical-align: top;
+.gap-4 {
+  gap: 1rem;
 }
 
-.price-large {
-  font-size: 3rem;
-  font-weight: 800;
-  color: #6366F1;
-  line-height: 1;
-}
-
-.period {
-  font-size: 1rem;
-  color: #64748B;
-  font-weight: 500;
-}
-
-.plan-description {
-  font-size: 0.9rem;
-  color: #64748B;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.limits-section {
-  background: rgba(var(--v-theme-primary), 0.05);
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.limit-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.limit-item:last-child {
-  margin-bottom: 0;
-}
-
-.feature-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 0;
-  font-size: 0.9rem;
-  color: #374151;
-}
-
-.community-highlight {
-  background: rgba(var(--v-theme-info), 0.05);
-  border-radius: 8px;
-  padding: 0.75rem;
-}
-
-/* Section Styling */
-.section-title {
-  font-size: clamp(2rem, 4vw, 2.5rem);
-  font-weight: 800;
-  color: #1E293B;
-  margin-bottom: 1rem;
-}
-
-.section-subtitle {
-  font-size: 1.1rem;
-  color: #64748B;
-  margin-bottom: 2rem;
-}
-
-.faq-section {
-  background: #F8FAFC;
-}
-
-/* Responsive Design */
 @media (max-width: 960px) {
-  .highlighted-plan {
-    transform: none;
-  }
-  
-  .highlighted-plan:hover {
-    transform: translateY(-4px);
-  }
-  
-  .pricing-card {
-    margin-bottom: 2rem;
+  .gap-4 {
+    flex-direction: column;
+    align-items: center;
   }
 }
 </style>

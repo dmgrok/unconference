@@ -17,6 +17,9 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vuetify'],
   },
+  alias: {
+    '.prisma/client/index-browser': './node_modules/.prisma/client/index-browser.js'
+  },
   hooks: {
     'pages:extend' (pages: NuxtPage[]) {
       function setMiddleware (pages: NuxtPage[]) {
@@ -97,6 +100,13 @@ export default defineNuxtConfig({
     },
     server: {
       allowedHosts: ['localhost', '.ngrok.dev'] 
+    },
+    // Fix Prisma build issues
+    define: {
+      global: 'globalThis',
+    },
+    optimizeDeps: {
+      exclude: ['@prisma/client']
     }
   },
   nitro: {
@@ -104,7 +114,11 @@ export default defineNuxtConfig({
       wasm: true,
       websocket: true
     },
-    plugins: ['~/server/plugins/websocket.ts']
+    plugins: ['~/server/plugins/websocket.ts'],
+    // Ensure Prisma works in production
+    externals: {
+      inline: ['@prisma/client']
+    }
   },
   // Security configuration
   ssr: true,

@@ -9,7 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const createEventCheckoutSchema = z.object({
   eventId: z.string().min(1, 'Event ID is required'),
-  eventSize: z.enum(['SMALL', 'MEDIUM', 'LARGE']),
+  eventTier: z.enum(['PROFESSIONAL', 'ENTERPRISE']),
   successUrl: z.string().url('Valid success URL required'),
   cancelUrl: z.string().url('Valid cancel URL required')
 })
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const body = await readBody(event)
-    const { eventId, eventSize, successUrl, cancelUrl } = createEventCheckoutSchema.parse(body)
+    const { eventId, eventTier, successUrl, cancelUrl } = createEventCheckoutSchema.parse(body)
 
     // Get current user from session
     const session = await getUserSession(event)
@@ -66,21 +66,21 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Get pricing for selected event size
-    const pricing = PAY_PER_EVENT_PRICING[eventSize]
+    // Get pricing for selected event tier
+    const pricing = PAY_PER_EVENT_PRICING[eventTier]
     if (!pricing) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Invalid event size'
+        statusMessage: 'Invalid event tier'
       })
     }
 
-    // Verify event size is appropriate
+    // Verify event tier is appropriate
     const currentParticipants = eventRecord.memberships.length
-    if (currentParticipants > pricing.maxParticipants) {
+    if (pricing.maxParticipants !== -1 && currentParticipants > pricing.maxParticipants) {
       throw createError({
         statusCode: 400,
-        statusMessage: `Event has ${currentParticipants} participants but selected size supports only ${pricing.maxParticipants}`
+        statusMessage: `Event has ${currentParticipants} participants but selected tier supports only ${pricing.maxParticipants}`
       })
     }
 
@@ -91,12 +91,12 @@ export default defineEventHandler(async (event) => {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: `${eventSize} Event - ${eventRecord.title}`,
+            name: `${eventTier} Event - ${eventRecord.title}`,
             description: pricing.description,
             metadata: {
               eventId: eventRecord.id,
               eventTitle: eventRecord.title,
-              maxParticipants: pricing.maxParticipants.toString()
+              maxParticipants: pricing.maxParticipants === -1 ? 'unlimited' : pricing.maxParticipants.toString()
             }
           },
           unit_amount: pricing.price * 100, // Stripe expects cents
@@ -111,8 +111,8 @@ export default defineEventHandler(async (event) => {
         eventId: eventRecord.id,
         userId: session.user.id,
         paymentType: 'pay_per_event',
-        eventSize: eventSize,
-        maxParticipants: pricing.maxParticipants.toString()
+        eventTier: eventTier,
+        maxParticipants: pricing.maxParticipants === -1 ? 'unlimited' : pricing.maxParticipants.toString()
       }
     })
 

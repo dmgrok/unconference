@@ -230,6 +230,9 @@ async function logout() {
         <v-spacer />
 
         <div class="header-actions">
+          <!-- Global Feedback Button (visible to all users) -->
+          <FeedbackButton />
+
           <template v-if="loggedIn">
             <!-- Logged-in User Actions -->
             <v-btn
@@ -239,7 +242,7 @@ async function logout() {
             >
               My Events
             </v-btn>
-            
+
             <v-btn
               variant="text"
               to="/voting"
@@ -247,7 +250,7 @@ async function logout() {
             >
               Voting & Topics
             </v-btn>
-            
+
             <v-btn
               v-if="isOrganizer"
               variant="text"

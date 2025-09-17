@@ -3,245 +3,46 @@
     "tasks": [
       {
         "id": 1,
-        "title": "Implement participant limit enforcement system",
-        "description": "Create middleware and UI components to enforce 49-participant limit for free tier users and upgrade prompts",
-        "details": "Build middleware to check participant count against User.participantLimit field during event join operations. Create upgrade prompt UI components that trigger when limits are reached. Implement soft enforcement that shows warnings before hard limits. Add database triggers and validation. Update event creation to respect tier limits. Create subscription tier comparison UI for upgrade decisions.",
-        "testStrategy": "Unit tests for middleware enforcement, integration tests for upgrade flow, edge case testing with exactly 49/50 participants, test upgrade prompt timing and content",
-        "priority": "high",
+        "title": "Simplify existing API endpoints to match lean functionality",
+        "description": "Review and streamline current API endpoints, removing unnecessary complexity and features that don't align with the lean MVP approach",
+        "details": "",
+        "testStrategy": "",
+        "status": "in-progress",
         "dependencies": [],
-        "status": "done",
+        "priority": "high",
         "subtasks": []
       },
       {
         "id": 2,
-        "title": "Complete email delivery infrastructure",
-        "description": "Finish email service configuration for production use and implement post-event summary delivery",
-        "details": "Configure production SMTP settings and test email deliverability. Extend existing EmailService class to support post-event summaries, connection recommendations, and follow-up reminders. Create email templates for networking summaries, collaboration invitations, and achievement notifications. Implement email queue system for batch sending. Add email preference management for users. Test with major email providers (Gmail, Outlook).",
-        "testStrategy": "SMTP connectivity tests, email template rendering tests, deliverability testing across providers, queue processing verification, preference management validation",
+        "title": "Test API functionality after cleanup",
+        "description": "Verify that all simplified API endpoints still work correctly and maintain backward compatibility where needed",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          1
+        ],
         "priority": "high",
-        "dependencies": [],
-        "status": "done",
         "subtasks": []
       },
       {
         "id": 3,
-        "title": "Build Progressive Web App (PWA) configuration",
-        "description": "Add PWA capabilities with service worker, app manifest, and offline support for core features",
-        "details": "Create nuxt.config.ts PWA module configuration with @nuxtjs/pwa. Design app manifest.json with proper icons, theme colors, and display modes. Implement service worker for caching voting interface, topic lists, and user data. Add offline mode for viewing assigned rooms and basic participation. Configure push notifications for round changes and important updates. Test install-to-homescreen functionality across iOS/Android.",
-        "testStrategy": "PWA audit with Lighthouse, offline functionality testing, push notification delivery verification, install prompt testing, cache strategy validation",
+        "title": "Update API documentation",
+        "description": "Revise API documentation to reflect the simplified endpoints and ensure all examples and usage guides are current",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          2
+        ],
         "priority": "high",
-        "dependencies": [],
-        "status": "cancelled",
-        "subtasks": []
-      },
-      {
-        "id": 4,
-        "title": "Implement real-time collaborative editing backend",
-        "description": "Create WebSocket-based collaborative editing system for shared workspace notes and resources",
-        "details": "Set up WebSocket server using Nuxt 3's built-in server capabilities or Socket.IO. Implement operational transformation or CRDT algorithms for conflict-free collaborative text editing. Extend CollaborationSpace model with real-time sync fields. Create collaborative editor component using prosemirror or similar. Add presence indicators showing who's currently editing. Handle connection drops and conflict resolution. Implement cursor synchronization and user awareness.",
-        "testStrategy": "Concurrent editing conflict tests, connection drop recovery testing, performance testing with multiple simultaneous editors, data consistency validation",
-        "priority": "medium",
-        "dependencies": [],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 5,
-        "title": "Build work showcase CRUD API and management interface",
-        "description": "Complete the WorkShowcase functionality with full create, read, update, delete operations and admin interface",
-        "details": "Create API endpoints for WorkShowcase CRUD operations building on existing schema. Implement project creation form with image upload, skill tagging, and status management. Build project editing interface with version history. Add project discovery and filtering by skills, status, and event. Implement project collaboration request system. Create admin interface for project moderation. Add project analytics and success tracking.",
-        "testStrategy": "API endpoint testing for all CRUD operations, image upload validation, skill matching algorithm testing, collaboration request flow testing, admin moderation workflow validation",
-        "priority": "medium",
-        "dependencies": [],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 6,
-        "title": "Develop skill matching and recommendation engine",
-        "description": "Implement intelligent skill-based matching system for connecting participants and projects",
-        "details": "Build algorithm using existing SkillMatch model to analyze skill complementarity and shared interests. Implement text similarity matching for skills and interests fields. Create recommendation API that suggests people to meet based on skills, projects, and goals. Build 'People you should meet' component with real-time suggestions. Add matching strength scoring and explanation. Implement introduction facilitation system. Create skill taxonomy and normalization.",
-        "testStrategy": "Algorithm accuracy testing with sample skill data, recommendation relevance validation, performance testing with large user bases, skill normalization verification",
-        "priority": "medium",
-        "dependencies": [
-          5
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 7,
-        "title": "Create real-time connection tracking and suggestions",
-        "description": "Enhance existing InvisibleConnectionTracker with real-time suggestions and live networking insights",
-        "details": "Extend existing connection tracking infrastructure to provide real-time networking suggestions during events. Implement proximity-based suggestions using room assignments and topic preferences. Build live networking dashboard showing connection opportunities. Add intelligent introduction requests and facilitation. Create connection strength real-time updates. Implement networking goal tracking and progress indicators.",
-        "testStrategy": "Real-time suggestion accuracy testing, connection strength algorithm validation, networking goal completion tracking, live dashboard performance testing",
-        "priority": "medium",
-        "dependencies": [
-          6
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 8,
-        "title": "Implement Stripe subscription upgrade flows",
-        "description": "Complete payment processing system with upgrade paths and subscription management",
-        "details": "Extend existing Stripe integration to handle subscription upgrades from free to paid tiers. Build upgrade flow UI components triggered by participant limits. Implement prorated billing for mid-cycle upgrades. Add subscription management dashboard for users. Create webhook handlers for subscription status changes. Implement subscription recovery flows for failed payments. Add subscription analytics and reporting.",
-        "testStrategy": "Payment flow testing with test cards, webhook reliability verification, proration calculation accuracy, subscription state management validation, failed payment recovery testing",
-        "priority": "high",
-        "dependencies": [
-          1
-        ],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 9,
-        "title": "Build advanced analytics and reporting dashboard",
-        "description": "Create comprehensive analytics system for events, connections, and platform usage",
-        "details": "Design analytics data model extending existing tracking infrastructure. Build analytics dashboard with engagement metrics, connection success rates, and ROI calculations. Implement data visualization using D3.js (already included). Create exportable reports for event organizers. Add real-time analytics during events. Implement cohort analysis and user journey tracking. Build predictive analytics for event success factors.",
-        "testStrategy": "Data accuracy validation, visualization rendering testing, export functionality verification, real-time metrics performance testing, analytics query optimization",
-        "priority": "medium",
-        "dependencies": [],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 10,
-        "title": "Implement LinkedIn and social media platform integration",
-        "description": "Add OAuth integration with LinkedIn, Twitter, and other platforms for professional networking",
-        "details": "Set up OAuth providers for LinkedIn, Twitter, and Facebook using nuxt-auth-utils. Implement profile importing from social platforms to enrich user data. Build post-event sharing to LinkedIn with professional templates. Create social media content generation for achievements and connections. Add calendar integration for event scheduling. Implement contact export to professional networks.",
-        "testStrategy": "OAuth flow testing for each platform, profile import accuracy validation, social media posting verification, calendar integration testing, contact export functionality verification",
-        "priority": "medium",
-        "dependencies": [],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 11,
-        "title": "Develop Slack workspace integration",
-        "description": "Create Slack bot and workspace integration for collaboration spaces and follow-up management",
-        "details": "Build Slack app with bot capabilities for workspace integration. Implement collaboration space synchronization with Slack channels. Create follow-up task integration with Slack reminders. Add event notifications and updates via Slack. Build slash commands for quick event participation. Implement Slack-based networking and introduction facilitation.",
-        "testStrategy": "Slack app installation testing, webhook reliability verification, slash command functionality validation, channel synchronization accuracy, notification delivery testing",
-        "priority": "low",
-        "dependencies": [
-          4
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 12,
-        "title": "Build comprehensive testing suite",
-        "description": "Implement unit, integration, and end-to-end testing using existing Playwright and Vitest infrastructure",
-        "details": "Expand existing testing configuration to cover all major user journeys. Create unit tests for business logic, API endpoints, and utility functions. Implement integration tests for authentication flows, event management, and payment processing. Build E2E tests using Playwright for critical user paths. Add performance testing for large events. Implement security testing for authentication and authorization. Create test data factories and fixtures.",
-        "testStrategy": "Test coverage verification (>80% target), CI/CD integration validation, performance benchmark testing, security vulnerability scanning, cross-browser compatibility verification",
-        "priority": "high",
-        "dependencies": [],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 13,
-        "title": "Implement push notification system",
-        "description": "Add web push notifications for round changes, connection opportunities, and important updates",
-        "details": "Configure web push notification service using native Web Push API or service like OneSignal. Implement notification subscription management in user settings. Create notification templates for different event types (round start/end, new connections, achievements). Add notification scheduling for follow-up reminders. Implement notification preferences and unsubscribe options. Build notification analytics and delivery tracking.",
-        "testStrategy": "Cross-browser notification testing, subscription management verification, notification delivery accuracy, preference handling validation, analytics data accuracy",
-        "priority": "medium",
-        "dependencies": [
-          3
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 14,
-        "title": "Create mobile-responsive UI improvements",
-        "description": "Enhance mobile experience with touch-optimized interfaces and gesture support",
-        "details": "Audit existing Vuetify components for mobile optimization opportunities. Implement touch-friendly voting interface with swipe gestures. Add mobile-optimized navigation and bottom sheet patterns. Create mobile-specific layouts for key screens. Implement haptic feedback for touch interactions. Add mobile-optimized onboarding flow. Create mobile-friendly achievement displays and notifications.",
-        "testStrategy": "Multi-device responsive testing, touch interaction validation, performance testing on mobile devices, gesture recognition accuracy, mobile-specific user journey testing",
-        "priority": "medium",
-        "dependencies": [],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 15,
-        "title": "Build calendar integration system",
-        "description": "Add Google Calendar, Outlook, and Apple Calendar integration for event scheduling and follow-ups",
-        "details": "Implement calendar API integrations for major providers using OAuth 2.0. Create event export functionality with proper timezone handling. Build follow-up meeting scheduling with connection contacts. Add calendar event templates for different event types. Implement reminder scheduling and calendar sync. Create calendar widget for event dashboard showing upcoming events and follow-ups.",
-        "testStrategy": "Calendar API integration testing, timezone handling verification, event export accuracy, reminder delivery validation, calendar widget functionality testing",
-        "priority": "low",
-        "dependencies": [
-          10
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 16,
-        "title": "Implement WCAG 2.1 AA accessibility compliance",
-        "description": "Audit and improve accessibility with screen reader support, keyboard navigation, and high contrast modes",
-        "details": "Conduct comprehensive accessibility audit of existing UI components. Implement proper ARIA labels and semantic HTML structure. Add keyboard navigation support for all interactive elements. Create high contrast mode using CSS custom properties. Implement screen reader optimizations and announcements. Add focus management for dynamic content updates. Create accessibility testing workflow.",
-        "testStrategy": "Screen reader testing with NVDA/JAWS, keyboard navigation validation, color contrast verification, ARIA implementation testing, automated accessibility scanning with axe-core",
-        "priority": "medium",
-        "dependencies": [],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 17,
-        "title": "Build white-labeling system for enterprise customers",
-        "description": "Create customizable branding system allowing enterprise customers to brand the platform",
-        "details": "Design theme customization system using CSS custom properties and Vuetify theme configuration. Create admin interface for logo, color, and typography customization. Implement custom domain support with SSL certificate management. Add email template customization for white-labeled instances. Create branded asset generation system. Build enterprise onboarding flow with custom configuration.",
-        "testStrategy": "Theme customization validation, custom domain functionality testing, branded asset generation verification, enterprise onboarding flow testing, multi-tenant isolation validation",
-        "priority": "low",
-        "dependencies": [
-          8
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 18,
-        "title": "Implement SSO and enterprise authentication",
-        "description": "Add SAML/SSO support and multi-factor authentication for enterprise security requirements",
-        "details": "Integrate SAML 2.0 authentication provider using libraries like passport-saml. Implement multi-factor authentication with TOTP and SMS options. Add enterprise directory integration (Active Directory, LDAP). Create enterprise user provisioning and deprovisioning workflows. Implement role mapping from enterprise identity providers. Add audit logging for security compliance.",
-        "testStrategy": "SAML authentication flow testing, MFA validation with multiple methods, directory sync accuracy verification, role mapping validation, security audit log verification",
-        "priority": "low",
-        "dependencies": [
-          17
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 19,
-        "title": "Build public API and developer platform",
-        "description": "Create RESTful API documentation and developer tools for third-party integrations",
-        "details": "Design public API specifications using OpenAPI 3.0 standard. Create API documentation website with interactive examples. Implement API key authentication and rate limiting for external developers. Build webhook system for real-time event notifications to third parties. Create SDK examples in popular languages. Implement API versioning and deprecation policies. Add developer dashboard for API usage analytics.",
-        "testStrategy": "API endpoint functionality testing, rate limiting verification, webhook delivery testing, SDK example validation, developer documentation accuracy verification",
-        "priority": "low",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 20,
-        "title": "Implement multi-language internationalization (i18n)",
-        "description": "Add support for multiple languages with localized content and date/time formatting",
-        "details": "Integrate Vue i18n with Nuxt 3 for full internationalization support. Create translation management system for content updates. Implement locale-aware date/time formatting and number formatting. Add language switching UI with persistent language preferences. Create translation workflow for new content. Implement RTL language support for Arabic and Hebrew. Add locale-specific email templates.",
-        "testStrategy": "Translation accuracy verification, locale switching functionality testing, date/time formatting validation, RTL layout testing, language preference persistence verification",
-        "priority": "low",
-        "dependencies": [],
-        "status": "pending",
         "subtasks": []
       }
     ],
     "metadata": {
-      "created": "2025-09-14T08:15:55.100Z",
-      "updated": "2025-09-15T09:56:32.219Z",
-      "description": "Tasks for master context"
+      "created": "2025-09-17T00:00:00.000Z",
+      "updated": "2025-09-17T10:41:32.637Z",
+      "description": "Fresh start - all previous tasks cleared"
     }
   }
 }
