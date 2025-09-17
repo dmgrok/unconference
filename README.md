@@ -85,7 +85,7 @@ npm run docker
 
 ## 🆕 Recent Changes
 
-## [0.1.0] - 2025-09-16
+## [0.1.0] - 2025-09-17
 
 ### ✨ Added
 - update changelog and README with new features and fixes for version 0.1.0
@@ -109,6 +109,7 @@ npm run docker
 - Implement topic deletion feature with permissions and restrictions
 
 ### 📚 Documentation
+- organize documentation structure and update README
 - update changelog with automated documentation system entry
 
 ### 🐛 Fixed
