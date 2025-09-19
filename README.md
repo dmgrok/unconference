@@ -102,7 +102,6 @@ npm run docker
 - Implement navigation isolation and access restrictions for Super Admin role
 - Enhance Super Admin role with improved navigation, redirection, and event management features
 - Update user data structure and enhance registration form validation with success messaging
-- Refactor site configuration and enhance navigation components for improved user experience
 
 ### 📚 Documentation
 - Update CHANGELOG with new features, documentation, and fixes for version 0.1.0

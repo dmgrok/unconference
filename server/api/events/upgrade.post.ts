@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { stripe } from '~/lib/stripe'
 import { PRICING_TIERS } from '~/types/pricing'
-import prisma from '~/lib/database'
+import prisma from '~/lib/prisma'
 
 const upgradeEventSchema = z.object({
   eventId: z.string().min(1, 'Event ID is required'),
