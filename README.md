@@ -103,7 +103,6 @@ npm run docker
 - Enhance Super Admin role with improved navigation, redirection, and event management features
 - Update user data structure and enhance registration form validation with success messaging
 - Refactor site configuration and enhance navigation components for improved user experience
-- Add demo event section with testimonials, stats, and FAQs for enhanced user engagement
 
 ### 📚 Documentation
 - Update CHANGELOG with new features, documentation, and fixes for version 0.1.0

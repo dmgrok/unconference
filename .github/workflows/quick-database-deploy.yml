@@ -1,0 +1,70 @@
+name: Quick Database Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      seed_users:
+        description: 'Create test users'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  deploy-db:
+    name: Deploy Database
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Deploy Migrations
+        env:
+          DATABASE_URL: ${{ github.event.inputs.environment == 'production' && secrets.PRODUCTION_DATABASE_URL || secrets.STAGING_DATABASE_URL }}
+        run: |
+          echo "🚀 Deploying to ${{ github.event.inputs.environment }}..."
+          npx prisma migrate deploy
+
+      - name: Seed Test Users
+        if: github.event.inputs.seed_users == 'true'
+        env:
+          DATABASE_URL: ${{ github.event.inputs.environment == 'production' && secrets.PRODUCTION_DATABASE_URL || secrets.STAGING_DATABASE_URL }}
+        run: |
+          echo "👥 Creating test users..."
+          npm run db:seed
+
+      - name: Success Summary
+        run: |
+          echo "## ✅ Database Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Test Users Created:** ${{ github.event.inputs.seed_users }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event.inputs.seed_users }}" == "true" ]; then
+            echo "### 🔑 Test User Credentials:" >> $GITHUB_STEP_SUMMARY
+            echo "- **Super Admin:** superadmin@unconference.com / SuperAdmin123" >> $GITHUB_STEP_SUMMARY
+            echo "- **Organizer:** organizer@example.com / organizerPassword" >> $GITHUB_STEP_SUMMARY
+            echo "- **Admin:** darth.vader@starwars.com / AdminPassword123" >> $GITHUB_STEP_SUMMARY
+            echo "- **User:** storm.trooper@starwars.com / UserPassword123" >> $GITHUB_STEP_SUMMARY
+          fi
