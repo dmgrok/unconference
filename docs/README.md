@@ -16,7 +16,7 @@ Security configuration and monitoring documentation
 
 ### [📡 API Reference](api/)
 API documentation and examples
-*9 documents*
+*10 documents*
 
 ### [🚀 Improvements](improvements/)
 Development improvements and update logs
@@ -51,4 +51,4 @@ Check the [CHANGELOG.md](CHANGELOG.md) for the latest updates and changes.
 
 ---
 
-*This index is automatically generated. Last updated: 9/19/2025, 7:18:01 PM*
+*This index is automatically generated. Last updated: 9/19/2025, 11:29:50 PM*
