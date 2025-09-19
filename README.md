@@ -85,7 +85,7 @@ npm run docker
 
 ## 🆕 Recent Changes
 
-## [0.1.0] - 2025-09-17
+## [0.1.0] - 2025-09-19
 
 ### ✨ Added
 - update changelog and README with new features and fixes for version 0.1.0
