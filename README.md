@@ -105,7 +105,6 @@ npm run docker
 - Refactor site configuration and enhance navigation components for improved user experience
 - Add demo event section with testimonials, stats, and FAQs for enhanced user engagement
 - Implement user registration functionality with validation and error handling
-- Implement organizer management system with invitation and removal functionalities
 
 ### 📚 Documentation
 - Update CHANGELOG with new features, documentation, and fixes for version 0.1.0
