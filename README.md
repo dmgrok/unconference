@@ -108,6 +108,7 @@ npm run docker
 - Implement organizer management system with invitation and removal functionalities
 
 ### 📚 Documentation
+- Update CHANGELOG with new features, documentation, and fixes for version 0.1.0
 - organize documentation structure and update README
 - update changelog with automated documentation system entry
 
