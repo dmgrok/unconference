@@ -31,10 +31,15 @@ export async function createTestUser(
   prisma: PrismaClient,
   options: CreateTestUserOptions
 ) {
+  // Make email unique by adding timestamp to avoid conflicts
+  const uniqueEmail = options.email.includes('@')
+    ? options.email.replace('@', `+${Date.now()}@`)
+    : `${options.email}+${Date.now()}@test.com`
+
   return await prisma.user.create({
     data: {
       id: randomUUID(),
-      email: options.email,
+      email: uniqueEmail,
       name: options.name,
       globalRole: options.globalRole || 'USER',
       isActive: options.isActive ?? true,

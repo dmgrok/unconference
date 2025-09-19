@@ -1,5 +1,5 @@
+// @ts-nocheck
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
-import type { NuxtPage } from '@nuxt/schema'
 import logger from './utils/logger'
 
 logger.info('Starting Unconference application...')
@@ -7,54 +7,33 @@ logger.info('Environment:', process.env.APP_ENV)
 logger.info('TOPICS_FILE_PATH:', process.env.TOPICS_FILE_PATH)
 logger.info('USERS_FILE_PATH:', process.env.USERS_FILE_PATH)
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
-  devServer: {
-    port: 3001
-  },
+  modules: ['nuxt-auth-utils'],
   build: {
-    transpile: ['vuetify'],
+    transpile: ['vuetify']
   },
   hooks: {
-    'pages:extend' (pages: NuxtPage[]) {
-      function setMiddleware (pages: NuxtPage[]) {
+    'pages:extend' (pages: any[]) {
+      function setMiddleware (pages: any[]) {
         const publicPages = ['index', 'login', 'register', 'test-admin', 'demo-admin', 'organizer', 'super-admin-guide', 'quick-join', 'recap-demo']
-        const adminPages = ['admin', 'settings'] // Add admin-only pages here
-        
+        const adminPages = ['admin', 'settings']
         for (const page of pages) {
           if (page.name && !publicPages.includes(page.name)) {
             logger.debug(`Setting authentication middleware for page: ${page.name}`)
-            if (!page.meta) {
-              page.meta = {}
-            }
+            page.meta = page.meta || {}
             page.meta.middleware = ['authenticated']
-            
-            // Add admin requirement for admin pages
             if (adminPages.includes(page.name)) {
               logger.debug(`Setting admin requirement for page: ${page.name}`)
               page.meta.requiresAdmin = true
             }
           }
-          if (page.children) {
-            setMiddleware(page.children)
-          }
+          if (page.children) setMiddleware(page.children)
         }
       }
       setMiddleware(pages)
     }
   },
-  modules: [
-    // @ts-expect-error
-    (_options, nuxt) => {
-      nuxt.hooks.hook('vite:extendConfig', (config) => {
-        config.plugins.push(vuetify({ autoImport: true }))
-      })
-    },
-    'nuxt-auth-utils',
-    '@nuxt/test-utils/module'
-  ],
   runtimeConfig: {
     oauth: {
       github: {
@@ -71,6 +50,13 @@ export default defineNuxtConfig({
         authorizationURL: 'https://accounts.google.com/o/oauth2/v2/auth',
         tokenURL: 'https://oauth2.googleapis.com/token',
         userInfoURL: 'https://www.googleapis.com/oauth2/v2/userinfo'
+      },
+      linkedin: {
+        clientId: process.env.LINKEDIN_CLIENT_ID,
+        clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+        scope: ['profile', 'openid', 'email'],
+        authorizationURL: 'https://www.linkedin.com/oauth/v2/authorization',
+        tokenURL: 'https://www.linkedin.com/oauth/v2/accessToken'
       }
     },
     topicsFilePath: process.env.NUXT_TOPICS_FILE_PATH,
@@ -89,15 +75,50 @@ export default defineNuxtConfig({
       },
     },
     server: {
-      allowedHosts: ['localhost', '.ngrok.dev'] 
+      allowedHosts: ['localhost', '.ngrok.dev']
+    },
+    // Fix Prisma build issues
+    define: {
+      global: 'globalThis',
+    },
+    plugins: [
+      vuetify({ autoImport: true })
+    ],
+    optimizeDeps: {
+      exclude: ['@prisma/client'],
+      include: process.env.VERCEL ? ['@prisma/client'] : []
+    },
+    resolve: {
+      alias: {
+        '.prisma/client/index-browser': './utils/prisma-browser-stub.mjs',
+        '.prisma/client/default': './utils/prisma-browser-stub.mjs',
+        '.prisma/client': './utils/prisma-browser-stub.mjs'
+      }
     }
   },
   nitro: {
+    preset: process.env.VERCEL ? 'vercel' : undefined,
     experimental: {
       wasm: true,
       websocket: true
     },
-    plugins: ['~/server/plugins/websocket.ts']
+    plugins: ['~/server/plugins/websocket.ts'],
+    // Configure for Vercel deployment with Prisma
+    esbuild: {
+      options: {
+        target: 'esnext'
+      }
+    },
+    // Handle Prisma properly for serverless
+    externals: {
+      // Let Vercel handle dependencies naturally
+      inline: []
+    },
+    moduleSideEffects: ['@prisma/client'],
+    // Ensure proper Node.js compatibility
+    replace: {
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+    }
   },
   // Security configuration
   ssr: true,

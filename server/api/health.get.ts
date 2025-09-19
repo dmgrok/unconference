@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
+import { PrismaClient } from '@prisma/client'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -14,7 +15,8 @@ export default defineEventHandler(async (event) => {
       checks: {
         filesystem: false,
         dataAccess: false,
-        auth: false
+        auth: false,
+        database: false
       },
       responseTime: 0
     }
@@ -35,6 +37,23 @@ export default defineEventHandler(async (event) => {
       health.checks.dataAccess = true
     } catch (error) {
       health.status = 'degraded'
+    }
+
+    // Check database connectivity
+    try {
+      const prisma = new PrismaClient()
+      await prisma.$connect()
+
+      // Test a simple query
+      const userCount = await prisma.user.count()
+      health.checks.database = true
+      health.userCount = userCount
+
+      await prisma.$disconnect()
+    } catch (error) {
+      console.error('Database health check failed:', error)
+      health.status = 'degraded'
+      health.checks.database = false
     }
 
     // Check auth system (basic check)

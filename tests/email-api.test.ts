@@ -30,13 +30,15 @@ vi.mock('~/lib/database', () => ({
 }))
 
 // Mock email preferences utilities
-vi.mock('~/lib/emailPreferences', () => ({
+const mockEmailPreferences = {
   canSendEmail: vi.fn(),
   parseEmailPreferences: vi.fn(),
   serializeEmailPreferences: vi.fn(),
   getEmailPreferenceLabels: vi.fn(),
   getEmailPreferenceDescriptions: vi.fn()
-}))
+}
+
+vi.mock('~/lib/emailPreferences', () => mockEmailPreferences)
 
 describe('Email API Endpoints', () => {
   beforeEach(() => {
@@ -73,7 +75,7 @@ describe('Email API Endpoints', () => {
 
     beforeEach(() => {
       mockPrisma.event.findUnique.mockResolvedValue(mockEvent)
-      vi.mocked(require('~/lib/emailPreferences').canSendEmail).mockImplementation(
+      mockEmailPreferences.canSendEmail.mockImplementation(
         (prefs: string, type: string) => prefs.includes('"eventSummaries":true')
       )
     })
@@ -240,7 +242,7 @@ describe('Email API Endpoints', () => {
 
   describe('GET /api/user/email-preferences', () => {
     beforeEach(() => {
-      vi.mocked(require('~/lib/emailPreferences').parseEmailPreferences).mockReturnValue({
+      mockEmailPreferences.parseEmailPreferences.mockReturnValue({
         eventSummaries: true,
         collaborationReminders: false,
         networkingFollowUp: true,
@@ -248,7 +250,7 @@ describe('Email API Endpoints', () => {
         eventInvitations: false
       })
 
-      vi.mocked(require('~/lib/emailPreferences').getEmailPreferenceLabels).mockReturnValue({
+      mockEmailPreferences.getEmailPreferenceLabels.mockReturnValue({
         eventSummaries: 'Post-event summaries with connections and achievements',
         collaborationReminders: 'Follow-up reminders for pending collaborations',
         networkingFollowUp: 'Networking opportunities and suggestions',
@@ -256,7 +258,7 @@ describe('Email API Endpoints', () => {
         eventInvitations: 'Invitations to new events and unconferences'
       })
 
-      vi.mocked(require('~/lib/emailPreferences').getEmailPreferenceDescriptions).mockReturnValue({
+      mockEmailPreferences.getEmailPreferenceDescriptions.mockReturnValue({
         eventSummaries: 'Receive detailed summaries after events',
         collaborationReminders: 'Get reminded about pending action items',
         networkingFollowUp: 'Receive suggestions for expanding your network',

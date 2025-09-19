@@ -37,24 +37,18 @@ export const SUBSCRIPTION_LIMITS = {
   }
 } as const
 
-// Pay-per-event pricing for occasional organizers
+// Pay-per-event pricing - Lean MVP model from business plan
 export const PAY_PER_EVENT_PRICING = {
-  SMALL: {
+  PROFESSIONAL: {
     maxParticipants: 100,
     price: 29, // $29 for up to 100 participants
-    stripePriceId: 'price_event_small',
-    description: 'Perfect for one-off workshops or small conferences'
+    stripePriceId: 'price_event_professional',
+    description: 'Perfect for one-off workshops and medium conferences'
   },
-  MEDIUM: {
-    maxParticipants: 250,
-    price: 49, // $49 for up to 250 participants
-    stripePriceId: 'price_event_medium',
-    description: 'Great for medium conferences and community events'
-  },
-  LARGE: {
-    maxParticipants: 500,
-    price: 79, // $79 for up to 500 participants
-    stripePriceId: 'price_event_large',
+  ENTERPRISE: {
+    maxParticipants: -1, // Unlimited
+    price: 99, // $99 for unlimited participants
+    stripePriceId: 'price_event_enterprise',
     description: 'Ideal for large conferences and corporate events'
   }
 } as const
@@ -264,12 +258,13 @@ export class SubscriptionService {
 
     // Suggest pay-per-event options
     Object.entries(PAY_PER_EVENT_PRICING).forEach(([key, pricing]) => {
-      if (expectedParticipants <= pricing.maxParticipants) {
+      if (pricing.maxParticipants === -1 || expectedParticipants <= pricing.maxParticipants) {
         suggestions.push({
           type: 'pay_per_event' as const,
-          eventSize: key,
+          eventTier: key,
+          eventSize: key, // Keep for backward compatibility
           price: pricing.price,
-          description: `Pay $${pricing.price} for this event (${pricing.maxParticipants} participants)`
+          description: `Pay $${pricing.price} for this event (${pricing.maxParticipants === -1 ? 'unlimited' : pricing.maxParticipants} participants)`
         })
       }
     })

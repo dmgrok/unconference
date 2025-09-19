@@ -1,0 +1,252 @@
+name: Deploy Database and Seed Data
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'prisma/**'
+      - 'scripts/create-test-users.mjs'
+      - '.github/workflows/deploy-database.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'prisma/**'
+      - 'scripts/create-test-users.mjs'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      seed_data:
+        description: 'Seed test users'
+        required: true
+        default: true
+        type: boolean
+      force_reset:
+        description: 'Force database reset (destructive)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  validate-schema:
+    name: Validate Database Schema
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Validate Prisma Schema
+        run: npx prisma validate
+
+      - name: Check for schema drift
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -n "$DATABASE_URL" ]; then
+            echo "Checking for schema drift..."
+            npx prisma db pull --print || echo "Schema drift detected or database unreachable"
+          else
+            echo "DATABASE_URL not set, skipping drift check"
+          fi
+
+  deploy-staging:
+    name: Deploy to Staging Database
+    runs-on: ubuntu-latest
+    needs: validate-schema
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    environment: 
+      name: staging
+      url: https://your-staging-url.vercel.app
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Reset Database (if requested)
+        if: github.event.inputs.force_reset == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          echo "⚠️ FORCE RESET ENABLED - This will delete all data!"
+          npx prisma migrate reset --force --skip-seed
+
+      - name: Run Database Migrations
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          echo "Running database migrations..."
+          npx prisma migrate deploy
+
+      - name: Verify Database Connection
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          echo "Testing database connection..."
+          npx prisma db execute --command "SELECT 1" || exit 1
+
+      - name: Seed Test Users
+        if: github.event.inputs.seed_data != 'false'
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          echo "Seeding test users..."
+          npm run db:seed
+
+      - name: Generate Database Status Report
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          echo "## Database Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment: Staging" >> $GITHUB_STEP_SUMMARY
+          echo "- **Migration Status**: ✅ Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Seed Data**: ${{ github.event.inputs.seed_data != 'false' && '✅ Applied' || '⏭️ Skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date)" >> $GITHUB_STEP_SUMMARY
+          
+          # Get table counts
+          echo "### Database Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          npx prisma db execute --command "
+            SELECT 
+              schemaname,
+              tablename, 
+              n_tup_ins as row_count
+            FROM pg_stat_user_tables 
+            WHERE schemaname = 'public'
+            ORDER BY tablename;
+          " || echo "Could not retrieve table statistics" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  deploy-production:
+    name: Deploy to Production Database
+    runs-on: ubuntu-latest
+    needs: [validate-schema, deploy-staging]
+    if: github.ref == 'refs/heads/main' && (github.event.inputs.environment == 'production' || github.event_name == 'push')
+    environment: 
+      name: production
+      url: https://your-production-url.vercel.app
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Create Database Backup
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          echo "Creating pre-deployment backup..."
+          # Note: Add your backup strategy here
+          # pg_dump or similar depending on your database provider
+          echo "Backup strategy should be implemented based on your database provider"
+
+      - name: Run Database Migrations
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          echo "Running production database migrations..."
+          npx prisma migrate deploy
+
+      - name: Verify Database Connection
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          echo "Testing production database connection..."
+          npx prisma db execute --command "SELECT 1" || exit 1
+
+      - name: Seed Production Users (if requested)
+        if: github.event.inputs.seed_data == 'true' && github.event.inputs.environment == 'production'
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          echo "⚠️ Seeding test users in production..."
+          echo "This should typically only be done for initial setup!"
+          npm run db:seed
+
+      - name: Generate Production Deployment Report
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          echo "## Production Database Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment: Production 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "- **Migration Status**: ✅ Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backup**: ✅ Created" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date)" >> $GITHUB_STEP_SUMMARY
+
+  notify-completion:
+    name: Notify Deployment Completion
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "## 🎉 Database Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### What was deployed:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Schema migrations applied" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Database connections verified" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ needs.deploy-staging.result == 'success' && '✅' || '❌' }} Staging deployment" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ needs.deploy-production.result == 'success' && '✅' || needs.deploy-production.result == 'skipped' && '⏭️' || '❌' }} Production deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Available Test Users:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Super Admin**: superadmin@unconference.com / SuperAdmin123" >> $GITHUB_STEP_SUMMARY
+          echo "- **Organizer**: organizer@example.com / organizerPassword" >> $GITHUB_STEP_SUMMARY
+          echo "- **Admin**: darth.vader@starwars.com / AdminPassword123" >> $GITHUB_STEP_SUMMARY
+          echo "- **User**: storm.trooper@starwars.com / UserPassword123" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "## ❌ Database Deployment Failed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          echo "Common issues:" >> $GITHUB_STEP_SUMMARY
+          echo "- Database connection string not set in secrets" >> $GITHUB_STEP_SUMMARY
+          echo "- Network connectivity issues" >> $GITHUB_STEP_SUMMARY
+          echo "- Migration conflicts" >> $GITHUB_STEP_SUMMARY

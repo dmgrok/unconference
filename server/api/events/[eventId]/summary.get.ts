@@ -86,48 +86,11 @@ async function generateEventSummary(eventId: string, userId: string) {
     }
   })
 
-  // Get collaborations the user participated in
-  const collaborations = await db.collaborationSpace.findMany({
-    where: {
-      eventId,
-      contributors: { contains: userId }
-    },
-    include: {
-      resources: {
-        select: {
-          title: true,
-          url: true,
-          resourceType: true
-        }
-      },
-      actionItems: {
-        select: {
-          task: true,
-          assignedTo: true,
-          status: true,
-          dueDate: true
-        }
-      }
-    }
-  })
+  // Note: Removed collaboration tracking for lean MVP
+  const collaborations = []
 
-  // Get work showcases the user was involved in
-  const workShowcases = await db.workShowcase.findMany({
-    where: {
-      eventId,
-      contributors: { contains: userId }
-    },
-    select: {
-      projectName: true,
-      description: true,
-      status: true,
-      skillsUsed: true,
-      skillsNeeded: true,
-      contactEmail: true,
-      repositoryUrl: true,
-      demoUrl: true
-    }
-  })
+  // Note: Removed work showcase tracking for lean MVP
+  const workShowcases = []
 
   // Get achievements earned at this event
   const achievements = await db.userAchievement.findMany({

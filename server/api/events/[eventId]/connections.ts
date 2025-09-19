@@ -243,119 +243,13 @@ async function requestIntroduction(eventId: string, userId: string, body: any) {
 }
 
 async function getUserCollaborations(userId: string, eventId: string) {
-  const collaborations = await db.collaborationSpace.findMany({
-    where: {
-      eventId,
-      // Using JSON search for SQLite - this is a simplified approach
-      // In production, you might want a separate table for contributors
-    },
-    include: {
-      resources: {
-        orderBy: { addedAt: 'desc' }
-      },
-      actionItems: {
-        orderBy: { createdAt: 'asc' }
-      }
-    }
-  })
-
-  // Filter collaborations where user is a contributor
-  const userCollaborations = collaborations.filter((collab: any) => {
-    const contributors = parseJsonField(collab.contributors)
-    return contributors.includes(userId)
-  })
-
-  return {
-    collaborations: userCollaborations
-  }
+  // Note: Removed collaboration tracking for lean MVP
+  return []
 }
 
-async function createCollaborationSpace(eventId: string, userId: string, body: any) {
-  const { name, description, topicId, roomId, contributors = [userId] } = body
-  
-  const collaboration = await db.collaborationSpace.create({
-    data: {
-      eventId,
-      topicId,
-      roomId,
-      name,
-      description,
-      contributors: JSON.stringify(contributors)
-    }
-  })
-  
-  return { id: collaboration.id }
-}
+// Note: Removed collaboration functions for lean MVP
 
-async function addCollaborationResource(userId: string, body: any) {
-  const { collaborationId, url, title, description, resourceType = 'LINK' } = body
-  
-  const resource = await db.collaborationResource.create({
-    data: {
-      collaborationId,
-      url,
-      title,
-      description,
-      resourceType,
-      addedBy: userId
-    }
-  })
-  
-  return { id: resource.id }
-}
-
-async function addActionItem(userId: string, body: any) {
-  const { collaborationId, task, description, assignedTo, dueDate, priority = 'MEDIUM' } = body
-  
-  const actionItem = await db.actionItem.create({
-    data: {
-      collaborationId,
-      task,
-      description,
-      assignedTo,
-      dueDate: dueDate ? new Date(dueDate) : null,
-      priority,
-      createdBy: userId
-    }
-  })
-  
-  return { id: actionItem.id }
-}
-
-async function createWorkShowcase(eventId: string, userId: string, body: any) {
-  const { 
-    projectName, 
-    description, 
-    contributors = [userId], 
-    skillsUsed = [], 
-    skillsNeeded = [],
-    status = 'IDEATION',
-    contactEmail,
-    repositoryUrl,
-    demoUrl,
-    images = [],
-    tags = []
-  } = body
-  
-  const showcase = await db.workShowcase.create({
-    data: {
-      eventId,
-      projectName,
-      description,
-      contributors: JSON.stringify(contributors),
-      skillsUsed: JSON.stringify(skillsUsed),
-      skillsNeeded: JSON.stringify(skillsNeeded),
-      status,
-      contactEmail,
-      repositoryUrl,
-      demoUrl,
-      images: JSON.stringify(images),
-      tags: JSON.stringify(tags)
-    }
-  })
-  
-  return { id: showcase.id }
-}
+// Note: Removed work showcase function for lean MVP
 
 async function getNetworkStats(eventId: string) {
   const connections = await db.eventConnection.findMany({

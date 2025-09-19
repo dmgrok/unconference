@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run build:vercel:push",
+  "outputDirectory": ".output",
+  "installCommand": "npm ci && npx prisma generate",
+  "framework": "nuxtjs",
+  "env": {
+    "VERCEL": "1"
+  }
+}

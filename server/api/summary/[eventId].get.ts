@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '~/lib/database'
 
 export default defineEventHandler(async (event) => {
   const eventId = getRouterParam(event, 'eventId')

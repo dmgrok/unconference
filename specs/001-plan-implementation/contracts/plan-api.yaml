@@ -1,0 +1,938 @@
+openapi: 3.0.3
+info:
+  title: Plan Command API
+  version: 1.0.0
+  description: API for managing feature planning and implementation workflows
+  contact:
+    name: Unconference Team
+    url: https://github.com/dmgrok/unconference
+
+servers:
+  - url: http://localhost:3001/api
+    description: Development server
+  - url: https://unconference.app/api
+    description: Production server
+
+paths:
+  /plan:
+    post:
+      summary: Execute a plan for a feature specification
+      description: Generates implementation plan with phases, artifacts, and constitutional validation
+      operationId: executePlan
+      tags: [Plan Execution]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutePlanRequest'
+      responses:
+        '200':
+          description: Plan execution started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanExecutionResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Constitutional validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstitutionalErrorResponse'
+
+  /plan/{executionId}:
+    get:
+      summary: Get plan execution status and results
+      description: Retrieves current status, progress, and results of a plan execution
+      operationId: getPlanExecution
+      tags: [Plan Execution]
+      parameters:
+        - name: executionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier for the plan execution
+      responses:
+        '200':
+          description: Plan execution details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanExecutionDetails'
+        '404':
+          description: Plan execution not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /plan/{executionId}/cancel:
+    post:
+      summary: Cancel an active plan execution
+      description: Stops a running plan execution and cleans up resources
+      operationId: cancelPlanExecution
+      tags: [Plan Execution]
+      parameters:
+        - name: executionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Plan execution cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: Plan execution not found
+        '409':
+          description: Plan execution cannot be cancelled in current state
+
+  /plan/templates:
+    get:
+      summary: List available plan templates
+      description: Retrieves all available plan templates with metadata
+      operationId: listPlanTemplates
+      tags: [Plan Templates]
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [feature, enhancement, bugfix, refactor]
+          description: Filter templates by type
+      responses:
+        '200':
+          description: List of available plan templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanTemplateList'
+
+    post:
+      summary: Create a new plan template
+      description: Creates a custom plan template with phases and validation rules
+      operationId: createPlanTemplate
+      tags: [Plan Templates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlanTemplateRequest'
+      responses:
+        '201':
+          description: Plan template created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanTemplate'
+        '400':
+          description: Invalid template definition
+
+  /plan/templates/{templateId}:
+    get:
+      summary: Get plan template details
+      description: Retrieves detailed information about a specific plan template
+      operationId: getPlanTemplate
+      tags: [Plan Templates]
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Plan template details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanTemplate'
+        '404':
+          description: Plan template not found
+
+    put:
+      summary: Update plan template
+      description: Updates an existing plan template configuration
+      operationId: updatePlanTemplate
+      tags: [Plan Templates]
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlanTemplateRequest'
+      responses:
+        '200':
+          description: Plan template updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanTemplate'
+        '404':
+          description: Plan template not found
+
+    delete:
+      summary: Delete plan template
+      description: Removes a plan template and all associated executions
+      operationId: deletePlanTemplate
+      tags: [Plan Templates]
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Plan template deleted successfully
+        '404':
+          description: Plan template not found
+        '409':
+          description: Template has active executions and cannot be deleted
+
+  /plan/constitutional-check:
+    post:
+      summary: Validate feature specification against constitutional principles
+      description: Performs constitutional compliance validation without executing full plan
+      operationId: validateConstitutionalCompliance
+      tags: [Constitutional Validation]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConstitutionalCheckRequest'
+      responses:
+        '200':
+          description: Constitutional validation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstitutionalCheckResponse'
+
+  /plan/artifacts/{executionId}/{artifactType}:
+    get:
+      summary: Download generated artifact
+      description: Downloads a specific artifact generated during plan execution
+      operationId: downloadArtifact
+      tags: [Artifacts]
+      parameters:
+        - name: executionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: artifactType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [research, data-model, contracts, quickstart, tasks]
+      responses:
+        '200':
+          description: Artifact content
+          content:
+            text/markdown:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Artifact not found or not yet generated
+
+components:
+  schemas:
+    ExecutePlanRequest:
+      type: object
+      required:
+        - specificationPath
+        - outputDirectory
+        - branchName
+      properties:
+        specificationPath:
+          type: string
+          description: Path to feature specification file
+          example: /specs/001-auth-system/spec.md
+        outputDirectory:
+          type: string
+          description: Directory for generated artifacts
+          example: /specs/001-auth-system
+        branchName:
+          type: string
+          description: Git branch name for this feature
+          example: 001-auth-system
+        templateId:
+          type: string
+          format: uuid
+          description: Plan template to use (optional, uses default if not specified)
+        technicalContext:
+          $ref: '#/components/schemas/TechnicalContext'
+        dryRun:
+          type: boolean
+          default: false
+          description: Simulate execution without creating files
+        overwriteExisting:
+          type: boolean
+          default: false
+          description: Overwrite existing artifacts
+
+    TechnicalContext:
+      type: object
+      properties:
+        language:
+          type: string
+          example: TypeScript
+        version:
+          type: string
+          example: Node.js 18+
+        dependencies:
+          type: array
+          items:
+            type: string
+          example: [Nuxt 3, Prisma, Vuetify]
+        storage:
+          type: string
+          example: SQLite via Prisma
+        testing:
+          type: string
+          example: Vitest, Playwright
+        targetPlatform:
+          type: string
+          example: Web application
+        projectType:
+          type: string
+          enum: [single, web, mobile]
+          example: web
+        performanceGoals:
+          type: string
+          example: <500ms page loads
+        constraints:
+          type: string
+          example: Constitutional compliance required
+        scope:
+          type: string
+          example: Multi-tenant event management
+
+    PlanExecutionResponse:
+      type: object
+      required:
+        - executionId
+        - status
+        - templateId
+        - startedAt
+      properties:
+        executionId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, running, completed, failed, cancelled]
+        templateId:
+          type: string
+          format: uuid
+        currentPhase:
+          type: string
+          nullable: true
+        startedAt:
+          type: string
+          format: date-time
+        estimatedCompletion:
+          type: string
+          format: date-time
+          nullable: true
+
+    PlanExecutionDetails:
+      type: object
+      required:
+        - executionId
+        - status
+        - templateId
+        - startedAt
+        - phaseResults
+        - artifacts
+      properties:
+        executionId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, running, completed, failed, cancelled]
+        templateId:
+          type: string
+          format: uuid
+        currentPhase:
+          type: string
+          nullable: true
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        phaseResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhaseResult'
+        artifacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeneratedArtifact'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExecutionError'
+        context:
+          $ref: '#/components/schemas/PlanContext'
+
+    PhaseResult:
+      type: object
+      required:
+        - phaseId
+        - status
+        - startedAt
+        - duration
+      properties:
+        phaseId:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, completed, failed, skipped]
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        artifacts:
+          type: array
+          items:
+            type: string
+        validationResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationResult'
+        executionLog:
+          type: array
+          items:
+            type: string
+        duration:
+          type: integer
+          description: Duration in milliseconds
+
+    GeneratedArtifact:
+      type: object
+      required:
+        - id
+        - name
+        - path
+        - type
+        - generatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
+          enum: [research, data-model, contracts, quickstart, tasks, custom]
+        size:
+          type: integer
+          description: File size in bytes
+        generatedAt:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+
+    ValidationResult:
+      type: object
+      required:
+        - ruleId
+        - status
+        - message
+      properties:
+        ruleId:
+          type: string
+        status:
+          type: string
+          enum: [pass, fail, warning]
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [error, warning, info]
+        details:
+          type: object
+          additionalProperties: true
+
+    ExecutionError:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: string
+          nullable: true
+        phase:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+        stack:
+          type: string
+          nullable: true
+
+    PlanTemplate:
+      type: object
+      required:
+        - id
+        - name
+        - version
+        - description
+        - phases
+        - constitutionalChecks
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version:
+          type: string
+          pattern: ^\d+\.\d+\.\d+$
+        description:
+          type: string
+        phases:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanPhase'
+        constitutionalChecks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConstitutionalCheck'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PlanPhase:
+      type: object
+      required:
+        - id
+        - name
+        - order
+        - dependencies
+        - outputs
+        - timeoutMinutes
+        - required
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        order:
+          type: integer
+          minimum: 0
+        dependencies:
+          type: array
+          items:
+            type: string
+        outputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanArtifact'
+        validation:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationRule'
+        timeoutMinutes:
+          type: integer
+          minimum: 1
+          maximum: 60
+        required:
+          type: boolean
+
+    PlanArtifact:
+      type: object
+      required:
+        - id
+        - name
+        - path
+        - type
+        - template
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
+          enum: [research, data-model, contracts, quickstart, tasks, custom]
+        template:
+          type: string
+        validation:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationRule'
+        metadata:
+          type: object
+          additionalProperties: true
+
+    ConstitutionalCheck:
+      type: object
+      required:
+        - id
+        - principle
+        - description
+        - validation
+        - severity
+        - autoFix
+      properties:
+        id:
+          type: string
+        principle:
+          type: string
+        description:
+          type: string
+        validation:
+          $ref: '#/components/schemas/ValidationRule'
+        severity:
+          type: string
+          enum: [error, warning, info]
+        autoFix:
+          type: boolean
+
+    ValidationRule:
+      type: object
+      required:
+        - id
+        - type
+        - config
+        - errorMessage
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [schema, regex, function, file-exists, content-match]
+        config:
+          type: object
+          additionalProperties: true
+        errorMessage:
+          type: string
+
+    PlanContext:
+      type: object
+      required:
+        - specificationPath
+        - outputDirectory
+        - branchName
+        - technicalContext
+      properties:
+        specificationPath:
+          type: string
+        outputDirectory:
+          type: string
+        branchName:
+          type: string
+        technicalContext:
+          $ref: '#/components/schemas/TechnicalContext'
+        constitutionalCompliance:
+          type: boolean
+          default: true
+        dryRun:
+          type: boolean
+          default: false
+        overwriteExisting:
+          type: boolean
+          default: false
+        variables:
+          type: object
+          additionalProperties: true
+
+    PlanTemplateList:
+      type: object
+      required:
+        - templates
+        - total
+      properties:
+        templates:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanTemplateSummary'
+        total:
+          type: integer
+        filters:
+          type: object
+          additionalProperties: true
+
+    PlanTemplateSummary:
+      type: object
+      required:
+        - id
+        - name
+        - version
+        - description
+        - phaseCount
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        phaseCount:
+          type: integer
+        lastUsed:
+          type: string
+          format: date-time
+          nullable: true
+        usageCount:
+          type: integer
+
+    CreatePlanTemplateRequest:
+      type: object
+      required:
+        - name
+        - description
+        - phases
+        - constitutionalChecks
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          minLength: 10
+          maxLength: 500
+        phases:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanPhase'
+          minItems: 1
+        constitutionalChecks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConstitutionalCheck'
+
+    UpdatePlanTemplateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          minLength: 10
+          maxLength: 500
+        phases:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanPhase'
+        constitutionalChecks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConstitutionalCheck'
+
+    ConstitutionalCheckRequest:
+      type: object
+      required:
+        - specificationPath
+        - technicalContext
+      properties:
+        specificationPath:
+          type: string
+        technicalContext:
+          $ref: '#/components/schemas/TechnicalContext'
+        templateId:
+          type: string
+          format: uuid
+          nullable: true
+
+    ConstitutionalCheckResponse:
+      type: object
+      required:
+        - compliant
+        - checks
+        - summary
+      properties:
+        compliant:
+          type: boolean
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConstitutionalCheckResult'
+        summary:
+          $ref: '#/components/schemas/ComplianceSummary'
+
+    ConstitutionalCheckResult:
+      type: object
+      required:
+        - checkId
+        - principle
+        - status
+        - message
+      properties:
+        checkId:
+          type: string
+        principle:
+          type: string
+        status:
+          type: string
+          enum: [pass, fail, warning]
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [error, warning, info]
+        autoFixAvailable:
+          type: boolean
+        suggestion:
+          type: string
+          nullable: true
+
+    ComplianceSummary:
+      type: object
+      required:
+        - totalChecks
+        - passed
+        - failed
+        - warnings
+      properties:
+        totalChecks:
+          type: integer
+        passed:
+          type: integer
+        failed:
+          type: integer
+        warnings:
+          type: integer
+        overallScore:
+          type: number
+          minimum: 0
+          maximum: 100
+
+    ConstitutionalErrorResponse:
+      type: object
+      required:
+        - error
+        - violations
+        - canProceed
+      properties:
+        error:
+          type: string
+        violations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConstitutionalCheckResult'
+        canProceed:
+          type: boolean
+        suggestions:
+          type: array
+          items:
+            type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - timestamp
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: string
+          nullable: true
+        code:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - message
+        - timestamp
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: nuxt-session
+      description: Session-based authentication using Nuxt auth utils
+
+security:
+  - sessionAuth: []
+
+tags:
+  - name: Plan Execution
+    description: Operations for executing feature plans
+  - name: Plan Templates
+    description: Management of plan templates
+  - name: Constitutional Validation
+    description: Constitutional compliance checking
+  - name: Artifacts
+    description: Generated artifact management

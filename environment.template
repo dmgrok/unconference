@@ -1,0 +1,39 @@
+# Environment Configuration for Unconference App
+
+# File paths for data storage
+NUXT_TOPICS_FILE_PATH=./data/topics.json
+NUXT_USERS_FILE_PATH=./data/users.json
+
+# Application settings
+APP_ENV=development
+NUXT_MAX_VOTES_PER_TOPIC=12
+NUXT_TOP_TOPICS_COUNT=10
+
+# OAuth Configuration
+# GitHub OAuth
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# LinkedIn OAuth
+LINKEDIN_CLIENT_ID=your_linkedin_client_id
+LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
+
+# Session secrets (generate random strings for production)
+NUXT_SECRET_KEY=your_session_secret_key
+
+# Database (if using database instead of JSON files)
+# DATABASE_URL=your_database_connection_string
+
+# Test credentials (development only)
+TEST_SUPER_ADMIN_EMAIL=superadmin@unconference.com
+TEST_SUPER_ADMIN_PASSWORD=SuperAdmin123
+TEST_ADMIN_EMAIL=darth.vader@starwars.com
+TEST_ADMIN_PASSWORD=AdminPassword123
+TEST_ORGANIZER_EMAIL=organizer@example.com
+TEST_ORGANIZER_PASSWORD=organizerPassword
+TEST_USER_EMAIL=storm.trooper@starwars.com
+TEST_USER_PASSWORD=UserPassword123

@@ -1,0 +1,11 @@
+data/
+test-results/
+tests/
+docs/
+scripts/
+*.log
+.env
+.env.local
+.DS_Store
+node_modules
+coverage/

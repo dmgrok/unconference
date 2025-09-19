@@ -1,11 +1,11 @@
-// Phase 1: Achievement System Composable
+// Simplified Achievement System Composable - Lean MVP
 export const useAchievements = () => {
   const { currentEventId } = useEventContext()
 
-  // Get user achievements
+  // Get user achievements (simplified)
   const getUserAchievements = async () => {
     if (!currentEventId.value) return null
-    
+
     try {
       const response = await $fetch(`/api/events/${currentEventId.value}/achievements`, {
         params: { type: 'user-achievements' }
@@ -17,40 +17,10 @@ export const useAchievements = () => {
     }
   }
 
-  // Get achievement progress
-  const getAchievementProgress = async () => {
-    if (!currentEventId.value) return null
-    
-    try {
-      const response = await $fetch(`/api/events/${currentEventId.value}/achievements`, {
-        params: { type: 'progress' }
-      })
-      return response
-    } catch (error) {
-      console.error('Error fetching achievement progress:', error)
-      return null
-    }
-  }
-
-  // Get achievement leaderboard
-  const getLeaderboard = async () => {
-    if (!currentEventId.value) return null
-    
-    try {
-      const response = await $fetch(`/api/events/${currentEventId.value}/achievements`, {
-        params: { type: 'leaderboard' }
-      })
-      return response
-    } catch (error) {
-      console.error('Error fetching leaderboard:', error)
-      return null
-    }
-  }
-
-  // Check for new achievements (call this after user actions)
+  // Check for new achievements after user actions
   const checkAchievements = async () => {
     if (!currentEventId.value) return null
-    
+
     try {
       const response = await $fetch(`/api/events/${currentEventId.value}/achievements`, {
         method: 'POST',
@@ -65,31 +35,10 @@ export const useAchievements = () => {
     }
   }
 
-  // Grant specific achievement (admin function)
-  const grantAchievement = async (achievementType: string, metadata = {}) => {
-    if (!currentEventId.value) return null
-    
-    try {
-      const response = await $fetch(`/api/events/${currentEventId.value}/achievements`, {
-        method: 'POST',
-        body: {
-          action: 'grant-achievement',
-          achievementType,
-          metadata
-        }
-      })
-      return response
-    } catch (error) {
-      console.error('Error granting achievement:', error)
-      throw error
-    }
-  }
-
   return {
     getUserAchievements,
-    getAchievementProgress,
-    getLeaderboard,
-    checkAchievements,
-    grantAchievement
+    checkAchievements
+    // Removed: getLeaderboard (gamification), getAchievementProgress (too complex)
+    // Removed: grantAchievement (admin complexity)
   }
 }

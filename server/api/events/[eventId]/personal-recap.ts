@@ -297,36 +297,8 @@ async function getUserConnections(eventId: string, userId: string) {
 }
 
 async function getUserCollaborations(eventId: string, userId: string) {
-  const collaborations = await db.collaborationSpace.findMany({
-    where: {
-      eventId,
-      contributors: {
-        contains: userId
-      }
-    },
-    include: {
-      actionItems: {
-        where: {
-          assignedTo: userId
-        }
-      },
-      resources: {
-        where: {
-          addedBy: userId
-        }
-      }
-    }
-  })
-
-  return collaborations.map(collab => ({
-    id: collab.id,
-    name: collab.name,
-    description: collab.description,
-    contributorCount: parseJsonField(collab.contributors).length,
-    userActionItems: collab.actionItems.length,
-    userResources: collab.resources.length,
-    status: collab.status
-  }))
+  // Note: Removed collaboration tracking for lean MVP
+  return []
 }
 
 async function getUserAchievements(eventId: string, userId: string) {

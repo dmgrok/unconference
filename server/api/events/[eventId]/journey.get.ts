@@ -170,24 +170,12 @@ async function calculateAfterMetrics(eventId: string, eventDetails: any) {
     where: { eventId }
   })
 
-  // Count collaborations started
-  const collaborations = await db.collaborationSpace.count({
+  // Count connections made
+  const connections = await db.connection.count({
     where: { eventId }
   })
 
-  // Count action items created
-  const actionItems = await db.actionItem.count({
-    where: {
-      collaboration: {
-        eventId
-      }
-    }
-  })
-
-  // Count projects showcased
-  const projects = await db.workShowcase.count({
-    where: { eventId }
-  })
+  // Note: Removed collaboration, action items, and showcase counting for lean MVP
 
   // Count achievements earned
   const achievements = await db.userAchievement.count({
@@ -279,40 +267,17 @@ async function generateTimelineEvents(eventId: string, eventDetails: any) {
     }
   })
 
-  // Collaboration formation (estimated 75% through event)
-  const collaborationTime = new Date(eventDetails.startsAt)
-  const eventDuration = eventDetails.endsAt ? new Date(eventDetails.endsAt).getTime() - new Date(eventDetails.startsAt).getTime() : 4 * 60 * 60 * 1000
-  collaborationTime.setMilliseconds(collaborationTime.getMilliseconds() + eventDuration * 0.75)
-
-  const collaborationCount = await db.collaborationSpace.count({ where: { eventId } })
-  if (collaborationCount > 0) {
-    events.push({
-      time: collaborationTime,
-      title: 'Collaboration Formation',
-      description: 'Teams formed around project ideas and action items',
-      color: 'error',
-      icon: 'mdi-handshake',
-      metrics: {
-        'Projects': collaborationCount,
-        'Teams': collaborationCount
-      }
-    })
-  }
+  // Note: Removed collaboration formation tracking for lean MVP
 
   // Event end
   if (eventDetails.endsAt) {
-    const actionItemCount = await db.actionItem.count({
-      where: { collaboration: { eventId } }
-    })
-
     events.push({
       time: eventDetails.endsAt,
       title: 'Closing & Next Steps',
-      description: 'Action items defined and commitments made for follow-up',
+      description: 'Event concluded with connections made',
       color: 'success',
       icon: 'mdi-calendar-check',
       metrics: {
-        'Actions': actionItemCount,
         'Connections': await db.eventConnection.count({ where: { eventId } })
       }
     })

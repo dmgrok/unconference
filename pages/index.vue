@@ -537,6 +537,7 @@ function shareEvent(event: any) {
         </div>
       </v-container>
     </section>
+    </main>
   </div>
 </template>
 

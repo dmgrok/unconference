@@ -85,9 +85,10 @@ npm run docker
 
 ## 🆕 Recent Changes
 
-## [0.1.0] - 2025-09-15
+## [0.1.0] - 2025-09-19
 
 ### ✨ Added
+- enhance test utilities with unique email generation for test users
 - update changelog and README with new features and fixes for version 0.1.0
 - Update README
 - Revise action plan to enhance revenue protection and knowledge capture features
@@ -101,18 +102,17 @@ npm run docker
 - enhance event navigation with query parameters and error handling (super-admin)
 - Implement navigation isolation and access restrictions for Super Admin role
 - Enhance Super Admin role with improved navigation, redirection, and event management features
-- Update user data structure and enhance registration form validation with success messaging
-- Refactor site configuration and enhance navigation components for improved user experience
-- Add demo event section with testimonials, stats, and FAQs for enhanced user engagement
-- Implement user registration functionality with validation and error handling
-- Implement organizer management system with invitation and removal functionalities
-- Implement topic deletion feature with permissions and restrictions
 
 ### 📚 Documentation
+- Update CHANGELOG with new features, documentation, and fixes for version 0.1.0
+- organize documentation structure and update README
 - update changelog with automated documentation system entry
 
 ### 🐛 Fixed
 - update research modelId and maxTokens for improved performance (config)
+
+### 🔧 Maintenance
+- Update CHANGELOG with new features, documentation, and fixes for version 0.1.0
 
 
 

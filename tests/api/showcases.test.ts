@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { $fetch } from '@nuxt/test-utils'
 import { PrismaClient } from '@prisma/client'
 import { createTestUser, createTestEvent, cleanupTestData } from '../helpers/test-utils'
 
@@ -11,12 +12,12 @@ describe('WorkShowcase API', () => {
 
   beforeEach(async () => {
     // Create test user and event
-    testUser = await createTestUser({
+    testUser = await createTestUser(prisma, {
       email: 'test@example.com',
       name: 'Test User'
     })
 
-    testEvent = await createTestEvent({
+    testEvent = await createTestEvent(prisma, {
       title: 'Test Event',
       code: 'TEST001',
       ownerId: testUser.id
@@ -90,7 +91,7 @@ describe('WorkShowcase API', () => {
     })
 
     it('should fail for non-members', async () => {
-      const nonMember = await createTestUser({
+      const nonMember = await createTestUser(prisma, {
         email: 'nonmember@example.com',
         name: 'Non Member'
       })
@@ -259,7 +260,7 @@ describe('WorkShowcase API', () => {
     })
 
     it('should fail for non-members', async () => {
-      const nonMember = await createTestUser({
+      const nonMember = await createTestUser(prisma, {
         email: 'nonmember@example.com',
         name: 'Non Member'
       })
@@ -317,7 +318,7 @@ describe('WorkShowcase API', () => {
     let otherUser: any
 
     beforeEach(async () => {
-      otherUser = await createTestUser({
+      otherUser = await createTestUser(prisma, {
         email: 'other@example.com',
         name: 'Other User'
       })
@@ -383,7 +384,7 @@ describe('WorkShowcase API', () => {
     })
 
     it('should fail for non-members', async () => {
-      const nonMember = await createTestUser({
+      const nonMember = await createTestUser(prisma, {
         email: 'nonmember@example.com',
         name: 'Non Member'
       })
@@ -402,7 +403,7 @@ describe('WorkShowcase API', () => {
     let adminUser: any
 
     beforeEach(async () => {
-      adminUser = await createTestUser({
+      adminUser = await createTestUser(prisma, {
         email: 'admin@example.com',
         name: 'Admin User'
       })
