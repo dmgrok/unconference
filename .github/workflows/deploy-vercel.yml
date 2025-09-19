@@ -48,9 +48,13 @@ jobs:
         run: npx prisma generate
 
       - name: Validate Prisma Schema
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npx prisma validate
 
       - name: Lint and Type Check
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           npm run build:local || echo "Build check completed with issues"
 
