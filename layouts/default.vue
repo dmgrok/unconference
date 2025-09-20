@@ -58,6 +58,24 @@
       adminOnly: false
     },
     
+    // Main Voting Interface
+    {
+      icon: 'mdi-vote',
+      title: 'Voting & Topics',
+      to: '/voting',
+      adminOnly: false,
+      disabledWhenInactive: false
+    },
+    
+    // Discussion Groups
+    {
+      icon: 'mdi-account-group-outline',
+      title: 'Discussion Groups',
+      to: '/groups',
+      adminOnly: false,
+      disabledWhenInactive: false
+    },
+    
     // Participant Directory
     {
       icon: 'mdi-account-group',
@@ -121,15 +139,6 @@
       organizerAccess: true
     },
 
-    // Legacy pages (for backward compatibility)
-    {
-      icon: 'mdi-vote-outline',
-      title: 'Legacy Voting',
-      to: '/voting',
-      adminOnly: false,
-      disabledWhenInactive: false
-    },
-    
     // Super Admin Section
     {
       icon: 'mdi-shield-crown',

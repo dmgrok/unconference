@@ -85,7 +85,7 @@ npm run docker
 
 ## 🆕 Recent Changes
 
-## [0.1.0] - 2025-09-19
+## [0.1.0] - 2025-09-20
 
 ### ✨ Added
 - enhance test utilities with unique email generation for test users
@@ -100,8 +100,6 @@ npm run docker
 - implement read-only mode for inactive events with UI updates and access control
 - add event status management with reactivation functionality and access control for organizers and super admins
 - enhance event navigation with query parameters and error handling (super-admin)
-- Implement navigation isolation and access restrictions for Super Admin role
-- Enhance Super Admin role with improved navigation, redirection, and event management features
 
 ### 📚 Documentation
 - Update CHANGELOG with new features, documentation, and fixes for version 0.1.0

@@ -91,8 +91,37 @@ Use conventional commits for automatic changelog generation:
 - **Database**: Prisma ORM with SQLite/PostgreSQL support (file-based JSON storage deprecated)
 
 ### Environment Configuration
-Critical environment variables:
-- `NUXT_TOPICS_FILE_PATH` / `NUXT_USERS_FILE_PATH` - Data file locations
+
+#### Local Development Database Setup
+For local development, you should use a local PostgreSQL database:
+
+1. **Create local `.env` file** (copy from `environment.template`):
+   ```bash
+   # Local PostgreSQL database
+   DATABASE_URL="postgresql://username:password@localhost:5432/unconference_dev"
+   
+   # OR use SQLite for quick local development
+   DATABASE_URL="file:./dev.db"
+   ```
+
+2. **Database setup commands**:
+   - `npm run db:setup` - Generate client and run migrations
+   - `npm run db:migrate` - Push schema changes to database
+   - `npm run db:generate` - Generate Prisma client
+   - `npm run db:seed` - Seed test users
+   - `npm run db:studio` - Open Prisma Studio GUI
+   - `npm run db:reset` - Reset database (destructive)
+
+3. **Development workflow**:
+   - `npm run dev` - Automatically runs `db:setup` then starts dev server
+   - Uses `.env` file for local environment variables
+   - Connects to local database specified in `DATABASE_URL`
+
+#### Critical Environment Variables
+- `DATABASE_URL` - **Primary**: Database connection string (PostgreSQL/SQLite)
+- `POSTGRES_URL` - **Fallback**: Alternative PostgreSQL connection
+- `PRISMA_DATABASE_URL` - **Fallback**: Prisma-specific connection (with Accelerate)
+- `NUXT_TOPICS_FILE_PATH` / `NUXT_USERS_FILE_PATH` - Legacy JSON data file locations
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth configuration
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth configuration
 - `NUXT_MAX_VOTES_PER_TOPIC` - Voting limits (default: 12)
@@ -147,6 +176,25 @@ Critical environment variables:
 - `/api/users/` - User profile and preference management
 
 ### Database Schema (Prisma)
+
+#### Database Connection Hierarchy
+The application connects to databases in the following priority order:
+1. `DATABASE_URL` - Primary database connection
+2. `POSTGRES_URL` - PostgreSQL-specific fallback  
+3. `PRISMA_DATABASE_URL` - Prisma Accelerate connection
+
+#### Local Development
+- **Recommended**: Local PostgreSQL instance
+- **Alternative**: SQLite file-based database (`file:./dev.db`)
+- **Setup**: Run `npm run db:setup` to initialize schema and generate client
+- **Tools**: Use `npm run db:studio` to view/edit data with Prisma Studio GUI
+
+#### Production Environments
+- **Staging**: Uses `STAGING_DATABASE_URL` secret in GitHub Actions
+- **Production**: Uses `PRODUCTION_DATABASE_URL` secret in GitHub Actions
+- **Deployment**: Automated via GitHub Actions with schema validation and migration
+
+#### Schema Entities
 - **Event** - Main event entity with settings and configuration
 - **Topic** - Discussion topics with voting and round assignment
 - **User** - User profiles with roles and OAuth integration
@@ -157,6 +205,25 @@ Critical environment variables:
 ## Development Workflow
 
 ### Common Development Tasks
+
+#### Database Development Workflow
+1. **Local Setup**: Create `.env` with local `DATABASE_URL`
+2. **Schema Changes**: 
+   - Modify `prisma/schema.prisma`
+   - Run `npm run db:migrate` to apply changes locally
+   - Test changes with `npm run db:studio`
+3. **Production Deployment**:
+   - Commit schema changes to trigger GitHub Actions
+   - Database deployment pipeline validates and applies migrations
+   - Separate staging/production environments with different database secrets
+
+#### Development Environment Priority
+- **Local Development**: Always use local database connection
+- **Testing**: Use local database or test-specific database
+- **Staging**: Automated deployment with `STAGING_DATABASE_URL`
+- **Production**: Automated deployment with `PRODUCTION_DATABASE_URL`
+
+#### Feature Development
 1. **Adding Features**: Follow feature specification in `docs/features/`
 2. **API Changes**: Update both implementation and `docs/api-documentation.md`
 3. **Database Changes**: Create Prisma migrations and update schema docs
@@ -171,10 +238,23 @@ Critical environment variables:
 - Follow conventional commit format for changelog automation
 
 ### Troubleshooting Common Issues
+
+#### Database-Related Issues
+- **Connection Failures**: Verify `DATABASE_URL` in `.env` file and database service is running
+- **Schema Sync Issues**: Run `npm run db:migrate` to apply latest schema changes
+- **Client Generation**: Run `npm run db:generate` after Prisma schema modifications
+- **Data Seeding**: Use `npm run db:seed` to populate test users for development
+
+#### Environment Issues
 - **OAuth Setup**: Check `docs/guides/oauth-setup.md` for provider configuration
-- **Database Issues**: Verify Prisma connection and migration status
-- **Environment**: Ensure all required environment variables are set
+- **Missing Environment Variables**: Verify all required variables are set in `.env`
 - **Build Errors**: Check Node.js version (18+) and npm dependencies
+- **HMR Database Issues**: Restart dev server if database connections hang
+
+#### Production Deployment Issues
+- **GitHub Actions Failures**: Check database secrets are correctly configured
+- **Migration Failures**: Verify schema changes are compatible with existing data
+- **Connection Issues**: Ensure production database allows connections from deployment environment
 
 ## Task Master Integration
 Task Master commands are available through the `.claude/` directory structure. Use specialized agents and commands for complex development workflows.

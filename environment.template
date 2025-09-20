@@ -1,6 +1,15 @@
 # Environment Configuration for Unconference App
 
-# File paths for data storage
+# Database Configuration (REQUIRED for local development)
+# Choose ONE of the following options:
+
+# Option 1: Local PostgreSQL (RECOMMENDED for development)
+DATABASE_URL="postgresql://username:password@localhost:5432/unconference_dev"
+
+# Option 2: SQLite file-based database (Quick setup alternative)
+# DATABASE_URL="file:./dev.db"
+
+# Legacy file paths for data storage (if not using database)
 NUXT_TOPICS_FILE_PATH=./data/topics.json
 NUXT_USERS_FILE_PATH=./data/users.json
 
@@ -11,22 +20,24 @@ NUXT_TOP_TOPICS_COUNT=10
 
 # OAuth Configuration
 # GitHub OAuth
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
+NUXT_OAUTH_GITHUB_CLIENT_ID=your_github_client_id
+NUXT_OAUTH_GITHUB_CLIENT_SECRET=your_github_client_secret
 
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+# Google OAuth  
+NUXT_OAUTH_GOOGLE_CLIENT_ID=your_google_client_id
+NUXT_OAUTH_GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 # LinkedIn OAuth
-LINKEDIN_CLIENT_ID=your_linkedin_client_id
-LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
+NUXT_OAUTH_LINKEDIN_CLIENT_ID=your_linkedin_client_id
+NUXT_OAUTH_LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
 
 # Session secrets (generate random strings for production)
 NUXT_SECRET_KEY=your_session_secret_key
 
-# Database (if using database instead of JSON files)
-# DATABASE_URL=your_database_connection_string
+# Production Database URLs (for deployment pipelines)
+# These are set as GitHub Secrets for automated deployments:
+# - STAGING_DATABASE_URL (staging environment)
+# - PRODUCTION_DATABASE_URL (production environment)
 
 # Test credentials (development only)
 TEST_SUPER_ADMIN_EMAIL=superadmin@unconference.com

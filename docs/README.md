@@ -6,6 +6,7 @@ Welcome to the comprehensive documentation for the Unconference Management Appli
 
 ### [📖 User Guides](guides/)
 Complete user documentation and setup guides
+*1 document*
 
 ### [🎯 Features](features/)
 Detailed feature specifications and architecture
@@ -16,7 +17,7 @@ Security configuration and monitoring documentation
 
 ### [📡 API Reference](api/)
 API documentation and examples
-*10 documents*
+*11 documents*
 
 ### [🚀 Improvements](improvements/)
 Development improvements and update logs
@@ -51,4 +52,4 @@ Check the [CHANGELOG.md](CHANGELOG.md) for the latest updates and changes.
 
 ---
 
-*This index is automatically generated. Last updated: 9/20/2025, 1:53:09 PM*
+*This index is automatically generated. Last updated: 9/20/2025, 5:05:41 PM*

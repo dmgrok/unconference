@@ -2,6 +2,10 @@
 
 Complete user documentation and setup guides
 
+## Documents in this category
+
+- [LOCAL_DEVELOPMENT_SETUP](../LOCAL_DEVELOPMENT_SETUP.md)
+
 ## Quick Links
 
 - [Installation Guide](../guides/installation.md)

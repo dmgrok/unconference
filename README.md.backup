@@ -88,6 +88,7 @@ npm run docker
 ## [0.1.0] - 2025-09-19
 
 ### ✨ Added
+- enhance test utilities with unique email generation for test users
 - update changelog and README with new features and fixes for version 0.1.0
 - Update README
 - Revise action plan to enhance revenue protection and knowledge capture features

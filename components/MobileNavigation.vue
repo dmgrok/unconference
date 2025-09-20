@@ -140,6 +140,13 @@
           <v-list-subheader>Main</v-list-subheader>
 
           <v-list-item
+            prepend-icon="mdi-view-dashboard"
+            title="Dashboard"
+            to="/dashboard"
+            @click="closeDrawer"
+          />
+
+          <v-list-item
             prepend-icon="mdi-calendar-multiple"
             title="My Events"
             to="/events"
@@ -159,6 +166,13 @@
             prepend-icon="mdi-account-group"
             title="Discussion Groups"
             to="/groups"
+            @click="closeDrawer"
+          />
+
+          <v-list-item
+            prepend-icon="mdi-account-group-outline"
+            title="Participants"
+            to="/participants"
             @click="closeDrawer"
           />
 
