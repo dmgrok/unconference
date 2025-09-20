@@ -38,12 +38,16 @@ This project uses an automated documentation system that:
 - **Organization**: Auto-organized docs folder with category-based structure
 
 ### 📚 **Documentation Structure**
-- `docs/guides/` - User guides, deployment, and setup documentation
+- `docs/business/` - Business strategy, pricing, and market analysis
+- `docs/deployment/` - Deployment guides and production setup
+- `docs/testing/` - Testing procedures and validation results
+- `docs/guides/` - User guides and setup documentation
 - `docs/features/` - Feature specifications and architecture documents
 - `docs/api/` - API documentation and examples
 - `docs/security/` - Security configuration and monitoring documentation
 - `docs/improvements/` - Development improvements and update logs
 - `docs/reviews/` - Experience reviews and assessments
+- `docs/archive/` - Historical documentation and implementation logs
 
 ### 🎯 **Key Features**
 - **Changelog Automation**: Generates changelog entries from git commits using conventional commit format
@@ -81,10 +85,10 @@ Use conventional commits for automatic changelog generation:
 - **TopicSelection** (`types/topic.ts`): Topic selection interface for round management
 
 ### Application Structure
-- **Pages**: Dashboard, settings with automatic authentication middleware
-- **Authentication**: Multi-provider OAuth integration (Google, GitHub) with role-based access (Admin vs User)
+- **Pages**: Dashboard, settings, admin interfaces with automatic authentication middleware
+- **Authentication**: Multi-provider OAuth integration (Google, GitHub) with role-based access (SuperAdmin/Admin/User)
 - **Middleware**: Automatic authentication enforcement for non-public pages
-- **File-based data storage**: JSON files for topics and users (configurable via env vars)
+- **Database**: Prisma ORM with SQLite/PostgreSQL support (file-based JSON storage deprecated)
 
 ### Environment Configuration
 Critical environment variables:
@@ -121,6 +125,56 @@ Critical environment variables:
 - Volume mounting for data persistence
 - Environment file support for configuration
 
-## Task Master AI Instructions
-**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
-@./.taskmaster/CLAUDE.md
+## Project Structure & Navigation
+
+### Documentation Organization
+- `docs/business/` - Business strategy, pricing, and market analysis
+- `docs/deployment/` - Deployment guides and production setup
+- `docs/testing/` - Testing procedures and results
+- `docs/guides/` - User guides, setup, and OAuth configuration
+- `docs/features/` - Feature specifications and architecture
+- `docs/api/` - API documentation and examples
+- `docs/security/` - Security configuration and monitoring
+- `docs/improvements/` - Development improvements and updates
+- `docs/reviews/` - Experience reviews and assessments
+- `docs/archive/` - Historical documentation and implementation logs
+
+### API Endpoint Structure
+- `/api/topics` - Topic CRUD operations and voting
+- `/api/auth/` - Authentication handlers (Google, GitHub)
+- `/api/admin/` - Admin-only functionality (round management, user administration)
+- `/api/rounds/` - Round management and timer operations
+- `/api/users/` - User profile and preference management
+
+### Database Schema (Prisma)
+- **Event** - Main event entity with settings and configuration
+- **Topic** - Discussion topics with voting and round assignment
+- **User** - User profiles with roles and OAuth integration
+- **Vote** - Voting relationships between users and topics
+- **Round** - Round management with timer and participant tracking
+- **RoomAssignment** - Topic-to-room mapping for events
+
+## Development Workflow
+
+### Common Development Tasks
+1. **Adding Features**: Follow feature specification in `docs/features/`
+2. **API Changes**: Update both implementation and `docs/api-documentation.md`
+3. **Database Changes**: Create Prisma migrations and update schema docs
+4. **Security Updates**: Document changes in `docs/security/`
+5. **Testing**: Update test cases in `docs/testing/` and implement automated tests
+
+### Code Quality Guidelines
+- Use TypeScript strict mode
+- Follow Vue 3 Composition API patterns
+- Implement proper error handling with Winston logging
+- Use Zod for API validation
+- Follow conventional commit format for changelog automation
+
+### Troubleshooting Common Issues
+- **OAuth Setup**: Check `docs/guides/oauth-setup.md` for provider configuration
+- **Database Issues**: Verify Prisma connection and migration status
+- **Environment**: Ensure all required environment variables are set
+- **Build Errors**: Check Node.js version (18+) and npm dependencies
+
+## Task Master Integration
+Task Master commands are available through the `.claude/` directory structure. Use specialized agents and commands for complex development workflows.
