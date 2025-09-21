@@ -35,8 +35,8 @@ export class AuthorizationService {
     return resourcePermission?.actions.includes(action) || false
   }
 
-  async isSuperAdmin(user: User): Promise<boolean> {
-    return user.globalRole === 'SuperAdmin'
+  async isAdmin(user: User): Promise<boolean> {
+    return user.globalRole === 'Admin'
   }
 
   async isEventOrganizer(userId: string, eventId: string): Promise<boolean> {
@@ -97,7 +97,7 @@ export async function requireEventPermission(
   const { user } = await requireUserSession(event)
   
   // Super admins can do anything
-  if ((user as any).globalRole === 'SuperAdmin') {
+  if ((user as any).globalRole === 'Admin') {
     return user
   }
 

@@ -2,7 +2,7 @@ export interface User {
   id: string
   name: string
   email: string
-  globalRole?: 'SuperAdmin' | 'User' // Global platform role
+  globalRole?: 'Admin' | 'User' // Global platform role
   isGuest?: boolean
   eventCode?: string // For guest users
   createdAt: Date

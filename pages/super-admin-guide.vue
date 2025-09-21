@@ -23,10 +23,10 @@
                 <v-card variant="outlined" class="pa-4 my-3">
                   <div class="text-body-1">
                     <strong>Email:</strong> <code>superadmin@unconference.com</code><br>
-                    <strong>Password:</strong> <code>SuperAdmin123</code>
+                    <strong>Password:</strong> <code>Admin123</code>
                   </div>
                 </v-card>
-                <p class="text-body-2">This will give you full super admin access with <code>globalRole: 'SuperAdmin'</code></p>
+                <p class="text-body-2">This will give you full super admin access with <code>globalRole: 'Admin'</code></p>
               </div>
             </v-expansion-panel-text>
           </v-expansion-panel>

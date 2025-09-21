@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   
   // Verify admin or organizer role
   const userRole = (user as any).Role || (user as any).role
-  if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'SuperAdmin') {
+  if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'Admin') {
     throw createError({
       statusCode: 403,
       message: 'Only administrators and organizers can extend round time'

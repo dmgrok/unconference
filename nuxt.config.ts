@@ -35,6 +35,29 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
+    // Private keys (only available on server-side)
+    sessionPassword: process.env.NUXT_SECRET_KEY || 'dev-secret-key-replace-in-production-7cd1a4a3a118e0852c31e12f6980ed27ade5ac5313547f62e14fd2c44c485a9f',
+    'pages:extend' (pages: any[]) {
+      function setMiddleware (pages: any[]) {
+        const publicPages = ['index', 'login', 'register', 'test-admin', 'demo-admin', 'organizer', 'super-admin-guide', 'quick-join', 'recap-demo']
+        const adminPages = ['admin', 'settings']
+        for (const page of pages) {
+          if (page.name && !publicPages.includes(page.name)) {
+            logger.debug(`Setting authentication middleware for page: ${page.name}`)
+            page.meta = page.meta || {}
+            page.meta.middleware = ['authenticated']
+            if (adminPages.includes(page.name)) {
+              logger.debug(`Setting admin requirement for page: ${page.name}`)
+              page.meta.requiresAdmin = true
+            }
+          }
+          if (page.children) setMiddleware(page.children)
+        }
+      }
+      setMiddleware(pages)
+    }
+  },
+  runtimeConfig: {
     oauth: {
       github: {
         clientId: process.env.GITHUB_CLIENT_ID,
@@ -99,21 +122,21 @@ export default defineNuxtConfig({
   nitro: {
     preset: process.env.VERCEL ? 'vercel' : undefined,
     experimental: {
-      wasm: true,
-      websocket: true
+      wasm: true
+      // websocket: true  // Temporarily disabled due to connection issues
     },
-    plugins: ['~/server/plugins/websocket.ts'],
+    // plugins: ['~/server/plugins/websocket.ts'],  // Temporarily disabled
     // Configure for Vercel deployment with Prisma
     esbuild: {
       options: {
         target: 'esnext'
       }
     },
-    // Handle Prisma properly for serverless
+    // Handle Prisma properly for serverless - merged from nitro.config.ts
     externals: {
-      // Let Vercel handle dependencies naturally
       inline: []
     },
+    // Ensure Prisma is treated as having side effects
     moduleSideEffects: ['@prisma/client'],
     // Ensure proper Node.js compatibility
     replace: {

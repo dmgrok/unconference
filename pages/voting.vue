@@ -25,10 +25,10 @@ interface UserAssignment {
 const config = useRuntimeConfig()
 const { user } = useUserSession()
 
-// Redirect super admins to their admin dashboard  
-const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
-if (isSuperAdmin.value) {
-  await navigateTo('/super-admin/dashboard')
+// Redirect admins to their admin dashboard
+const isGlobalAdmin = computed(() => (user.value as any)?.globalRole === 'Admin')
+if (isGlobalAdmin.value) {
+  await navigateTo('/admin/dashboard')
 }
 
 const { settings: adminSettings, loadSettings } = useAdminSettings()

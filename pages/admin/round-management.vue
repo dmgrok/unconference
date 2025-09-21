@@ -4,7 +4,7 @@ import type { RoundHistory, TopicSelection, ActiveRound } from '~/types/topic'
 import type { User } from '~/types/user'
 
 definePageMeta({
-  middleware: 'authenticated'
+  middleware: 'admin'
 })
 
 const { user } = useUserSession()

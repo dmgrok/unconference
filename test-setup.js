@@ -18,9 +18,9 @@ const testUsers = [
     Firstname: "Super",
     Lastname: "Admin", 
     Email: "superadmin@unconference.com",
-    Password: "SuperAdmin123",
-    Role: "SuperAdmin",
-    GlobalRole: "SuperAdmin"
+    Password: "Admin123",
+    Role: "Admin",
+    GlobalRole: "Admin"
   },
   {
     id: "admin-001",
@@ -235,7 +235,7 @@ if (isMainModule) {
       console.log('\n🎯 Next Steps:');
       console.log('1. Restart your application with: npm run dev');
       console.log('2. Visit http://localhost:3002/login');
-      console.log('3. Test login with: superadmin@unconference.com / SuperAdmin123');
+      console.log('3. Test login with: superadmin@unconference.com / Admin123');
       console.log('4. Navigate to real-time features to test connections/achievements');
       
     } catch (error) {

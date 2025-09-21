@@ -34,9 +34,9 @@ export default defineEventHandler(async (event) => {
 
     // Check if user has access to this event
     const userRole = await eventService.getUserRoleInEvent(userId, eventId)
-    const isSuperAdmin = (user as any).globalRole === 'SuperAdmin'
+    const isAdmin = (user as any).globalRole === 'Admin'
     
-    if (!userRole && !isSuperAdmin) {
+    if (!userRole && !isAdmin) {
       throw createError({
         statusCode: 403,
         statusMessage: 'Access denied to this event'
@@ -69,7 +69,7 @@ export default defineEventHandler(async (event) => {
       success: true,
       isActive,
       statusReason,
-      canReactivate: userRole === 'Organizer' || isSuperAdmin,
+      canReactivate: userRole === 'Organizer' || isAdmin,
       suspendedAt: (eventDetails as any).suspendedAt,
       closedAt: (eventDetails as any).closedAt,
       reactivatedAt: (eventDetails as any).reactivatedAt || (eventDetails as any).activatedAt

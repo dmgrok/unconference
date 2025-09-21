@@ -7,7 +7,7 @@ export interface User {
   email: string
   name: string
   subscriptionTier: 'FREE' | 'COMMUNITY' | 'ORGANIZER' | 'UNLIMITED'
-  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN'
+  role: 'USER' | 'ADMIN' | 'ADMIN'
   status: 'ACTIVE' | 'SUSPENDED'
   emailPreferences?: string | null
   createdAt: Date
@@ -77,9 +77,9 @@ export class UserFactory {
     })
   }
 
-  static createSuperAdmin(overrides: Partial<User> = {}): User {
+  static createAdmin(overrides: Partial<User> = {}): User {
     return this.create({
-      role: 'SUPER_ADMIN',
+      role: 'ADMIN',
       subscriptionTier: 'UNLIMITED',
       ...overrides
     })

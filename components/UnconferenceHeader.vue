@@ -279,8 +279,8 @@ async function logout() {
                 </v-list-item>
                 
                 <v-list-item 
-                  v-if="(user as any)?.globalRole === 'SuperAdmin'"
-                  to="/super-admin/dashboard" 
+                  v-if="(user as any)?.globalRole === 'Admin'"
+                  to="/admin/dashboard" 
                   prepend-icon="mdi-shield-crown"
                 >
                   <v-list-item-title>Super Admin</v-list-item-title>

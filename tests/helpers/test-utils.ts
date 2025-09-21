@@ -8,7 +8,7 @@ import { randomUUID } from 'crypto'
 export interface CreateTestUserOptions {
   email: string
   name: string
-  globalRole?: 'USER' | 'SUPER_ADMIN'
+  globalRole?: 'USER' | 'ADMIN'
   isActive?: boolean
   skills?: string
   interests?: string

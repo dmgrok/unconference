@@ -9,9 +9,8 @@ export default defineNuxtRouteMiddleware((to) => {
     })
   }
   
-  // Check if user has admin privileges
-  const userRole = (user.value as any)?.Role || (user.value as any)?.role || (user.value as any)?.globalRole
-  if (!['Admin', 'Organizer', 'SuperAdmin'].includes(userRole)) {
+  // Check if user is admin
+  if ((user.value as any)?.globalRole !== 'Admin') {
     throw createError({
       statusCode: 403,
       statusMessage: 'Admin access required'

@@ -13,7 +13,7 @@
         <v-btn color="secondary" prepend-icon="mdi-account-plus" @click="inviteUserDialog = true">
           Invite User
         </v-btn>
-        <v-btn color="secondary" prepend-icon="mdi-arrow-left" to="/super-admin/dashboard">
+        <v-btn color="secondary" prepend-icon="mdi-arrow-left" to="/admin/dashboard">
           Back to Dashboard
         </v-btn>
       </div>
@@ -213,7 +213,7 @@
             <strong>Global Role:</strong>
             <v-radio-group v-model="editingUser!.globalRole" inline>
               <v-radio label="User" value="User" />
-              <v-radio label="Super Admin" value="SuperAdmin" />
+              <v-radio label="Super Admin" value="Admin" />
             </v-radio-group>
           </div>
           
@@ -291,14 +291,14 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'authenticated'
+  middleware: 'admin'
 })
 
 interface User {
   id: string
   name: string
   email: string
-  globalRole?: 'SuperAdmin' | 'User'
+  globalRole?: 'Admin' | 'User'
   isActive: boolean
   eventCount: number
   createdAt: string
@@ -314,8 +314,8 @@ interface User {
 const { user } = useUserSession()
 
 // Check if user is super admin
-const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
-if (!isSuperAdmin.value) {
+const isAdmin = computed(() => (user.value as any)?.globalRole === 'SUPER_ADMIN')
+if (!isAdmin.value) {
   throw createError({ statusCode: 403, statusMessage: 'Super Admin access required' })
 }
 
@@ -340,7 +340,7 @@ const newUser = ref({
 
 const roleOptions = [
   { title: 'All Roles', value: 'all' },
-  { title: 'Super Admins', value: 'SuperAdmin' },
+  { title: 'Super Admins', value: 'Admin' },
   { title: 'Regular Users', value: 'User' }
 ]
 
@@ -352,7 +352,7 @@ const statusOptions = [
 
 const globalRoleOptions = [
   { title: 'User', value: 'User' },
-  { title: 'Super Admin', value: 'SuperAdmin' }
+  { title: 'Super Admin', value: 'Admin' }
 ]
 
 const eventRoleOptions = [
@@ -394,7 +394,7 @@ const filteredUsers = computed(() => {
 async function loadUsers() {
   loading.value = true
   try {
-    const response = await $fetch('/api/super-admin/users') as any
+    const response = await $fetch('/api/admin/users') as any
     users.value = response.users || []
   } catch (error) {
     console.error('Failed to load users:', error)
@@ -420,7 +420,7 @@ async function toggleUserStatus(user: User) {
   if (!confirmed) return
 
   try {
-    await $fetch(`/api/super-admin/users/${user.id}/${action}`, {
+    await $fetch(`/api/admin/users/${user.id}/${action}`, {
       method: 'POST'
     })
     await loadUsers()
@@ -437,7 +437,7 @@ async function saveRoleChanges() {
   if (!editingUser.value) return
 
   try {
-    await $fetch(`/api/super-admin/users/${editingUser.value.id}/roles`, {
+    await $fetch(`/api/admin/users/${editingUser.value.id}/roles`, {
       method: 'PUT',
       body: {
         globalRole: editingUser.value.globalRole,
@@ -457,7 +457,7 @@ async function saveRoleChanges() {
 
 async function sendInvite() {
   try {
-    await $fetch('/api/super-admin/users/invite', {
+    await $fetch('/api/admin/users/invite', {
       method: 'POST',
       body: newUser.value
     })
@@ -477,7 +477,7 @@ function cancelInvite() {
 
 function getRoleColor(role?: string) {
   switch (role) {
-    case 'SuperAdmin': return 'error'
+    case 'Admin': return 'error'
     case 'User': return 'primary'
     default: return 'grey'
   }

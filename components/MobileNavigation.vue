@@ -216,13 +216,13 @@
           </template>
 
           <!-- Super Admin -->
-          <template v-if="(user as any)?.globalRole === 'SuperAdmin'">
+          <template v-if="(user as any)?.globalRole === 'Admin'">
             <v-list-subheader>Super Admin</v-list-subheader>
 
             <v-list-item
               prepend-icon="mdi-shield-crown"
               title="Super Admin"
-              to="/super-admin/dashboard"
+              to="/admin/dashboard"
               @click="closeDrawer"
             />
           </template>

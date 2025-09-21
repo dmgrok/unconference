@@ -126,7 +126,7 @@ describe('Analytics API', () => {
 
       const mockUser = {
         id: 'admin-123',
-        globalRole: 'SUPER_ADMIN'
+        globalRole: 'ADMIN'
       }
 
       // This would require more complex mocking in a real test environment

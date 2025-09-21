@@ -9,9 +9,9 @@ const { user } = useUserSession()
 const { eventStatus, isEventActive, isEventInactive, canEditEvent } = useEventStatus()
 
 // Redirect super admins to their admin dashboard
-const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
-if (isSuperAdmin.value) {
-  await navigateTo('/super-admin/dashboard')
+const isAdmin = computed(() => (user.value as any)?.globalRole === 'Admin')
+if (isAdmin.value) {
+  await navigateTo('/admin/dashboard')
 }
 // TODO: Implement multi-event support later
 // const { currentEventId } = useEventContext()

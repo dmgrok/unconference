@@ -64,8 +64,8 @@ const testCredentials = computed(() => {
     
     return {
         superAdmin: {
-            email: runtimeConfig.public.testSuperAdminEmail || '',
-            password: runtimeConfig.public.testSuperAdminPassword || ''
+            email: runtimeConfig.public.testAdminEmail || '',
+            password: runtimeConfig.public.testAdminPassword || ''
         },
         admin: {
             email: runtimeConfig.public.testAdminEmail || '',

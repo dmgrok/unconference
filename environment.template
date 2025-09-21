@@ -20,16 +20,16 @@ NUXT_TOP_TOPICS_COUNT=10
 
 # OAuth Configuration
 # GitHub OAuth
-NUXT_OAUTH_GITHUB_CLIENT_ID=your_github_client_id
-NUXT_OAUTH_GITHUB_CLIENT_SECRET=your_github_client_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
 
 # Google OAuth  
-NUXT_OAUTH_GOOGLE_CLIENT_ID=your_google_client_id
-NUXT_OAUTH_GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 # LinkedIn OAuth
-NUXT_OAUTH_LINKEDIN_CLIENT_ID=your_linkedin_client_id
-NUXT_OAUTH_LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
+LINKEDIN_CLIENT_ID=your_linkedin_client_id
+LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
 
 # Session secrets (generate random strings for production)
 NUXT_SECRET_KEY=your_session_secret_key

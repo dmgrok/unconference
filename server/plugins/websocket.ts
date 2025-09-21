@@ -9,17 +9,22 @@ const collaborators = new Map<string, Set<string>>()
 export default defineNitroPlugin(async (nitroApp) => {
   console.log('🔌 Setting up WebSocket server for collaborative editing...')
 
-  nitroApp.hooks.hook('listen', (server) => {
+  nitroApp.hooks.hook('listen', (server: any) => {
     if (io) return
 
-    io = new SocketIOServer(server, {
-      cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-      },
-      transports: ['websocket', 'polling'],
-      path: '/socket.io/'
-    })
+    try {
+      io = new SocketIOServer(server, {
+        cors: {
+          origin: "*",
+          methods: ["GET", "POST"]
+        },
+        transports: ['websocket', 'polling'],
+        path: '/socket.io/'
+      })
+    } catch (error) {
+      console.error('❌ Failed to initialize WebSocket server:', error)
+      return
+    }
 
     io.on('connection', (socket) => {
       console.log(`🔗 New WebSocket connection: ${socket.id}`)

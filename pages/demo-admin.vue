@@ -249,7 +249,7 @@
             >
               <template #item.globalRole="{ item }">
                 <v-chip
-                  :color="item.globalRole === 'SuperAdmin' ? 'error' : 'primary'"
+                  :color="item.globalRole === 'Admin' ? 'error' : 'primary'"
                   :text="item.globalRole"
                   size="small"
                 />
@@ -293,7 +293,7 @@ const mockUsers = ref([
     id: 'super-admin-001',
     name: 'Super Admin',
     email: 'superadmin@unconference.com',
-    globalRole: 'SuperAdmin',
+    globalRole: 'Admin',
     isActive: true,
     eventCount: 0,
     lastLoginAt: '2024-08-27'

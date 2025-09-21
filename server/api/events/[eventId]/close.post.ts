@@ -19,9 +19,9 @@ export default defineEventHandler(async (event) => {
   try {
     // Check if user is organizer of this event or super admin
     const userRole = await eventService.getUserRoleInEvent(userId, eventId)
-    const isSuperAdmin = (user as any).globalRole === 'SuperAdmin'
+    const isAdmin = (user as any).globalRole === 'Admin'
     
-    if (userRole !== 'Organizer' && !isSuperAdmin) {
+    if (userRole !== 'Organizer' && !isAdmin) {
       throw createError({
         statusCode: 403,
         statusMessage: 'Only event organizers can close their events'
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
     // Save updated events
     await fs.writeFile(eventsPath, JSON.stringify(events, null, 2))
 
-    logger.info(`Event ${eventId} closed by ${isSuperAdmin ? 'super admin' : 'organizer'} ${(user as any).email}`)
+    logger.info(`Event ${eventId} closed by ${isAdmin ? 'admin' : 'organizer'} ${(user as any).email}`)
 
     return {
       success: true,

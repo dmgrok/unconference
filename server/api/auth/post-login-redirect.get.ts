@@ -26,9 +26,9 @@ export default defineEventHandler(async (event) => {
     })
 
     // Check if user is super admin - redirect to admin dashboard
-    if ((user as any).globalRole === 'SuperAdmin') {
+    if ((user as any).globalRole === 'Admin') {
       return {
-        redirect: '/super-admin/dashboard',
+        redirect: '/admin/dashboard',
         reason: 'super_admin_access'
       }
     }

@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { DiscussionTopic } from '~/types/topic'
 
 definePageMeta({
-  middleware: 'authenticated'
+  middleware: 'admin'
 })
 
 const { user } = useUserSession()

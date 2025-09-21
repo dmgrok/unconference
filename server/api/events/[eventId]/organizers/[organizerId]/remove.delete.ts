@@ -16,9 +16,9 @@ export default defineEventHandler(async (event) => {
   // Check if user is organizer of this event
   const userId = (user as any).id || (user as any).email
   const userRole = await eventService.getUserRoleInEvent(userId, eventId)
-  const isSuperAdmin = (user as any).globalRole === 'SuperAdmin'
+  const isAdmin = (user as any).globalRole === 'Admin'
   
-  if (userRole !== 'Organizer' && !isSuperAdmin) {
+  if (userRole !== 'Organizer' && !isAdmin) {
     throw createError({
       statusCode: 403,
       message: 'Only organizers or super admins can remove organizers'
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Prevent self-removal unless super admin
-    if (userId === organizerId && !isSuperAdmin) {
+    if (userId === organizerId && !isAdmin) {
       throw createError({
         statusCode: 400,
         message: 'Cannot remove yourself as organizer. Ask another organizer or transfer ownership.'

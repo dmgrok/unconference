@@ -2,10 +2,10 @@ export default defineNuxtRouteMiddleware((to) => {
   const { user } = useUserSession()
   
   // Check if user is super admin
-  const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
+  const isAdmin = computed(() => (user.value as any)?.globalRole === 'Admin')
   
   // If super admin is trying to access personal events page, redirect to admin events
-  if (isSuperAdmin.value && to.path === '/events') {
-    return navigateTo('/super-admin/events')
+  if (isAdmin.value && to.path === '/events') {
+    return navigateTo('/admin/events')
   }
 })

@@ -3,39 +3,79 @@ import { join } from 'path'
 import logger from '../../../utils/logger'
 
 export default defineEventHandler(async (event) => {
-  // For backward compatibility, support calls without eventId
-  const eventId = getQuery(event).eventId as string
+  const { user } = await requireUserSession(event)
   
+  // Check if user is super admin
+  if ((user as any).globalRole !== 'Admin') {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Super admin access required'
+    })
+  }
+
   try {
-    let settingsPath: string
+    const platformBasePath = join(process.cwd(), 'data', 'platform')
+    const settingsPath = join(platformBasePath, 'super-admin-settings.json')
     
-    if (eventId) {
-      // Multi-event mode
-      settingsPath = join(process.cwd(), 'data', 'events', eventId, 'settings.json')
-    } else {
-      // Single event mode (backward compatibility)
-      settingsPath = join(process.cwd(), 'data', 'admin-settings.json')
-    }
-    
-    const settingsData = await fs.readFile(settingsPath, 'utf-8')
-    const settings = JSON.parse(settingsData)
-    
-    logger.debug(`Admin settings loaded from ${settingsPath}`)
-    return settings
-  } catch (error) {
-    // If file doesn't exist, return default settings
+    // Default settings
     const defaultSettings = {
-      maxVotesPerTopic: 12,
-      topTopicsCount: 10,
-      showVoterNames: true,
-      allowTopicSubmission: true,
-      autoStartNewRound: false,
-      roundDurationMinutes: 20,
-      maxTopicsPerRound: 8,
-      allowGuestAccess: true
+      platformName: 'Unconference Platform',
+      platformDescription: 'A platform for organizing discussion-based unconferences',
+      supportEmail: 'support@unconference.com',
+      maxEventsPerOrganizer: 10,
+      allowPublicRegistration: true,
+      requireEmailVerification: false,
+      allowGuestAccess: true,
+      sessionTimeoutMinutes: 480,
+      maxParticipantsPerEvent: 500,
+      maxTopicsPerEvent: 100,
+      enableAuditLog: true,
+      dataRetentionDays: 365,
+      autoBackup: true,
+      backupFrequencyHours: 24,
+      features: {
+        multiEvent: true,
+        qrCodeJoin: true,
+        realTimeUpdates: true,
+        analytics: true,
+        eventCloning: true,
+        advancedPermissions: false
+      },
+      notifications: {
+        emailEnabled: true,
+        eventCreated: true,
+        userRegistered: true,
+        fromEmail: 'noreply@unconference.com',
+        fromName: 'Unconference Platform'
+      },
+      announcement: {
+        enabled: false,
+        type: 'info',
+        title: '',
+        message: '',
+        expiresAt: ''
+      }
     }
+
+    let settings = defaultSettings
+    try {
+      const settingsData = await fs.readFile(settingsPath, 'utf-8')
+      settings = { ...defaultSettings, ...JSON.parse(settingsData) }
+    } catch {
+      // Use default settings if file doesn't exist
+    }
+
+    logger.debug(`Super admin settings accessed by ${(user as any).email}`)
     
-    logger.debug(`Using default admin settings`)
-    return defaultSettings
+    return {
+      success: true,
+      settings
+    }
+  } catch (error) {
+    logger.error('Error getting super admin settings:', error)
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Failed to retrieve settings'
+    })
   }
 })

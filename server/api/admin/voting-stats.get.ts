@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   
   // Only admins and organizers can access voting stats
   const userRole = (user as any).Role || (user as any).role
-  if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'SuperAdmin') {
+  if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'Admin') {
     throw createError({
       statusCode: 403,
       message: 'Access denied. Admin or organizer role required.'

@@ -86,7 +86,7 @@ export class MigrationService {
         id: user.Email,
         name: `${user.Firstname} ${user.Lastname}`,
         email: user.Email,
-        globalRole: user.Role === 'Admin' ? 'SuperAdmin' : 'User',
+        globalRole: user.Role === 'Admin' ? 'Admin' : 'User',
         isActive: true,
         createdAt: new Date(),
         lastLoginAt: new Date()
@@ -182,7 +182,7 @@ export class MigrationService {
       const memberships: UserEventRole[] = users.map(user => ({
         userId: user.id,
         eventId,
-        role: user.globalRole === 'SuperAdmin' ? 'Organizer' : 'Participant',
+        role: user.globalRole === 'Admin' ? 'Organizer' : 'Participant',
         permissions: [],
         joinedAt: new Date()
       }))

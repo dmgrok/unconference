@@ -10,7 +10,7 @@ export default defineNuxtRouteMiddleware((to) => {
   }
   
   // Check if user is super admin
-  if ((user.value as any)?.globalRole !== 'SuperAdmin') {
+  if ((user.value as any)?.globalRole !== 'Admin') {
     throw createError({
       statusCode: 403,
       statusMessage: 'Super Admin access required'

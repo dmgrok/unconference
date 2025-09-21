@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
       where: { id: session.user.id }
     })
     
-    if (!user || user.globalRole !== 'SUPER_ADMIN') {
+    if (!user || user.globalRole !== 'ADMIN') {
       throw createError({
         statusCode: 403,
         statusMessage: 'Admin access required'

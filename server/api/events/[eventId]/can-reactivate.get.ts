@@ -30,22 +30,22 @@ export default defineEventHandler(async (event) => {
         success: true,
         canReactivate: false,
         userRole: null,
-        isSuperAdmin: false
+        isAdmin: false
       }
     }
 
     // Check if user has permission to reactivate this event
     const userRole = await eventService.getUserRoleInEvent(userId, eventId)
-    const isSuperAdmin = (user as any).globalRole === 'SuperAdmin'
+    const isAdmin = (user as any).globalRole === 'Admin'
     
     // Only organizers and super admins can reactivate events
-    const canReactivate = userRole === 'Organizer' || isSuperAdmin
+    const canReactivate = userRole === 'Organizer' || isAdmin
 
     return {
       success: true,
       canReactivate,
       userRole,
-      isSuperAdmin
+      isAdmin
     }
 
   } catch (error: any) {
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
       success: true,
       canReactivate: false,
       userRole: null,
-      isSuperAdmin: false
+      isAdmin: false
     }
   }
 })

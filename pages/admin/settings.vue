@@ -10,7 +10,7 @@
         <v-btn color="success" prepend-icon="mdi-content-save" @click="saveSettings" :loading="saving">
           Save Changes
         </v-btn>
-        <v-btn color="secondary" prepend-icon="mdi-arrow-left" to="/super-admin/dashboard">
+        <v-btn color="secondary" prepend-icon="mdi-arrow-left" to="/admin/dashboard">
           Back to Dashboard
         </v-btn>
       </div>
@@ -297,14 +297,14 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'authenticated'
+  middleware: 'admin'
 })
 
 const { user } = useUserSession()
 
 // Check if user is super admin
-const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
-if (!isSuperAdmin.value) {
+const isAdmin = computed(() => (user.value as any)?.globalRole === 'Admin')
+if (!isAdmin.value) {
   throw createError({ statusCode: 403, statusMessage: 'Super Admin access required' })
 }
 
@@ -360,7 +360,7 @@ const announcementTypes = [
 // Methods
 async function loadSettings() {
   try {
-    const response = await $fetch('/api/super-admin/settings') as any
+    const response = await $fetch('/api/admin/settings') as any
     if (response.settings) {
       settings.value = { ...settings.value, ...response.settings }
     }
@@ -372,7 +372,7 @@ async function loadSettings() {
 async function saveSettings() {
   saving.value = true
   try {
-    await $fetch('/api/super-admin/settings', {
+    await $fetch('/api/admin/settings', {
       method: 'PUT',
       body: { settings: settings.value }
     })
@@ -388,7 +388,7 @@ async function saveSettings() {
 
 async function exportData() {
   try {
-    const response = await $fetch('/api/super-admin/export', {
+    const response = await $fetch('/api/admin/export', {
       method: 'POST'
     }) as any
     
@@ -410,7 +410,7 @@ async function exportData() {
 
 async function backupNow() {
   try {
-    await $fetch('/api/super-admin/backup', {
+    await $fetch('/api/admin/backup', {
       method: 'POST'
     })
     alert('Backup completed successfully!')
@@ -422,7 +422,7 @@ async function backupNow() {
 
 async function generateReport() {
   try {
-    const response = await $fetch('/api/super-admin/analytics/report', {
+    const response = await $fetch('/api/admin/analytics/report', {
       method: 'POST'
     }) as any
     

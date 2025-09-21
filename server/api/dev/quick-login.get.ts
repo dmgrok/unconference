@@ -20,8 +20,8 @@ export default defineEventHandler(async (event) => {
     'super-admin': {
       name: 'Super Admin',
       email: 'superadmin@unconference.com',
-      role: 'SuperAdmin',
-      globalRole: 'SuperAdmin'
+      role: 'Admin',
+      globalRole: 'Admin'
     },
     'admin': {
       name: 'Darth Vader',

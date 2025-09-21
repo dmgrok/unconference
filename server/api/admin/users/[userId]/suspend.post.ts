@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const userId = getRouterParam(event, 'userId')
   
   // Check if user is super admin
-  if ((user as any).globalRole !== 'SuperAdmin') {
+  if ((user as any).globalRole !== 'Admin') {
     throw createError({
       statusCode: 403,
       statusMessage: 'Super admin access required'
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Find and activate the user
+    // Find and suspend the user
     const userIndex = users.findIndex((u: any) => u.id === userId)
     if (userIndex === -1) {
       throw createError({
@@ -47,23 +47,23 @@ export default defineEventHandler(async (event) => {
     }
 
     // Update user status
-    users[userIndex].isActive = true
+    users[userIndex].isActive = false
     users[userIndex].updatedAt = new Date().toISOString()
 
     // Save updated users
     await fs.writeFile(usersPath, JSON.stringify(users, null, 2))
 
-    logger.info(`User ${userId} activated by super admin ${(user as any).email}`)
+    logger.info(`User ${userId} suspended by super admin ${(user as any).email}`)
     
     return {
       success: true,
-      message: 'User activated successfully'
+      message: 'User suspended successfully'
     }
   } catch (error) {
-    logger.error('Error activating user:', error)
+    logger.error('Error suspending user:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to activate user'
+      statusMessage: 'Failed to suspend user'
     })
   }
 })

@@ -25,7 +25,13 @@
   const userRole = computed(() => (user.value as any)?.Role || (user.value as any)?.role || null)
   const globalRole = computed(() => (user.value as any)?.globalRole || null)
   const isAdmin = computed(() => userRole.value === 'Admin')
-  const isSuperAdmin = computed(() => globalRole.value === 'SuperAdmin')
+  const isSuperAdmin = computed(() => {
+    const result = globalRole.value === 'SUPER_ADMIN'
+    console.log('Debug - User:', user.value)
+    console.log('Debug - globalRole:', globalRole.value)
+    console.log('Debug - isSuperAdmin:', result)
+    return result
+  })
 
   // Initialize theme on app load
   onMounted(() => {
@@ -139,52 +145,39 @@
       organizerAccess: true
     },
 
-    // Super Admin Section
+    // Super Admin Section - Only show Dashboard, Events, and Users
     {
-      icon: 'mdi-shield-crown',
-      title: 'Platform Admin',
-      to: '/super-admin/dashboard',
+      icon: 'mdi-view-dashboard',
+      title: 'Dashboard',
+      to: '/admin/dashboard',
       adminOnly: false,
       superAdminOnly: true
     },
     {
       icon: 'mdi-calendar-multiple',
-      title: 'All Events',
-      to: '/super-admin/events',
+      title: 'Events',
+      to: '/admin/events',
       adminOnly: false,
       superAdminOnly: true
     },
     {
       icon: 'mdi-account-supervisor',
-      title: 'User Management',
-      to: '/super-admin/users',
+      title: 'Users',
+      to: '/admin/users',
       adminOnly: false,
       superAdminOnly: true
-    },
-    {
-      icon: 'mdi-server-security',
-      title: 'Platform Settings',
-      to: '/super-admin/settings',
-      adminOnly: false,
-      superAdminOnly: true
-    },
-    {
-      icon: 'mdi-flask',
-      title: 'Read-Only Demo',
-      to: '/read-only-demo',
-      adminOnly: true,
-      organizerAccess: true
     }
   ])
 
   const filteredNavItems = computed<NavItem[]>(() => 
     navItems.filter(item => {
-      // Super admin users should ONLY see super admin items
-      if (isSuperAdmin.value) {
-        return item.superAdminOnly
+      // For Super Admin users
+      if (isAdmin.value) {
+        // Only show super admin items
+        return item.superAdminOnly === true
       }
       
-      // Super admin items are only for super admins
+      // For regular users: hide super admin items
       if (item.superAdminOnly) {
         return false
       }
@@ -213,7 +206,7 @@
 
   // Determine if we should show the event summary instead of normal navigation
   const showEventSummary = computed(() => 
-    isEventInactive.value && currentEvent.value && !isSuperAdmin.value
+    isEventInactive.value && currentEvent.value && !isAdmin.value
   )
 
   // Can the user reactivate the event?
@@ -289,12 +282,12 @@
           <v-icon size="32" color="primary">mdi-forum</v-icon>
           <div class="header-logo-text ml-3">
             <h3 class="app-title-modern">Unconference</h3>
-            <p class="user-role-text">{{ globalRole === 'SuperAdmin' ? 'Super Admin' : (userRole || 'Participant') }}</p>
+            <p class="user-role-text">{{ globalRole === 'Admin' ? 'Super Admin' : (userRole || 'Participant') }}</p>
           </div>
         </div>
 
         <!-- Current Event Context Display -->
-        <div v-if="currentEvent && !isSuperAdmin" class="header-event-context ml-6">
+        <div v-if="currentEvent && !isAdmin" class="header-event-context ml-6">
           <v-chip 
             color="primary" 
             variant="tonal" 
@@ -320,7 +313,7 @@
         <!-- Event Quick Access (for multi-event users) -->
         <div v-if="user" class="header-event-access mr-4">
           <v-btn
-            v-if="!isSuperAdmin"
+            v-if="!isAdmin"
             color="primary"
             variant="outlined"
             prepend-icon="mdi-calendar-multiple"
@@ -334,7 +327,7 @@
             color="primary"
             variant="outlined"
             prepend-icon="mdi-calendar-multiple"
-            to="/super-admin/events"
+            to="/admin/events"
             size="small"
           >
             All Events

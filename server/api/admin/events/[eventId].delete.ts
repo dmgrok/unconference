@@ -1,13 +1,13 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
-import logger from '../../../../../utils/logger'
+import logger from '../../../../utils/logger'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   const eventId = getRouterParam(event, 'eventId')
   
   // Check if user is super admin
-  if ((user as any).globalRole !== 'SuperAdmin') {
+  if ((user as any).globalRole !== 'Admin') {
     throw createError({
       statusCode: 403,
       statusMessage: 'Super admin access required'
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Find and suspend the event
+    // Find the event
     const eventIndex = events.findIndex((e: any) => e.id === eventId)
     if (eventIndex === -1) {
       throw createError({
@@ -46,29 +46,42 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Update event status
-    events[eventIndex].isActive = false
-    events[eventIndex].suspendedAt = new Date().toISOString()
-    events[eventIndex].suspendedBy = (user as any).id
+    const eventToDelete = events[eventIndex]
 
-    // Save updated events
+    // Remove event from events list
+    events.splice(eventIndex, 1)
     await fs.writeFile(eventsPath, JSON.stringify(events, null, 2))
 
-    logger.info(`Event ${eventId} suspended by super admin ${(user as any).email}`)
+    // Remove event memberships
+    const membershipsPath = join(platformBasePath, 'memberships.json')
+    try {
+      const membershipsData = await fs.readFile(membershipsPath, 'utf-8')
+      let memberships = JSON.parse(membershipsData)
+      memberships = memberships.filter((m: any) => m.eventId !== eventId)
+      await fs.writeFile(membershipsPath, JSON.stringify(memberships, null, 2))
+    } catch {
+      // No memberships file
+    }
 
+    // Remove event data directory
+    const eventDataPath = join(process.cwd(), 'data', 'events', eventId)
+    try {
+      await fs.rmdir(eventDataPath, { recursive: true })
+    } catch {
+      // Directory might not exist
+    }
+
+    logger.info(`Event ${eventId} (${eventToDelete.name}) deleted by super admin ${(user as any).email}`)
+    
     return {
       success: true,
-      message: 'Event suspended successfully'
+      message: 'Event deleted successfully'
     }
-
-  } catch (error: any) {
-    if (error.statusCode) {
-      throw error
-    }
-    logger.error('Error suspending event:', error)
+  } catch (error) {
+    logger.error('Error deleting event:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to suspend event'
+      statusMessage: 'Failed to delete event'
     })
   }
 })

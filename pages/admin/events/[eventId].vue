@@ -10,7 +10,7 @@
         <v-btn color="primary" prepend-icon="mdi-refresh" @click="loadEvent">
           Refresh
         </v-btn>
-        <v-btn color="secondary" prepend-icon="mdi-arrow-left" to="/super-admin/events">
+        <v-btn color="secondary" prepend-icon="mdi-arrow-left" to="/admin/events">
           Back to All Events
         </v-btn>
       </div>
@@ -186,7 +186,7 @@
             <v-icon size="48" color="error">mdi-alert-circle</v-icon>
             <div class="text-h6 mt-2">Event Not Found</div>
             <div class="text-body-2">The requested event could not be found.</div>
-            <v-btn color="primary" class="mt-4" to="/super-admin/events">
+            <v-btn color="primary" class="mt-4" to="/admin/events">
               Return to Events List
             </v-btn>
           </v-card-text>
@@ -213,7 +213,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'authenticated'
+  middleware: 'admin'
 })
 
 interface Event {
@@ -245,8 +245,8 @@ const route = useRoute()
 const { user } = useUserSession()
 
 // Check if user is super admin
-const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
-if (!isSuperAdmin.value) {
+const isAdmin = computed(() => (user.value as any)?.globalRole === 'Admin')
+if (!isAdmin.value) {
   throw createError({ statusCode: 403, statusMessage: 'Super Admin access required' })
 }
 
@@ -262,7 +262,7 @@ const eventId = computed(() => route.params.eventId as string)
 async function loadEvent() {
   loading.value = true
   try {
-    const response = await $fetch(`/api/super-admin/events/${eventId.value}`) as any
+    const response = await $fetch(`/api/admin/events/${eventId.value}`) as any
     event.value = response.event
     activities.value = response.activities || []
   } catch (error) {
@@ -278,7 +278,7 @@ async function suspendEvent() {
   if (!confirmed) return
   
   try {
-    await $fetch(`/api/super-admin/events/${eventId.value}/suspend`, {
+    await $fetch(`/api/admin/events/${eventId.value}/suspend`, {
       method: 'POST'
     })
     await loadEvent()
@@ -290,7 +290,7 @@ async function suspendEvent() {
 
 async function activateEvent() {
   try {
-    await $fetch(`/api/super-admin/events/${eventId.value}/activate`, {
+    await $fetch(`/api/admin/events/${eventId.value}/activate`, {
       method: 'POST'
     })
     await loadEvent()
@@ -302,11 +302,11 @@ async function activateEvent() {
 
 async function deleteEvent() {
   try {
-    await $fetch(`/api/super-admin/events/${eventId.value}`, {
+    await $fetch(`/api/admin/events/${eventId.value}`, {
       method: 'DELETE'
     })
     confirmDelete.value = false
-    navigateTo('/super-admin/events')
+    navigateTo('/admin/events')
   } catch (error) {
     console.error('Failed to delete event:', error)
     alert('Failed to delete event')

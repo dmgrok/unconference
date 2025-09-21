@@ -35,8 +35,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     // Legacy admin check (for platform-wide admin pages)
     if (to.meta.requiresAdmin) {
         // Super admins should not access event-specific admin pages
-        if (currentUser?.globalRole === 'SuperAdmin') {
-            return navigateTo('/super-admin/dashboard')
+        if (currentUser?.globalRole === 'Admin') {
+            return navigateTo('/admin/dashboard')
         }
         
         if (currentUser?.role !== 'Admin') {
@@ -45,7 +45,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
     
     // Super admin check
-    if (to.meta.requiresSuperAdmin && currentUser?.globalRole !== 'SuperAdmin') {
+    if (to.meta.requiresAdmin && currentUser?.globalRole !== 'Admin') {
         throw createError({
             statusCode: 403,
             statusMessage: 'Super admin access required'

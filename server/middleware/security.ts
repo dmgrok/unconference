@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     } else if (url.includes('/api/topics/') && method === 'POST') {
       maxRequests = process.env.NODE_ENV === 'development' ? 200 : 20  // Voting endpoints
       windowMs = 60000
-    } else if (url.includes('/api/admin/') || url.includes('/api/super-admin/')) {
+    } else if (url.includes('/api/admin/') || url.includes('/api/admin/')) {
       maxRequests = process.env.NODE_ENV === 'development' ? 2000 : 200  // Higher limit for admin endpoints
       windowMs = 60000
     }
@@ -102,7 +102,7 @@ export default defineEventHandler(async (event) => {
     monitoringService.trackRequestStart(event)
 
     // 7. Log security events
-    if (url.includes('/api/auth/') || url.includes('/api/admin/') || url.includes('/api/super-admin/')) {
+    if (url.includes('/api/auth/') || url.includes('/api/admin/') || url.includes('/api/admin/')) {
       logger.info(`Security-sensitive request: ${method} ${url} from ${ip}`)
     }
 

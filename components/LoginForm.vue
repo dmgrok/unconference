@@ -56,7 +56,7 @@
     const testCredentials = {
         superAdmin: {
             email: 'superadmin@unconference.com',
-            password: 'SuperAdmin123'
+            password: 'Admin123'
         },
         admin: {
             email: 'darth.vader@starwars.com',
@@ -143,7 +143,7 @@
         }
     }
 
-    function fillSuperAdminCredentials() {
+    function fillAdminCredentials() {
         credentials.email = testCredentials.superAdmin.email
         credentials.password = testCredentials.superAdmin.password
         loginError.value = false
@@ -400,7 +400,7 @@
                             </div>
                             <div class="test-buttons">
                                 <v-btn
-                                    @click="fillSuperAdminCredentials"
+                                    @click="fillAdminCredentials"
                                     :disabled="loginLoading"
                                     :loading="loginLoading"
                                     variant="outlined"

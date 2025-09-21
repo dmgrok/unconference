@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
         name: 'Super Admin Test User',
         email: guestEmail,
         role: 'Admin',
-        globalRole: 'SuperAdmin',
+        globalRole: 'Admin',
         isGuest: true,
         eventCode: eventCode.toUpperCase(),
         currentEventId: 'test-event'
@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
         name: 'Super Admin Test User',
         email: guestEmail,
         role: 'Admin',
-        globalRole: 'SuperAdmin',
+        globalRole: 'Admin',
         eventCode: eventCode.toUpperCase(),
         eventId: 'test-event',
         eventName: 'Super Admin Test Event'

@@ -22,9 +22,9 @@ interface TopicSelection {
 const { user } = useUserSession()
 
 // Redirect super admins to their admin dashboard
-const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
-if (isSuperAdmin.value) {
-  await navigateTo('/super-admin/dashboard')
+const isAdmin = computed(() => (user.value as any)?.globalRole === 'Admin')
+if (isAdmin.value) {
+  await navigateTo('/admin/dashboard')
 }
 
 const { settings: adminSettings, loadSettings } = useAdminSettings()

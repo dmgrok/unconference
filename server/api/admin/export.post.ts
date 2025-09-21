@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   
   // Check if user is super admin
-  if ((user as any).globalRole !== 'SuperAdmin') {
+  if ((user as any).globalRole !== 'Admin') {
     throw createError({
       statusCode: 403,
       statusMessage: 'Super admin access required'

@@ -114,7 +114,7 @@ onMounted(() => {
 })
 
 definePageMeta({
-  middleware: 'authenticated',
+  middleware: 'admin',
   requiresAdmin: true
 })
 </script>

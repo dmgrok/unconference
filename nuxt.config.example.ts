@@ -9,8 +9,8 @@ export default defineNuxtConfig({
       
       // Test credentials (only for development)
       ...(process.env.APP_ENV === 'development' && {
-        testSuperAdminEmail: process.env.TEST_SUPER_ADMIN_EMAIL || '',
-        testSuperAdminPassword: process.env.TEST_SUPER_ADMIN_PASSWORD || '',
+        testAdminEmail: process.env.TEST_ADMIN_EMAIL || '',
+        testAdminPassword: process.env.TEST_ADMIN_PASSWORD || '',
         testAdminEmail: process.env.TEST_ADMIN_EMAIL || '',
         testAdminPassword: process.env.TEST_ADMIN_PASSWORD || '',
         testOrganizerEmail: process.env.TEST_ORGANIZER_EMAIL || '',

@@ -2,9 +2,9 @@
 const { user } = useUserSession()
 
 // Redirect super admins to their platform settings
-const isSuperAdmin = computed(() => (user.value as any)?.globalRole === 'SuperAdmin')
-if (isSuperAdmin.value) {
-  await navigateTo('/super-admin/settings')
+const isAdmin = computed(() => (user.value as any)?.globalRole === 'Admin')
+if (isAdmin.value) {
+  await navigateTo('/admin/settings')
 }
 
 const config = useRuntimeConfig()

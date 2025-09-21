@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   // Require admin or organizer authentication
   const { user } = await requireUserSession(event)
   const userRole = (user as any).Role || (user as any).role
-  if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'SuperAdmin') {
+  if (!['Admin', 'Organizer'].includes(userRole) && (user as any).globalRole !== 'Admin') {
     throw createError({
       statusCode: 403,
       message: 'Admin or organizer access required'
